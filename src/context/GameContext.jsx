@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchGameStats, updateGameStats, fetchStaticGameData } from '../api/stats';
 
 const GameContext = createContext();
 
-const BACKEND_URL_STATS = 'http://localhost:3000/api/stats';
-const BACKEND_URL_DATA = 'http://localhost:3000/api/data/static';
+// Removed local URL constants in favor of API adapter
+
 
 export const useGame = () => {
     return useContext(GameContext);
@@ -41,12 +42,9 @@ export const GameProvider = ({ children }) => {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch(BACKEND_URL_STATS);
-            if (res.ok) {
-                const data = await res.json();
-                console.log("Fetched Stats:", data);
-                setStats(data);
-            }
+            const data = await fetchGameStats();
+            console.log("Fetched Stats:", data);
+            setStats(data);
         } catch (error) {
             console.error("Failed to fetch game stats:", error);
         }
@@ -54,11 +52,8 @@ export const GameProvider = ({ children }) => {
 
     const fetchStaticData = async () => {
         try {
-            const res = await fetch(BACKEND_URL_DATA);
-            if (res.ok) {
-                const data = await res.json();
-                setGameData(data); // Expecting { npcData, mapData, floorData }
-            }
+            const data = await fetchStaticGameData();
+            setGameData(data); // Expecting { npcData, mapData, floorData }
         } catch (error) {
             console.error("Failed to fetch static game data:", error);
         }
@@ -85,20 +80,10 @@ export const GameProvider = ({ children }) => {
         }
 
         try {
-            const body = { updates };
-            if (npcId) body.npcId = npcId;
+            const newFullData = await updateGameStats(updates, npcId);
+            // backend returns flat global + npcStats
+            setStats(newFullData);
 
-            const res = await fetch(BACKEND_URL_STATS, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            if (res.ok) {
-                const newFullData = await res.json();
-                // backend returns flat global + npcStats
-                setStats(newFullData);
-            }
         } catch (error) {
             console.error("Failed to update stats:", error);
             // Ideally rollback optimistic update here

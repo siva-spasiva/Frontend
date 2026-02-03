@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://localhost:3000/api/chat';
+import { sendChatMessage } from '../api/chat';
 
 /**
  * Generates a response from the AI via Backend.
@@ -8,29 +8,14 @@ const BACKEND_URL = 'http://localhost:3000/api/chat';
  * @returns {Promise<object>} The response object { response, thought, updatedStats, currentStats }.
  */
 export const generateAIResponse = async (userPrompt, config = {}) => {
-
-    const payload = {
-        message: userPrompt,
-        npcId: config.npcId || 'active_npc', // Default if missing
-        userId: 'user_dev_session' // In real app, persist this
-    };
+    const npcId = config.npcId || 'active_npc';
+    const userId = config.userId || 'user_dev_session';
 
     try {
-        console.log("Sending request to Backend:", BACKEND_URL, payload);
+        console.log("Sending request to Backend via API Adapter:", { userPrompt, npcId });
 
-        const res = await fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
+        const data = await sendChatMessage(userPrompt, npcId, userId);
 
-        if (!res.ok) {
-            throw new Error(`Backend Error: ${res.status}`);
-        }
-
-        const data = await res.json();
         // data structure: { response, thought, updatedStats, currentStats }
         console.log("Received data from backend:", data);
 

@@ -3,6 +3,8 @@ import { useGame } from '../context/GameContext';
 import PortraitDisplay from '../components/PortraitDisplay';
 import { Send } from 'lucide-react';
 
+import { sendChatMessage } from '../api/chat';
+
 const Test04Scene = () => {
     const {
         npcData,
@@ -62,16 +64,7 @@ const Test04Scene = () => {
         setIsThinking(true);
 
         try {
-            const res = await fetch('http://localhost:3000/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    npcId: targetNpcId,
-                    message: userMsg.text
-                })
-            });
-
-            const data = await res.json();
+            const data = await sendChatMessage(userMsg.text, targetNpcId);
 
             // Add NPC Response
             setMessages(prev => [...prev, {
