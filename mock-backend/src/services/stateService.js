@@ -2,7 +2,9 @@ const userStates = new Map();
 
 export const INITIAL_STATS = {
     hp: 50,
-    trust: 10,
+    hp: 50,
+    // trust: 10, // Removed
+    fishLevel: 0,
     fishLevel: 0,
     umiLevel: 0,
     sanity: 100 // Legacy/Extra

@@ -88,17 +88,14 @@ export const handleChat = async (req, res) => {
     // [New] Inject Player Stats for context
     const playerStatsContext = `
 [User Status]
-- Trust(신뢰도): ${globalState.trust}% (사회적 평판/신분. 낮으면 '침입자'로 의심, 높으면 '정식 인원' 대우)
+[User Status]
 - HP(체력): ${globalState.hp}/100
 - FishLevel(변이도): ${globalState.fishLevel}% (높을수록 당신의 '뻐끔' 언어를 알아듣습니다)
 - UmiLevel(신앙등급): ${globalState.umiLevel} (높을수록 교단 기밀에 접근할 권한이 있습니다)
 
-[Interaction Rule: Trust vs Friendly]
-1. Trust(공적) vs Friendly(사적) 갈등 가이드:
-   - Low Trust + High Friendly: "조직은 널 쫓지만, 난 널 도울게." (비밀 조력자)
-   - High Trust + Low Friendly: "규정상 문은 열어주지만, 말 걸지 마." (사무적 태도)
-   - Low Trust + Low Friendly: "경비병!! 여기 침입자다!!" (완전 적대)
-   - High Trust + High Friendly: "어서 와요 형제님! 기다리고 있었어요." (완전 우호)
+// [Interaction Rule: Trust vs Friendly] - Trust removed
+// (Trust is removed, so Friendly stands alone as the relationship metric)
+
 
 // [Interaction Rule: Faith (관점의 차이)]
 // 1. 변이(FishLevel) 관련 지침 삭제됨 (LLM에 전달하지 않음)
@@ -143,7 +140,7 @@ export const handleChat = async (req, res) => {
                     // For now, assuming AI controls NPC stats mostly. 
                     // But if AI wants to damage player HP:
                     else if (key === 'Hp') cleanUpdates.hp = val; // Global
-                    else if (key === 'Trust') cleanUpdates.trust = val; // Global
+                    // else if (key === 'Trust') cleanUpdates.trust = val; // Removed
                     else if (key === 'Umi_Level') cleanUpdates.umiLevel = val; // Global
                     else {
                         // generic fallback
@@ -159,7 +156,7 @@ export const handleChat = async (req, res) => {
                 Object.keys(cleanUpdates).forEach(k => {
                     if (['friendly', 'faith'].includes(k)) {
                         npcUpdates[k] = cleanUpdates[k];
-                    } else if (['hp', 'trust', 'umiLevel'].includes(k)) {
+                    } else if (['hp', 'umiLevel'].includes(k)) {
                         globalUpdates[k] = cleanUpdates[k];
                     } else if (k === 'fishLevel') {
                         // FORCE IGNORE: Do not allow AI to update FishLevel.

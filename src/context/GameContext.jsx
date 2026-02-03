@@ -16,7 +16,9 @@ export const GameProvider = ({ children }) => {
         fishLevel: 10,
         umiLevel: 10,
         hp: 50,
-        trust: 10,
+        hp: 50,
+        // trust: 10,
+        friendly: 50,
         friendly: 50,
         faith: 50,
         npcStats: {} // Initialize empty
@@ -98,7 +100,7 @@ export const GameProvider = ({ children }) => {
 
     // Helper functions maintaining original API
     const updateHp = (amount) => updateStatsBackend({ hp: stats.hp + amount });
-    const updateTrust = (amount) => updateStatsBackend({ trust: stats.trust + amount });
+    // const updateTrust = (amount) => updateStatsBackend({ trust: stats.trust + amount }); // Removed
     const updateFishLevel = (amount) => updateStatsBackend({ fishLevel: stats.fishLevel + amount });
     const updateUmiLevel = (amount) => updateStatsBackend({ umiLevel: stats.umiLevel + amount });
 
@@ -106,7 +108,7 @@ export const GameProvider = ({ children }) => {
     const setFishLevel = (val) => updateStatsBackend({ fishLevel: typeof val === 'function' ? val(stats.fishLevel) : val });
     const setUmiLevel = (val) => updateStatsBackend({ umiLevel: typeof val === 'function' ? val(stats.umiLevel) : val });
     const setHp = (val) => updateStatsBackend({ hp: typeof val === 'function' ? val(stats.hp) : val });
-    const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
+    // const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val }); // Removed
 
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
@@ -125,11 +127,11 @@ export const GameProvider = ({ children }) => {
         setFishLevel,
         setUmiLevel,
         setHp,
-        setTrust,
+        // setTrust, // Removed
 
         // Expose updaters
         updateHp,
-        updateTrust,
+        // updateTrust, // Removed
         updateFishLevel,
         updateUmiLevel,
         incrementFishLevel,
