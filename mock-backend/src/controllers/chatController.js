@@ -1,0 +1,234 @@
+import * as PROMPTS from '../utils/prompts.js';
+import { generateAIResponse } from '../services/aiService.js';
+import { getState, updateGlobalState, getNpcState, updateNpcState } from '../services/stateService.js';
+import { NPC_DATA } from '../data/gameData.js';
+
+// Helper to get prompt by npcId
+const getPromptForNpc = (npcId) => {
+    const npc = NPC_DATA[npcId];
+    return npc ? npc.prompt : PROMPTS.FRIEND_A_PROMPT;
+};
+
+// Masking Logic
+const applyFishMasking = (text, npcFishLevel, playerFishLevel = 0) => {
+    if (!text) return text;
+
+    // Logic: Masking Probability = (NPC Corruption - Player Comprehension)
+    // Normalized to 0.0 - 1.0 range (assuming levels are 0-100)
+    let maskProb = (npcFishLevel - playerFishLevel) / 100;
+
+    // Bounds check
+    maskProb = Math.max(0, Math.min(1.0, maskProb));
+
+    if (maskProb <= 0) return text;
+
+    // Tokenize: Split into words and punctuation
+    // Matches sequences of word characters OR non-whitespace non-word characters
+    // This simple regex might need tuning for Korean, but let's try a broader approach:
+    // We want to replace "meaningful parts".
+    // Simple approach: Split by space, then check if word has punctuation at end.
+
+    return text.split(' ').map(token => {
+        // If empty string (multiple spaces), return
+        if (!token) return token;
+
+        if (Math.random() < maskProb) {
+            // Attempt to preserve trailing punctuation
+            // Match word part vs punctuation part
+            const match = token.match(/^(.+?)([\.,!\?~]+)$/);
+            if (match) {
+                return `[뻐끔]${match[2]}`;
+            }
+            return "[뻐끔]";
+        }
+        return token;
+    }).join(' ');
+};
+
+export const handleChat = async (req, res) => {
+    const { userId = 'default_user', message, npcId = 'npc_a' } = req.body;
+
+    // 1. Get NPC Logic (Stats)
+    const npcStats = getNpcState(userId, npcId);
+
+    // 2. Get User/Global Stats (if needed for context)
+    const globalState = getState(userId).global;
+
+    // 3. Get Prompt Template
+    let systemPrompt = getPromptForNpc(npcId);
+
+    // 4. Replace Placeholders with NPC Stats
+    systemPrompt = systemPrompt.replace(/{current_stats\['Friendly'\]}/g, npcStats.friendly);
+    systemPrompt = systemPrompt.replace(/{current_stats\['Faith'\]}/g, npcStats.faith);
+    // Fish_Level removed from prompt injection
+    // systemPrompt = systemPrompt.replace(/{current_stats\['Fish_Level'\]}/g, npcStats.fishLevel);
+
+    // Standard placeholders
+    systemPrompt = systemPrompt.replace(/{Friendly}/g, npcStats.friendly);
+    systemPrompt = systemPrompt.replace(/{Faith}/g, npcStats.faith);
+    // Fish_Level removed from prompt injection
+    // systemPrompt = systemPrompt.replace(/{Fish_Level}/g, npcStats.fishLevel);
+
+    // Handle {retrieved_lore} placeholder
+    systemPrompt = systemPrompt.replace(/{retrieved_lore}/g, "특별한 정보 없음");
+
+    // 5. Stat Instruction Logic based on NPC STATS
+    let statInstruction = "";
+    if (npcStats.faith >= 80) {
+        statInstruction = "당신은 교주 전광어에 대한 신뢰가 절대적입니다. 유저의 모든 말을 교리적으로 해석하고 축복하세요.";
+    } else if (npcStats.faith < 40 && npcStats.friendly >= 70) {
+        statInstruction = "당신은 교단에 의구심을 느끼며 유저를 의지합니다. 교단의 비밀을 은밀히 흘리거나 탈출을 돕고 싶어 합니다.";
+    } else if (npcStats.friendly < 30) {
+        statInstruction = "당신은 유저를 불쾌한 이물질로 취급합니다. 매우 차갑고 서늘하게 대하며 곧 정화될 운명임을 경고하세요.";
+    } else {
+        statInstruction = "당신은 친절하지만 눈동자에 초점이 없는 기괴한 신도입니다.";
+    }
+    systemPrompt = systemPrompt.replace(/{stat_instruction}/g, statInstruction);
+
+    // [New] Inject Player Stats for context
+    const playerStatsContext = `
+[User Status]
+- Trust(신뢰도): ${globalState.trust}% (사회적 평판/신분. 낮으면 '침입자'로 의심, 높으면 '정식 인원' 대우)
+- HP(체력): ${globalState.hp}/100
+- FishLevel(변이도): ${globalState.fishLevel}% (높을수록 당신의 '뻐끔' 언어를 알아듣습니다)
+- UmiLevel(신앙등급): ${globalState.umiLevel} (높을수록 교단 기밀에 접근할 권한이 있습니다)
+
+[Interaction Rule: Trust vs Friendly]
+1. Trust(공적) vs Friendly(사적) 갈등 가이드:
+   - Low Trust + High Friendly: "조직은 널 쫓지만, 난 널 도울게." (비밀 조력자)
+   - High Trust + Low Friendly: "규정상 문은 열어주지만, 말 걸지 마." (사무적 태도)
+   - Low Trust + Low Friendly: "경비병!! 여기 침입자다!!" (완전 적대)
+   - High Trust + High Friendly: "어서 와요 형제님! 기다리고 있었어요." (완전 우호)
+
+// [Interaction Rule: Faith (관점의 차이)]
+// 1. 변이(FishLevel) 관련 지침 삭제됨 (LLM에 전달하지 않음)
+
+2. 호의(Friendly)의 목적성:
+   - High Faith + High Friendly: 유저를 '구원(전도)'하려 합니다. 교단에 귀의시키는 것이 당신을 돕는 길이라 믿습니다.
+   - Low Faith + High Friendly: 유저를 '탈출'시키려 합니다. 교단은 미쳤으니 도망쳐야 한다고 믿습니다.
+`;
+
+    // Construct full prompt
+    const fullPrompt = `${systemPrompt}\n${playerStatsContext}\n\nUser: ${message}\nCharacter:`;
+
+    try {
+        const rawResponse = await generateAIResponse(fullPrompt);
+
+        // Parse Response
+        let thought = "";
+        let newNpcStats = null;
+        let say = rawResponse;
+
+        // Extract THOUGHT
+        const thoughtMatch = rawResponse.match(/THOUGHT:\s*([\s\S]*?)(?=UPDATED_STATS:|SAY:|$)/);
+        if (thoughtMatch) thought = thoughtMatch[1].trim();
+
+        // Extract UPDATED_STATS
+        const statsMatch = rawResponse.match(/UPDATED_STATS:\s*({[\s\S]*?})/);
+        if (statsMatch) {
+            try {
+                let jsonStr = statsMatch[1].trim();
+                jsonStr = jsonStr.replace(/'/g, '"');
+                const rawUpdates = JSON.parse(jsonStr);
+
+                // Map PascalCase updates from AI back to camelCase for storage
+                const cleanUpdates = {};
+                for (const [key, val] of Object.entries(rawUpdates)) {
+                    // Try to match specific known keys, else lowercase first char
+                    if (key === 'Friendly') cleanUpdates.friendly = val;
+                    else if (key === 'Faith') cleanUpdates.faith = val;
+                    else if (key === 'Fish_Level') cleanUpdates.fishLevel = val; // This might be NPC or Player? 
+                    // Warning: 'Fish_Level' is ambiguous if both have it. 
+                    // Protocol: 'Fish_Level' -> NPC Stat. 'Player_Fish_Level' -> Player Stat?
+                    // For now, assuming AI controls NPC stats mostly. 
+                    // But if AI wants to damage player HP:
+                    else if (key === 'Hp') cleanUpdates.hp = val; // Global
+                    else if (key === 'Trust') cleanUpdates.trust = val; // Global
+                    else if (key === 'Umi_Level') cleanUpdates.umiLevel = val; // Global
+                    else {
+                        // generic fallback
+                        const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
+                        cleanUpdates[camelKey] = val;
+                    }
+                }
+
+                // Split updates into NPC and Global
+                const npcUpdates = {};
+                const globalUpdates = {};
+
+                Object.keys(cleanUpdates).forEach(k => {
+                    if (['friendly', 'faith'].includes(k)) {
+                        npcUpdates[k] = cleanUpdates[k];
+                    } else if (['hp', 'trust', 'umiLevel'].includes(k)) {
+                        globalUpdates[k] = cleanUpdates[k];
+                    } else if (k === 'fishLevel') {
+                        // FORCE IGNORE: Do not allow AI to update FishLevel.
+                        // FishLevel is a manual/scenario stat, usually stable.
+                        // AI tends to reset it to 0 if not instructed, breaking the masking.
+                        // So we ignore AI's opinion on this stat.
+                        console.log(`[Stats Protection] Ignoring AI's attempt to update FishLevel to ${cleanUpdates[k]}`);
+                    } else {
+                        // Unknown keys -> maybe NPC?
+                        npcUpdates[k] = cleanUpdates[k];
+                    }
+                });
+
+                if (Object.keys(npcUpdates).length > 0) {
+                    newNpcStats = updateNpcState(userId, npcId, npcUpdates);
+                }
+
+                if (Object.keys(globalUpdates).length > 0) {
+                    updateGlobalState(userId, globalUpdates); // Update global state
+                }
+
+            } catch (e) {
+                console.warn("Failed to parse stats JSON:", statsMatch[1], e);
+            }
+        }
+
+        // Extract SAY
+        const sayMatch = rawResponse.match(/SAY:\s*([\s\S]*)/);
+        if (sayMatch) {
+            say = sayMatch[1].trim();
+            if (say.startsWith('"') && say.endsWith('"')) {
+                say = say.slice(1, -1);
+            }
+        } else {
+            // Fallback cleanup
+            let cleanText = rawResponse;
+            if (thoughtMatch) cleanText = cleanText.replace(thoughtMatch[0], '');
+            if (statsMatch) cleanText = cleanText.replace(statsMatch[0], '');
+            cleanText = cleanText.replace('THOUGHT:', '').replace('UPDATED_STATS:', '').trim();
+            if (cleanText) say = cleanText;
+        }
+
+        // ... existing parse logic ...
+
+        // 6. Apply Masking based on UPDATED fishLevel
+        // Use new stats if updated, else current
+        const currentNpcFishLevel = newNpcStats ? newNpcStats.fishLevel : npcStats.fishLevel;
+        const playerFishLevel = globalState.fishLevel || 0; // Use global player stat
+
+        console.log(`[DEBUG Masking] NPC Fish: ${npcStats.fishLevel} -> ${currentNpcFishLevel} (AI New Stats: ${!!newNpcStats})`);
+        console.log(`[DEBUG Masking] Player Fish: ${playerFishLevel}`);
+
+        say = applyFishMasking(say, currentNpcFishLevel, playerFishLevel);
+
+        // ... existing res.json ...
+        res.json({
+            response: say,
+            thought: thought,
+            updatedStats: newNpcStats || npcStats,
+            currentStats: { ...globalState, npc: npcStats }, // Debug info
+            debug: { // Add extra debug to response
+                rawAI: rawResponse,
+                npcFishOriginal: npcStats.fishLevel,
+                npcFishFinal: currentNpcFishLevel
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "AI processing failed", details: error.message });
+    }
+};
