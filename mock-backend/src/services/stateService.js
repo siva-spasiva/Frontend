@@ -7,7 +7,8 @@ export const INITIAL_STATS = {
     fishLevel: 0,
     fishLevel: 0,
     umiLevel: 0,
-    sanity: 100 // Legacy/Extra
+    sanity: 100, // Legacy/Extra
+    inventory: ['smartphone', 'id_card', 'police_badge']
 };
 
 export const INITIAL_NPC_STATS = {
@@ -40,9 +41,9 @@ export const updateGlobalState = (userId, updates) => {
     const newGlobal = { ...state.global };
 
     for (const [key, value] of Object.entries(updates)) {
-        if (key in INITIAL_STATS) {
-            newGlobal[key] = typeof INITIAL_STATS[key] === 'number' ? Number(value) : value;
-        }
+        // Allow updating any key, not just those in INITIAL_STATS. 
+        // This is important for new fields like inventory.
+        newGlobal[key] = value;
     }
 
     // Bounds check
