@@ -14,14 +14,10 @@ export const useGame = () => {
 export const GameProvider = ({ children }) => {
     // Stats State
     const [stats, setStats] = useState({
-        fishLevel: 10,
-        umiLevel: 10,
+        fishLevel: 0,
+        umiLevel: 0,
         hp: 50,
-        hp: 50,
-        // trust: 10,
-        friendly: 50,
-        friendly: 50,
-        faith: 50,
+        trust: 10,
         npcStats: {}, // Initialize empty
         inventory: ['smartphone', 'id_card', 'police_badge'] // Initialize inventory
     });
@@ -110,7 +106,7 @@ export const GameProvider = ({ children }) => {
     const setFishLevel = (val) => updateStatsBackend({ fishLevel: typeof val === 'function' ? val(stats.fishLevel) : val });
     const setUmiLevel = (val) => updateStatsBackend({ umiLevel: typeof val === 'function' ? val(stats.umiLevel) : val });
     const setHp = (val) => updateStatsBackend({ hp: typeof val === 'function' ? val(stats.hp) : val });
-    // const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val }); // Removed
+    const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
 
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
@@ -140,11 +136,11 @@ export const GameProvider = ({ children }) => {
         setFishLevel,
         setUmiLevel,
         setHp,
-        // setTrust, // Removed
+        setTrust,
 
         // Expose updaters
         updateHp,
-        // updateTrust, // Removed
+        updateTrust: (amount) => updateStatsBackend({ trust: stats.trust + amount }), // Re-enabled
         updateFishLevel,
         updateUmiLevel,
         incrementFishLevel,

@@ -7,7 +7,7 @@ export const INITIAL_STATS = {
     fishLevel: 0,
     fishLevel: 0,
     umiLevel: 0,
-    sanity: 100, // Legacy/Extra
+    trust: 10,
     inventory: ['smartphone', 'id_card', 'police_badge']
 };
 

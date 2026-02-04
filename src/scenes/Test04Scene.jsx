@@ -10,7 +10,7 @@ const Test04Scene = () => {
         npcData,
         npcStats,
         updateStatsBackend,
-        // trust,
+        trust,
         hp, fishLevel, umiLevel
     } = useGame();
 
@@ -140,7 +140,8 @@ const Test04Scene = () => {
                                 {lastSaved && <span className="text-[10px] text-gray-500 animate-pulse">Synced</span>}
                             </div>
                             <div className="space-y-4">
-                                {/* <StatSlider label="Trust (신뢰)" value={trust} color="text-emerald-300" accent="accent-emerald-500" onChange={(v) => handleGlobalStatChange('trust', v)} /> */}
+                                <StatSlider label="HP (체력)" value={hp} color="text-red-300" accent="accent-red-500" onChange={(v) => handleGlobalStatChange('hp', v)} />
+                                <StatSlider label="Trust (신뢰)" value={trust} color="text-emerald-300" accent="accent-emerald-500" onChange={(v) => handleGlobalStatChange('trust', v)} />
                                 <StatSlider label="FishLevel (이해)" value={fishLevel} color="text-cyan-300" accent="accent-cyan-500" onChange={(v) => handleGlobalStatChange('fishLevel', v)} />
                                 <StatSlider label="UmiLevel (권한)" value={umiLevel} color="text-indigo-300" accent="accent-indigo-500" onChange={(v) => handleGlobalStatChange('umiLevel', v)} />
                             </div>
