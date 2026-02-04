@@ -64,7 +64,7 @@ function App() {
               exit={{ opacity: 0 }}
               className="absolute inset-0 z-50"
             >
-              <Test04Scene />
+              <Test04Scene onBack={toMainMenu} />
             </motion.div>
           )}
 

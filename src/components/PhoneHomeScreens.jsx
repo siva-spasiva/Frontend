@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Map, FileText, Mic, Settings, Camera, MessageCircle, Info, Package } from 'lucide-react';
+import { ChevronLeft, Map, FileText, Mic, Settings, Camera, MessageCircle, Info, Package, Fish } from 'lucide-react';
 import StatusWidget from './StatusWidget';
+import { useGame } from '../context/GameContext';
 
 const AppIcon = ({ icon: Icon, label, color, onClick }) => (
     <motion.button
@@ -140,7 +141,7 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
             <div className="grid grid-cols-4 gap-4">
                 <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
                 <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
-                <AppIcon icon={Camera} label="Photo" color="bg-pink-400" onClick={() => { }} />
+                <AppIcon icon={Mic} label="Recorder" color="bg-red-500" onClick={() => onAppOpen('recorder_app')} />
                 <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
             </div>
 
@@ -157,6 +158,101 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
             </div>
 
             <StatusWidget className="absolute bottom-6 left-6 right-6" />
+        </div>
+    );
+};
+// Corrupted Home Screen for Test02
+export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
+    const { hp, maxHp } = useGame();
+
+    return (
+        <div className="w-full h-full flex flex-col pt-12 px-6 relative overflow-hidden bg-white text-gray-800">
+
+            {/* Dark & CRT Filter Overlay */}
+            <div className="absolute inset-0 pointer-events-none z-50 mix-blend-multiply bg-gray-400/50"></div>
+            <div className="absolute inset-0 pointer-events-none z-50 bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.1),rgba(0,0,0,0.1)_1px,transparent_1px,transparent_2px)]"></div>
+            <div className="absolute inset-0 pointer-events-none z-50 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.4)_100%)]"></div>
+
+            {/* Main Container with Tilt & Shake */}
+            <div className="w-full h-full flex flex-col relative z-40 transform origin-center rotate-1 animate-[shake_4s_ease-in-out_infinite]">
+                <style jsx>{`
+                    @keyframes shake {
+                        0%, 100% { transform: rotate(1deg) translate(0, 0); }
+                        2% { transform: rotate(1.5deg) translate(-1px, 1px); }
+                        4% { transform: rotate(0.5deg) translate(1px, -1px); }
+                        6% { transform: rotate(1deg) translate(0, 0); }
+                    }
+                `}</style>
+
+                {/* Back Button */}
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="absolute top-0 left-0 z-20 p-2 -ml-2 rounded-full hover:bg-blue-50 active:bg-blue-100 transition-colors grayscale"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-blue-900" />
+                    </button>
+                )}
+
+                {/* Status Bar */}
+                <div className="flex justify-between items-center text-xs font-semibold text-gray-800 mb-8 px-2 pl-8 opacity-70">
+                    <span>14:00</span>
+                    <div className='flex space-x-1'>
+                        <span>5G</span>
+                        <span>84%</span>
+                    </div>
+                </div>
+
+                <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2 opacity-80">Umi Class</h1>
+                <p className="text-sm text-gray-500 mb-8 px-2 opacity-80">Welcome to One-Day Class</p>
+
+                {/* Identical Grid to 03, but visually dimmer/grayscaled via parent filters */}
+                <div className="grid grid-cols-4 gap-4 filter saturate-50 contrast-125 brightness-90">
+                    <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
+                    <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
+                    <AppIcon icon={Camera} label="Photo" color="bg-pink-400" onClick={() => { }} />
+                    <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
+                </div>
+
+                <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 opacity-60 filter blur-[0.3px]">
+                    <div className="flex items-center space-x-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center">
+                            <MessageCircle className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-blue-900">New Notification</p>
+                            <p className="text-xs text-blue-600">Class starts in 10 mins.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Corrupted Status Widget (Custom Fish Logic) */}
+                <div className="absolute bottom-10 left-0 right-0 px-4 filter contrast-125 brightness-90">
+                    <div className="flex flex-col items-center justify-center bg-black/70 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/20 shadow-2xl text-white">
+                        <div className="flex flex-col items-center w-full">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Fish className="w-5 h-5 text-blue-300 fill-current animate-bounce" />
+                                <span className="text-sm font-bold tracking-wider text-blue-100">HP (Action Points)</span>
+                            </div>
+                            <div className="w-64 h-3 bg-gray-800/80 rounded-full overflow-hidden border border-white/10 shadow-inner">
+                                <div
+                                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full relative"
+                                    style={{ width: `${(hp / maxHp) * 100}%` }}
+                                >
+                                    <div className="absolute inset-0 bg-white/20" />
+                                </div>
+                            </div>
+                            <span className="text-xs mt-1.5 font-mono text-gray-300 font-medium">{hp} / {maxHp}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Cracks Overlay */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30 mix-blend-overlay" viewBox="0 0 100 200" preserveAspectRatio="none">
+                    <path d="M0,0 L40,60 L20,100" fill="none" stroke="black" strokeWidth="0.5" />
+                    <path d="M100,180 L70,140 L90,100" fill="none" stroke="black" strokeWidth="0.5" />
+                </svg>
+            </div>
         </div>
     );
 };

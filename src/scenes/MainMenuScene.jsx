@@ -120,8 +120,9 @@ const MainMenu = ({ onAppOpen }) => {
 
 
 
-import { IngameHomeScreen, Ingame02HomeScreen, Ingame03HomeScreen } from '../components/PhoneHomeScreens';
+import { IngameHomeScreen, Ingame02HomeScreen, Ingame03HomeScreen, IngameCorruptedHomeScreen } from '../components/PhoneHomeScreens';
 import MapApp from '../components/apps/MapApp';
+import RecorderApp from '../components/apps/RecorderApp';
 
 
 const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, currentPhase }) => {
@@ -190,7 +191,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <Ingame02HomeScreen onAppOpen={handleAppOpen} onBack={() => setInternalPhase('menu')} />
+                        <IngameCorruptedHomeScreen onAppOpen={handleAppOpen} onBack={() => setInternalPhase('menu')} />
                     </motion.div>
                 )}
 
@@ -248,6 +249,24 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0, scale: 0.95 }}
                     >
                         <InventoryApp onBack={() => {
+                            // Return to appropriate home screen
+                            if (currentPhase === 'test02') setInternalPhase('ingame02_home');
+                            else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else setInternalPhase('menu');
+                        }} />
+                    </motion.div>
+                )}
+
+                {internalPhase === 'recorder_app' && (
+                    <motion.div
+                        key="recorder_app"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                        <RecorderApp onBack={() => {
                             // Return to appropriate home screen
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');

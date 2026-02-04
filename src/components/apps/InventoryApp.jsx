@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Package, Info, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Package, Info, CheckCircle, Trash2, PlayCircle } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
+import ChatLog from '../ChatLog';
 
 const InventoryApp = ({ onBack }) => {
-    const { inventoryItems } = useGame();
+    const { inventoryItems, removeItem } = useGame();
     const [selectedItem, setSelectedItem] = useState(null);
+    const [isReading, setIsReading] = useState(false); // Reading mode for transcripts
 
     return (
         <div className="w-full h-full bg-gray-50 flex flex-col pt-12 relative overflow-hidden">
@@ -25,7 +27,31 @@ const InventoryApp = ({ onBack }) => {
             {/* Content Area */}
             <div className="flex-1 overflow-hidden relative">
                 <AnimatePresence mode="wait">
-                    {!selectedItem ? (
+                    {isReading && selectedItem?.type === 'transcript' ? (
+                        <motion.div
+                            key="reader"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="bg-gray-900 h-full flex flex-col"
+                        >
+                            <div className="p-4 bg-gray-800 text-white flex items-center justify-between shadow-md z-10">
+                                <button
+                                    onClick={() => setIsReading(false)}
+                                    className="flex items-center text-sm font-bold text-gray-300 hover:text-white"
+                                >
+                                    <ChevronLeft className="w-5 h-5 mr-1" />
+                                    뒤로가기
+                                </button>
+                                <span className="text-xs font-mono text-gray-400">
+                                    {selectedItem.name}
+                                </span>
+                            </div>
+                            <div className="flex-1 overflow-hidden relative">
+                                <ChatLog logs={selectedItem.content} viewMode="full" />
+                            </div>
+                        </motion.div>
+                    ) : !selectedItem ? (
                         <motion.div
                             key="grid"
                             initial={{ opacity: 0, x: -20 }}
@@ -136,14 +162,35 @@ const InventoryApp = ({ onBack }) => {
                                 </div>
                             )}
 
-                            <div className="mt-auto w-full pb-8">
+                            <div className="mt-auto w-full pb-8 space-y-3">
                                 <button
-                                    disabled={true}
-                                    className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold shadow-lg opacity-50 cursor-not-allowed flex items-center justify-center space-x-2"
+                                    onClick={() => {
+                                        if (selectedItem.type === 'transcript') {
+                                            setIsReading(true);
+                                        }
+                                    }}
+                                    disabled={selectedItem.type !== 'transcript'}
+                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${selectedItem.type === 'transcript'
+                                            ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                                            : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
+                                        }`}
                                 >
-                                    <span>사용하기</span>
+                                    {selectedItem.type === 'transcript' ? <PlayCircle className="w-5 h-5" /> : null}
+                                    <span>{selectedItem.type === 'transcript' ? '기록 보기' : '사용하기'}</span>
                                 </button>
-                                <p className="text-xs text-center text-gray-400 mt-2">지금은 사용할 수 없습니다.</p>
+
+                                <button
+                                    onClick={() => {
+                                        if (confirm('정말 삭제하시겠습니까?')) {
+                                            removeItem(selectedItem.id);
+                                            setSelectedItem(null);
+                                        }
+                                    }}
+                                    className="w-full py-3 bg-white border border-gray-200 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center justify-center space-x-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span>삭제하기</span>
+                                </button>
                             </div>
                         </motion.div>
                     )}

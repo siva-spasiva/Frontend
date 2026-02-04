@@ -29,6 +29,15 @@ export const GameProvider = ({ children }) => {
         floorData: []
     });
 
+    // Custom Items (Dynamic, e.g. Transcripts)
+    const [customItems, setCustomItems] = useState({});
+
+    // Current Chat Logs (Synced from active scene)
+    const [chatLogs, setChatLogs] = useState([]);
+
+    // Current Location Info (Synced from active scene)
+    const [currentLocationInfo, setCurrentLocationInfo] = useState(null);
+
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Initial Stats and Data
@@ -120,7 +129,38 @@ export const GameProvider = ({ children }) => {
         }
     };
 
-    const inventoryItems = (stats.inventory || []).map(id => ITEMS[id]).filter(Boolean);
+    const addCustomItem = (item) => {
+        console.log("Adding custom item:", item);
+        setCustomItems(prev => ({ ...prev, [item.id]: item }));
+
+        // Also add ID to inventory list
+        const currentInventory = stats.inventory || [];
+        if (!currentInventory.includes(item.id)) {
+            updateStatsBackend({ inventory: [...currentInventory, item.id] });
+        }
+    };
+
+    const removeItem = (itemId) => {
+        console.log("Removing item:", itemId);
+        const currentInventory = stats.inventory || [];
+        const newInventory = currentInventory.filter(id => id !== itemId);
+        updateStatsBackend({ inventory: newInventory });
+
+        // If it's a custom item, we could optionally remove it from customItems, 
+        // but keeping it there is harmless unless memory is a concern.
+        // For strict cleanup:
+        if (customItems[itemId]) {
+            setCustomItems(prev => {
+                const newState = { ...prev };
+                delete newState[itemId];
+                return newState;
+            });
+        }
+    };
+
+    const inventoryItems = (stats.inventory || [])
+        .map(id => ITEMS[id] || customItems[id])
+        .filter(Boolean);
 
     const value = {
         // Expose all stats directly
@@ -146,7 +186,18 @@ export const GameProvider = ({ children }) => {
         incrementFishLevel,
         incrementUmiLevel,
         addItem,
+        incrementFishLevel,
+        incrementUmiLevel,
+        addItem,
+        addCustomItem,
+        removeItem, // Expose removeItem
         inventoryItems,
+
+        // Chat Logs
+        chatLogs,
+        setChatLogs,
+        currentLocationInfo,
+        setCurrentLocationInfo,
         ITEMS,
 
         // Max values (hardcoded for now)

@@ -5,7 +5,7 @@ import { Send } from 'lucide-react';
 
 import { sendChatMessage } from '../api/chat';
 
-const Test04Scene = () => {
+const Test04Scene = ({ onBack }) => {
     const {
         npcData,
         npcStats,
@@ -109,6 +109,14 @@ const Test04Scene = () => {
         <div className="relative w-full h-screen bg-black text-white overflow-hidden font-mono" style={bgStyle}>
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/60" />
+
+            {/* Exit Button */}
+            <button
+                onClick={onBack}
+                className="absolute top-4 left-4 z-50 px-4 py-2 bg-red-600/80 hover:bg-red-500 text-white font-bold rounded shadow-lg backdrop-blur-sm transition-all"
+            >
+                EXIT DEBUG
+            </button>
 
             {/* Content Container */}
             <div className="relative z-10 w-full h-full flex">
