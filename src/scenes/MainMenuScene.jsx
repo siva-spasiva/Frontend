@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Settings, FileText, Grid, Map, Mic } from 'lucide-react';
 import MessengerApp from '../components/apps/MessengerApp';
+import InventoryApp from '../components/apps/InventoryApp';
 
 // --- Components ---
 
@@ -110,6 +111,7 @@ const MainMenu = ({ onAppOpen }) => {
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
                 <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
                 <AppIcon icon={Grid} label="Test04" color="bg-orange-600" onClick={() => onAppOpen('test04')} />
+                <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                 {/* Dummies to fill space if needed, or leave empty */}
             </div>
         </div>
@@ -234,6 +236,24 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0 }}
                     >
                         <MessengerApp onComplete={onNext} onBack={() => setInternalPhase('menu')} />
+                    </motion.div>
+                )}
+
+                {internalPhase === 'inventory' && (
+                    <motion.div
+                        key="inventory"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                        <InventoryApp onBack={() => {
+                            // Return to appropriate home screen
+                            if (currentPhase === 'test02') setInternalPhase('ingame02_home');
+                            else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else setInternalPhase('menu');
+                        }} />
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Map, FileText, Mic, Settings, Camera, MessageCircle, Info } from 'lucide-react';
+import { ChevronLeft, Map, FileText, Mic, Settings, Camera, MessageCircle, Info, Package } from 'lucide-react';
 import StatusWidget from './StatusWidget';
 
 const AppIcon = ({ icon: Icon, label, color, onClick }) => (
@@ -45,9 +45,10 @@ export const IngameHomeScreen = ({ onAppOpen, onBack }) => {
                 <AppIcon icon={Map} label="Map" color="bg-green-600" onClick={() => onAppOpen('map_app')} />
                 <AppIcon icon={FileText} label="Memo" color="bg-yellow-500" onClick={() => { }} />
                 <AppIcon icon={Mic} label="Rec" color="bg-red-500" onClick={() => { }} />
+                <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                 <AppIcon icon={Settings} label="Settings" color="bg-gray-500" onClick={() => { }} />
             </div>
-            
+
             <StatusWidget className="absolute bottom-6 left-6 right-6" />
         </div>
     );
@@ -105,7 +106,7 @@ export const Ingame02HomeScreen = ({ onAppOpen, onBack }) => {
                     &gt; SYNC FAILED
                 </p>
             </div>
-            
+
             <StatusWidget className="absolute bottom-6 left-6 right-6" />
         </div>
     );
