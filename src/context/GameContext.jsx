@@ -23,7 +23,7 @@ export const GameProvider = ({ children }) => {
         friendly: 50,
         faith: 50,
         npcStats: {}, // Initialize empty
-        inventory: [] // Initialize inventory
+        inventory: ['smartphone', 'id_card', 'police_badge'] // Initialize inventory
     });
 
     // Static Data State
