@@ -10,8 +10,11 @@ const Test04Scene = () => {
         npcData,
         npcStats,
         updateStatsBackend,
+
         trust,
-        hp, fishLevel, umiLevel
+        hp, fishLevel, umiLevel,
+        inventory, // Current inventory array
+        ITEMS // Static item definitions
     } = useGame();
 
     const [targetNpcId] = useState('npc_a');
@@ -53,6 +56,19 @@ const Test04Scene = () => {
     const handleGlobalStatChange = (key, val) => {
         console.log(`Debug Global Update: ${key} -> ${val}`);
         updateStatsBackend({ [key]: parseInt(val) });
+        setLastSaved(new Date());
+    };
+
+    const handleInventoryToggle = (itemId) => {
+        const currentInventory = inventory || [];
+        let newInventory;
+        if (currentInventory.includes(itemId)) {
+            newInventory = currentInventory.filter(id => id !== itemId);
+        } else {
+            newInventory = [...currentInventory, itemId];
+        }
+        console.log(`Debug Inventory Update: ${itemId} -> ${newInventory.includes(itemId)}`);
+        updateStatsBackend({ inventory: newInventory });
         setLastSaved(new Date());
     };
 
@@ -144,6 +160,29 @@ const Test04Scene = () => {
                                 <StatSlider label="Trust (신뢰)" value={trust} color="text-emerald-300" accent="accent-emerald-500" onChange={(v) => handleGlobalStatChange('trust', v)} />
                                 <StatSlider label="FishLevel (이해)" value={fishLevel} color="text-cyan-300" accent="accent-cyan-500" onChange={(v) => handleGlobalStatChange('fishLevel', v)} />
                                 <StatSlider label="UmiLevel (권한)" value={umiLevel} color="text-indigo-300" accent="accent-indigo-500" onChange={(v) => handleGlobalStatChange('umiLevel', v)} />
+                            </div>
+                        </div>
+
+                        {/* Inventory Control */}
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                <h2 className="text-orange-400 font-bold text-sm">INVENTORY</h2>
+                            </div>
+                            <div className="space-y-2">
+                                {Object.values(ITEMS).map(item => (
+                                    <div key={item.id} className="flex items-center justify-between p-2 bg-black/20 rounded hover:bg-black/40 transition-colors">
+                                        <div className="flex items-center space-x-2 overflow-hidden">
+                                            <span className="text-xl">{item.icon}</span>
+                                            <span className="text-xs text-gray-300 truncate max-w-[120px]">{item.name}</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={(inventory || []).includes(item.id)}
+                                            onChange={() => handleInventoryToggle(item.id)}
+                                            className="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-600 bg-gray-700 focus:ring-orange-500 focus:ring-offset-gray-900"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
