@@ -103,6 +103,39 @@ const InventoryApp = ({ onBack }) => {
                                 </div>
                             </div>
 
+                            {/* Contract Content View */}
+                            {selectedItem.id === 'contract_001' && (
+                                <div className="w-full bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+                                    <h3 className="text-lg font-bold mb-4 text-center text-gray-800 border-b pb-2">
+                                        참가자 <span className="text-red-500 font-mono">[뻐끔뻐끔]</span> 및 <span className="text-red-500 font-mono">[뻐끔]</span> 각서
+                                    </h3>
+                                    <div className="text-gray-600 space-y-4 text-xs leading-relaxed font-serif">
+                                        <p>
+                                            1. 본인은 '솔피 힐링 클래스' 진행 중 발생하는 신체의{' '}
+                                            <span className="text-red-500 font-bold font-mono">[뻐끔뻐끔]</span>
+                                            에 대해 주최 측에 책임을 묻지 않습니다.
+                                        </p>
+                                        <p>
+                                            2. 제공되는 음료(솔피의 눈물) 섭취 후 발생하는{' '}
+                                            <span className="text-red-500 font-bold font-mono">[명상 효과]</span>
+                                            는 프로그램의 일환임을 인지합니다.
+                                        </p>
+                                        <p>
+                                            3. 본 클래스 종료 시, 참가자의{' '}
+                                            <span className="text-red-500 font-bold font-mono">[뻐끔뻐끔]</span>
+                                            의 소유권은{' '}
+                                            <span className="text-blue-600 font-bold font-mono">[뻐끔뻐끔]</span>에게{' '}
+                                            <span className="text-red-500 font-bold font-mono">[뻐끔뻐끔]</span>에 동의합니다.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                        <div className="text-red-600 font-script text-xl transform -rotate-12 border-2 border-red-600 px-2 py-1 rounded inline-block opacity-70">
+                                            서명완료
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-auto w-full pb-8">
                                 <button
                                     disabled={true}

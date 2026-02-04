@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useGame } from '../context/GameContext';
 import SmartphoneMenu from '../components/SmartphoneMenu';
+import ContractModal from '../components/ContractModal';
+import { FileText } from 'lucide-react';
 
 const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -17,7 +19,14 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
     const [isThinking, setIsThinking] = useState(false);
 
-    const { npcData, mapData, isLoading } = useGame();
+    // Contract Interaction State
+    const [showContract, setShowContract] = useState(false);
+    const [shake, setShake] = useState(false);
+
+    const { npcData, mapData, isLoading, inventoryItems, addItem } = useGame();
+
+    // Check if user already has contract
+    const hasContract = inventoryItems && inventoryItems.some(i => i.id === 'contract_001');
 
     // Active NPC State
     const [activeNpc, setActiveNpc] = useState(null);
@@ -100,8 +109,18 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
+            className={`w-full h-full relative bg-gray-900 text-white overflow-hidden ${shake ? 'animate-shake' : ''}`}
         >
+            <style jsx>{`
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+                .animate-shake {
+                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                }
+            `}</style>
             {/* Location Info */}
             <motion.div
                 className="absolute top-8 z-10 pointer-events-none"
@@ -139,6 +158,36 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Contract Object (Clickable) */}
+            {!hasContract && (
+                <motion.button
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setShowContract(true)}
+                    className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 z-20 group"
+                >
+                    <div className="relative">
+                        <div className="absolute -inset-4 bg-yellow-400/30 rounded-full blur-xl animate-pulse group-hover:bg-yellow-400/50 transition-all"></div>
+                        <FileText className="w-16 h-16 text-yellow-100 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]" />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 text-yellow-400 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                            살펴보기
+                        </div>
+                    </div>
+                </motion.button>
+            )}
+
+            <ContractModal
+                isOpen={showContract}
+                onClose={() => setShowContract(false)}
+                onSign={() => {
+                    addItem('contract_001');
+                    setShake(true);
+                    setTimeout(() => setShake(false), 500);
+                }}
+            />
 
             <SmartphoneMenu
                 logs={logs}

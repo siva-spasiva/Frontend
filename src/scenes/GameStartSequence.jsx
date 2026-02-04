@@ -8,7 +8,7 @@ const GameStartSequence = ({ onSign }) => {
     const [isChecked, setIsChecked] = useState(false);
 
     const handleSignClick = () => {
-        addItem('contract_001');
+        // addItem('contract_001'); // Moved to Test01Scene
         setIsSigned(true);
         // 서명 시 화면이 붉게 번쩍이는 충격 효과 후 다음 단계로 이동
         setTimeout(onSign, 300);
