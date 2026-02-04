@@ -171,26 +171,28 @@ const InventoryApp = ({ onBack }) => {
                                     }}
                                     disabled={selectedItem.type !== 'transcript'}
                                     className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${selectedItem.type === 'transcript'
-                                            ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
-                                            : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
+                                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                                        : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
                                         }`}
                                 >
                                     {selectedItem.type === 'transcript' ? <PlayCircle className="w-5 h-5" /> : null}
                                     <span>{selectedItem.type === 'transcript' ? '기록 보기' : '사용하기'}</span>
                                 </button>
 
-                                <button
-                                    onClick={() => {
-                                        if (confirm('정말 삭제하시겠습니까?')) {
-                                            removeItem(selectedItem.id);
-                                            setSelectedItem(null);
-                                        }
-                                    }}
-                                    className="w-full py-3 bg-white border border-gray-200 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center justify-center space-x-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span>삭제하기</span>
-                                </button>
+                                {selectedItem.type === 'transcript' && (
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('정말 삭제하시겠습니까?')) {
+                                                removeItem(selectedItem.id);
+                                                setSelectedItem(null);
+                                            }
+                                        }}
+                                        className="w-full py-3 bg-white border border-gray-200 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center justify-center space-x-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>삭제하기</span>
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     )}
