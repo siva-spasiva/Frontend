@@ -167,7 +167,7 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setShowContract(true)}
-                    className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 z-20 group"
+                    className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 z-20 group"
                 >
                     <div className="relative">
                         <div className="absolute -inset-4 bg-yellow-400/30 rounded-full blur-xl animate-pulse group-hover:bg-yellow-400/50 transition-all"></div>
