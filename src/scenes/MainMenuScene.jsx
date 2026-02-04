@@ -121,7 +121,7 @@ const MainMenu = ({ onAppOpen }) => {
 
 
 import { IngameHomeScreen, Ingame02HomeScreen, Ingame03HomeScreen } from '../components/PhoneHomeScreens';
-import MapApp from '../components/MapApp';
+import MapApp from '../components/apps/MapApp';
 
 
 const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, currentPhase }) => {

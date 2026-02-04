@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Map, Navigation, MapPin } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../../context/GameContext';
 
 const FloorItem = ({ floor, onSelect, isCurrent }) => (
     <motion.div
@@ -9,8 +9,8 @@ const FloorItem = ({ floor, onSelect, isCurrent }) => (
         whileTap={{ scale: 0.98 }}
         onClick={() => onSelect(floor)}
         className={`rounded-2xl p-4 shadow-sm border mb-3 cursor-pointer relative overflow-hidden ${isCurrent
-                ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-300'
-                : 'bg-white/90 backdrop-blur-sm border-gray-100'
+            ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-300'
+            : 'bg-white/90 backdrop-blur-sm border-gray-100'
             }`}
     >
         {isCurrent && (
@@ -37,8 +37,8 @@ const RoomItem = ({ room, onSelect, isCurrentFloor }) => (
         whileTap={{ scale: 0.98 }}
         onClick={() => onSelect(room)}
         className={`rounded-xl p-4 mb-3 border cursor-pointer flex items-center justify-between ${room.linkedScene
-                ? 'bg-blue-50 border-blue-200 shadow-sm'
-                : 'bg-gray-50/80 border-gray-200 opacity-80'
+            ? 'bg-blue-50 border-blue-200 shadow-sm'
+            : 'bg-gray-50/80 border-gray-200 opacity-80'
             }`}
     >
         <div>
@@ -114,7 +114,7 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
                     )}
                     <h1 className="text-xl font-black text-gray-900 tracking-tight flex items-center">
                         <Map className="w-5 h-5 mr-2 text-blue-600" />
-                        {selectedFloor ? selectedFloor.name : 'FACILITY MAP'}
+                        {selectedFloor ? selectedFloor.name : 'MAIN MAP'}
                     </h1>
                 </div>
             </div>
