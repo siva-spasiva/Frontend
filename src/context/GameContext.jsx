@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchGameStats, updateGameStats, fetchStaticGameData } from '../api/stats';
+import { ITEMS } from '../data/items';
 
 const GameContext = createContext();
 
@@ -21,7 +22,8 @@ export const GameProvider = ({ children }) => {
         friendly: 50,
         friendly: 50,
         faith: 50,
-        npcStats: {} // Initialize empty
+        npcStats: {}, // Initialize empty
+        inventory: [] // Initialize inventory
     });
 
     // Static Data State
@@ -113,6 +115,17 @@ export const GameProvider = ({ children }) => {
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
 
+    const addItem = (itemId) => {
+        console.log("Adding item:", itemId);
+        // Prevent duplicates for key items if needed, or just push
+        const currentInventory = stats.inventory || [];
+        if (!currentInventory.includes(itemId)) {
+            updateStatsBackend({ inventory: [...currentInventory, itemId] });
+        }
+    };
+
+    const inventoryItems = (stats.inventory || []).map(id => ITEMS[id]).filter(Boolean);
+
     const value = {
         // Expose all stats directly
         ...stats,
@@ -136,6 +149,9 @@ export const GameProvider = ({ children }) => {
         updateUmiLevel,
         incrementFishLevel,
         incrementUmiLevel,
+        addItem,
+        inventoryItems,
+        ITEMS,
 
         // Max values (hardcoded for now)
         maxHp: 100,

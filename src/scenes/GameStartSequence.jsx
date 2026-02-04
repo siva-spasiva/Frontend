@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useGame } from '../context/GameContext';
 
 const GameStartSequence = ({ onSign }) => {
+    const { addItem } = useGame();
     const [isSigned, setIsSigned] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
 
     const handleSignClick = () => {
+        addItem('contract_001');
         setIsSigned(true);
         // 서명 시 화면이 붉게 번쩍이는 충격 효과 후 다음 단계로 이동
         setTimeout(onSign, 300);
@@ -57,8 +60,8 @@ const GameStartSequence = ({ onSign }) => {
                     onClick={handleSignClick}
                     disabled={!isChecked}
                     className={`w-full font-bold py-3 px-4 rounded-lg transition duration-300 transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${isChecked
-                            ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-105'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-105'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                 >
                     서명 및 입장
