@@ -48,7 +48,32 @@ export const GameProvider = ({ children }) => {
             setIsLoading(false);
         };
         initGame();
+        initGame();
     }, []);
+
+    // Check Effects: Fish Level & Contract Replacement
+    useEffect(() => {
+        // Condition: Fish Level >= 20 AND Has Suspicious Contract (item004)
+        const hasSuspiciousContract = stats.inventory?.includes('item004');
+
+        if (stats.fishLevel >= 20 && hasSuspiciousContract) {
+            console.log("Fish level high enough, enlightening contract...");
+
+            // 1. Remove item004, Add item020
+            const currentInv = stats.inventory || [];
+            const newInv = currentInv.filter(id => id !== 'item004');
+            if (!newInv.includes('item020')) {
+                newInv.push('item020');
+            }
+
+            // 2. Perform Update
+            // Also increase Umi Level as a bonus
+            updateStatsBackend({
+                inventory: newInv,
+                umiLevel: Math.max(stats.umiLevel, 1)
+            });
+        }
+    }, [stats.fishLevel, stats.inventory]); // Dependency on specific stats
 
     const fetchStats = async () => {
         try {

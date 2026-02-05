@@ -111,16 +111,7 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
             exit={{ opacity: 0, x: 20 }}
             className={`w-full h-full relative bg-gray-900 text-white overflow-hidden ${shake ? 'animate-shake' : ''}`}
         >
-            <style jsx>{`
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                    20%, 40%, 60%, 80% { transform: translateX(5px); }
-                }
-                .animate-shake {
-                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-                }
-            `}</style>
+
             {/* Location Info */}
             <motion.div
                 className="absolute top-8 z-10 pointer-events-none"

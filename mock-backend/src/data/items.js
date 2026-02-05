@@ -2,31 +2,100 @@ export const ITEM_DEFINITIONS = {
     item001: {
         id: 'item001',
         name: '스마트폰',
-        description: '조금 무겁지만 믿음직하다. (No. 001)',
+        description: '조금 무겁지만 믿음직하다.',
+        flavorText: '16개월 할부로 산 거야. 미래의 나 힘내자...',
         type: 'normal',
         icon: '📱'
     },
     item002: {
         id: 'item002',
         name: '신분증',
-        description: '나의 이름과 사진이 찍혀 있다. 최근에 재발급 받았다. (No. 002)',
+        description: '나의 이름과 사진이 찍혀 있다. 최근에 재발급 받았다.',
+        flavorText: '증명사진 이쁘게 찍을걸. 조금 부끄럽다.',
         type: 'key_item',
         icon: '🪪'
     },
     item003: {
         id: 'item003',
         name: '경찰 배지',
-        description: '자랑스러운 내 경찰 뱃지. 누군가에게 보여줄 수도 있을 것 같다. (No. 003)',
+        description: '자랑스러운 내 경찰 뱃지. 누군가에게 보여줄 수도 있을 것 같다.',
+        flavorText: '',
         type: 'key_item',
         icon: '👮'
     },
     item004: {
         id: 'item004',
         name: '수상한 계약서',
-        description: '원데이 클래스 우미의 계약서. 약간 비린내가 난다. (No. 004)',
+        description: '원데이 클래스 우미의 계약서. 약간 비린내가 난다.',
+        flavorText: '',
         type: 'key_item',
         icon: '📜',
         // Specific flag or data to identify this for special rendering if needed
         isContract: true
-    }
+    },
+    item005: {
+        id: 'item005',
+        name: '솔피의 눈물',
+        description: '달달하면서 짭짤한, 묘한 느낌의 비린내가 나는 음료. 우미 클래스의 웰컴 드링크다.',
+        flavorText: '주의사항: 뻐끔 뻐끔! 너무 맛있으니 중독되지 않도록 하세요!',
+        type: 'normal', // 소비형 아이템이지만 현재 분류상 normal
+        icon: '🍹'
+    },
+    item006: {
+        id: 'item006',
+        name: '솔피의 눈물',
+        description: '달달하면서도 짭짤한, 기분좋은 비린내가 나는 음료. 푸른 병에 담겨서 신도들에게 지급되는 듯 하다.',
+        flavorText: '모두 [뻐끔뻐끔]에게 [뻐끔] 하세요! - 전광어 목사',
+        type: 'normal',
+        icon: '🍹'
+    },
+    item007: {
+        id: 'item007',
+        name: '솔피의 눈물',
+        description: '차갑고 달콤한, 기분좋은 푸른 음료. 갈증 해소에 최고인 것 같다.',
+        flavorText: '매일 매일 솔피의 눈물을 주다니, 최고잖아? - 청갈치',
+        type: 'normal',
+        icon: '🍹'
+    },
+    item008: {
+        id: 'item008',
+        name: '솔피의 눈물',
+        description: '정체불명의 푸른 액체. 마시기 힘들 정도로 짠맛과 비린내가 난다...',
+        flavorText: '이젠 더이상 [뻐끔]이 들리지 않는다... - 박복어',
+        type: 'normal', // 소비형 아이템이지만 현재 분류상 normal
+        icon: '🧪'
+    },
+    item009: {
+        id: 'item009',
+        name: '솔피의 눈물',
+        description: '우미교의 신 <솔피>의 체액. 마실수록 물고기화되어 간다. 이것을 마시고 물고기가 되어간 사람은 도대체 몇 명일까?',
+        flavorText: '물고기가 되어도 좋아. 솔피님과 함께한다면...',
+        type: 'key_item',
+        icon: '🩸'
+    },
+    item010: {
+        id: 'item010',
+        name: '검은 열쇠',
+        description: '무언가를 열 수 있을 것 같은 검은 열쇠.',
+        flavorText: '',
+        type: 'key_item',
+        icon: '🔑',
+    },
+    item011: {
+        id: 'item011',
+        name: '흰색 열쇠',
+        description: '무언가를 열 수 있을 것 같은 흰색 열쇠.',
+        flavorText: '',
+        type: 'key_item',
+        icon: '🔑',
+    },
+    item020: {
+        id: 'item020',
+        name: '우미교 계약서',
+        description: '우미교의 계약서. 약간 비린내가 난다.',
+        flavorText: '이제 내용이 전부 보여...',
+        type: 'key_item',
+        icon: '📜',
+        isContract: true
+    },
 };
