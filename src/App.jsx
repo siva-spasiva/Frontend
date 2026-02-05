@@ -6,8 +6,10 @@ import GameStartSequence from './scenes/GameStartSequence';
 import Test01Scene from './scenes/Test01Scene'; // Refactored from MainGameScene
 import Test02Scene from './scenes/Test02Scene';
 import Test03Scene from './scenes/Test03Scene';
-import Test04Scene from './scenes/Test04Scene'; // New Debug Scene
+import Test04Scene from './scenes/Test04Scene';
+import Debug00Scene from './scenes/Debug00Scene'; // Debug Scene
 import CrashScene from './scenes/CrashScene';
+
 import TerminalScene from './scenes/TerminalScene'; // Updated
 import { GameProvider } from './context/GameContext'; // New
 
@@ -25,7 +27,8 @@ function App() {
   const toMainGame = () => setPhase('mainGame'); // Updated (renders Test01)
   const toTest02 = () => setPhase('test02'); // New
   const toTest03 = () => setPhase('test03'); // New
-  const toTest04 = () => setPhase('test04'); // New Debug
+  const toTest04 = () => setPhase('test04'); // New Test04
+  const toDebug00 = () => setPhase('debug00');
   const toCrash = () => setPhase('crash');
   const toTerminal = () => {
     setPhase('terminal');
@@ -34,12 +37,12 @@ function App() {
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
 
-  // Reset phone state when entering MainGame or Test02/03
+  // Reset phone state when entering MainGame or Test02/03/04
   React.useEffect(() => {
-    if (phase === 'mainGame' || phase === 'test02' || phase === 'test03') setIsPhoneOpen(true);
+    if (phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') setIsPhoneOpen(true);
   }, [phase]);
 
-  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03';
+  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04';
 
   return (
     <GameProvider>
@@ -54,24 +57,16 @@ function App() {
             <CrashScene key="crash" onMount={toTerminal} />
           )}
 
+          {phase === 'debug00' && (
+            <Debug00Scene key="debug00" onBack={toMainMenu} />
+          )}
+
           {phase === 'terminal' && (
             <TerminalScene key="terminal" />
           )}
 
-          {phase === 'test04' && (
-            <motion.div
-              key="test04"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50"
-            >
-              <Test04Scene onBack={toMainMenu} />
-            </motion.div>
-          )}
-
           {/* Unified Split Layout Group */}
-          {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03') && (
+          {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') && (
             <motion.div
               key="split-group"
               className="w-full h-full relative"
@@ -134,6 +129,19 @@ function App() {
                     <Test03Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                   </motion.div>
                 )}
+
+                {phase === 'test04' && (
+                  <motion.div
+                    key="test04-bg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 z-0"
+                  >
+                    <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onComplete={toTest02} />
+                  </motion.div>
+                )}
               </AnimatePresence>
 
               {/* Foreground UI (Split Layout) */}
@@ -144,19 +152,32 @@ function App() {
                   initial={{ width: '100%' }}
                   animate={{
                     width: isSplit
-                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03') ? (isPhoneOpen ? '420px' : '0px') : '50%')
+                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') ? (isPhoneOpen ? '420px' : '0px') : '50%')
                       : '100%',
-                    opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03') && !isPhoneOpen) ? 0 : 1
+                    opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') && !isPhoneOpen) ? 0 : 1
                   }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 >
                   <div className="pointer-events-auto w-full h-full flex items-center justify-center">
                     <MainMenuScene
-                      onNext={toGameStart}
+                      onNext={() => {
+                        if (phase === 'test04') {
+                          // Special handler for Test04: Signal Messenger Completion
+                          // Since we can't easily signal Test04Scene from here without context, 
+                          // we can fallback to a window event or assume Test04Scene is checking context.
+                          // BETTER: App.jsx updates a state that Test04Scene listens to?
+                          // OR: Just use context to communicate "MessengerComplete"
+                          // For now, let's use a temporary hack: Dispatch a custom event.
+                          window.dispatchEvent(new CustomEvent('test04-messenger-complete'));
+                        } else {
+                          toGameStart();
+                        }
+                      }}
                       onTestStart={toMainGame}
                       onTest02Start={toTest02}
                       onTest03Start={toTest03}
                       onTest04Start={toTest04}
+                      onDebug00Start={toDebug00}
                       onHome={toMainMenu}
                       currentPhase={phase}
                     />
@@ -173,7 +194,7 @@ function App() {
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       className="flex-1 h-full flex items-center justify-center p-8 pointer-events-auto"
                     >
-                      <GameStartSequence onSign={toCrash} />
+                      <GameStartSequence onSign={toMainGame} />
                     </motion.div>
                   )}
                 </AnimatePresence>

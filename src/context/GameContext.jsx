@@ -39,6 +39,10 @@ export const GameProvider = ({ children }) => {
     // Current Location Info (Synced from active scene)
     const [currentLocationInfo, setCurrentLocationInfo] = useState(null);
 
+    // Visual State for App Layout
+    const [isPhoneCentered, setIsPhoneCentered] = useState(false);
+    const [phoneScreenOverride, setPhoneScreenOverride] = useState(null);
+
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Initial Stats and Data
@@ -225,6 +229,12 @@ export const GameProvider = ({ children }) => {
         currentLocationInfo,
         setCurrentLocationInfo,
         ITEMS: gameData.itemData || {},
+
+        // Layout Control
+        isPhoneCentered,
+        setIsPhoneCentered,
+        phoneScreenOverride,
+        setPhoneScreenOverride,
 
         // Max values (hardcoded for now)
         maxHp: 100,

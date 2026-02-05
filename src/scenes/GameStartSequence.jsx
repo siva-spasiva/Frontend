@@ -6,20 +6,55 @@ const GameStartSequence = ({ onSign }) => {
     const { addItem } = useGame();
     const [isSigned, setIsSigned] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
+    const [animationPhase, setAnimationPhase] = useState('idle'); // idle, signed, folding
 
     const handleSignClick = () => {
-        // addItem('contract_001'); // Moved to Test01Scene
         setIsSigned(true);
-        // 서명 시 화면이 붉게 번쩍이는 충격 효과 후 다음 단계로 이동
-        setTimeout(onSign, 300);
+        setAnimationPhase('signed');
+
+        // Phase 1: Sign Effect (Flash Red)
+        setTimeout(() => {
+            setAnimationPhase('folding');
+        }, 800);
+    };
+
+    // Callback when folding animation is complete
+    const handleAnimationComplete = () => {
+        if (animationPhase === 'folding') {
+            addItem('item004'); // 수상한 계약서
+            onSign();
+        }
+    };
+
+    // Variants for the container
+    const containerVariants = {
+        idle: { scale: 1, opacity: 1 },
+        signed: {
+            scale: 1.05,
+            boxShadow: "0px 0px 50px rgba(255, 0, 0, 0.5)",
+            backgroundColor: "#ffebeb",
+            transition: { duration: 0.2, yoyo: 3 }
+        },
+        folding: {
+            scale: 0.1,
+            y: 500, // Move down
+            x: 200, // Move right
+            opacity: 0,
+            rotate: 720,
+            transition: {
+                duration: 1.5,
+                ease: "easeInOut"
+            }
+        }
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1, backgroundColor: isSigned ? '#ff000080' : '#ffffff' }}
-            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-            className="w-full h-full max-h-[800px] flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl p-8 border border-gray-200 overflow-y-auto"
+            variants={containerVariants}
+            initial="idle"
+            animate={animationPhase}
+            onAnimationComplete={handleAnimationComplete}
+            className="w-full h-full max-h-[800px] flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl p-8 border border-gray-200 overflow-y-auto relative z-50"
         >
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border border-gray-200">
                 <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
@@ -52,24 +87,27 @@ const GameStartSequence = ({ onSign }) => {
                         className="form-checkbox h-5 w-5 text-blue-600"
                         checked={isChecked}
                         onChange={(e) => setIsChecked(e.target.checked)}
+                        disabled={isSigned}
                     />
                     <span className="text-gray-700 font-medium">위 내용을 모두 확인하였으며 동의합니다. (필수)</span>
                 </label>
 
                 <button
                     onClick={handleSignClick}
-                    disabled={!isChecked}
-                    className={`w-full font-bold py-3 px-4 rounded-lg transition duration-300 transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${isChecked
+                    disabled={!isChecked || isSigned}
+                    className={`w-full font-bold py-3 px-4 rounded-lg transition duration-300 transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${isChecked && !isSigned
                         ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                 >
-                    서명 및 입장
+                    {isSigned ? '서명 완료...' : '서명 및 입장'}
                 </button>
             </div>
-            <p className="mt-4 text-gray-500 text-xs">
-                친구 A: "야, 빨리 눌러! 웰컴 드링크 다 식겠다!"
-            </p>
+            {!isSigned && (
+                <p className="mt-4 text-gray-500 text-xs text-center w-full">
+                    참가자의 동의 없이는 진행할 수 없습니다.
+                </p>
+            )}
         </motion.div>
     );
 };

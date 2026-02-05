@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useGame } from '../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Settings, FileText, Grid, Map, Mic } from 'lucide-react';
 import MessengerApp from '../components/apps/MessengerApp';
@@ -104,7 +105,8 @@ const MainMenu = ({ onAppOpen }) => {
                 <AppIcon icon={Grid} label="Test01" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
                 <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
-                <AppIcon icon={Grid} label="DEBUG 00" color="bg-orange-600" onClick={() => onAppOpen('test04')} />
+                <AppIcon icon={Grid} label="Test04" color="bg-teal-600" onClick={() => onAppOpen('test04')} />
+                <AppIcon icon={Grid} label="DEBUG 00" color="bg-orange-600" onClick={() => onAppOpen('debug00')} />
                 {/* <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
                 {/* Dummies to fill space if needed, or leave empty */}
             </div>
@@ -119,10 +121,19 @@ import MapApp from '../components/apps/MapApp';
 import RecorderApp from '../components/apps/RecorderApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onHome, currentPhase }) => {
-    const [internalPhase, setInternalPhase] = useState('menu'); // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onDebug00Start, onHome, currentPhase }) => {
+    // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
+    const [internalPhase, setInternalPhase] = useState('menu');
+
+    // Context for overrides
+    const { phoneScreenOverride } = useGame();
 
     useEffect(() => {
+        if (phoneScreenOverride) {
+            setInternalPhase(phoneScreenOverride);
+            return;
+        }
+
         if (currentPhase === 'mainGame') {
             setInternalPhase('ingame_home');
         } else if (currentPhase === 'test02') {
@@ -132,7 +143,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
         } else if (currentPhase === 'mainMenu') {
             setInternalPhase('menu');
         }
-    }, [currentPhase]);
+    }, [currentPhase, phoneScreenOverride]);
 
     const handleAppOpen = (appName) => {
         if (appName === 'test01') {
@@ -143,6 +154,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             onTest03Start && onTest03Start();
         } else if (appName === 'test04') {
             onTest04Start && onTest04Start();
+        } else if (appName === 'debug00') {
+            onDebug00Start && onDebug00Start();
         } else if (appName === 'umi_class') { // Alias for test03
             onTest03Start && onTest03Start();
         } else {

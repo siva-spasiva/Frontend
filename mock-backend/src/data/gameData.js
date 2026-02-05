@@ -72,7 +72,7 @@ const MAP_DATA = {
         namePrefix: '원데이 클래스',
         highlightText: '우미',
         highlightColor: 'text-blue-400',
-        description: '바닷가가 보이는 아름다운 건물. 햇살이 비치는 창가와 깔끔한 인테리어가 돋보이는 곳.',
+        description: '바닷가가 보이는 아름다운 건물. 햇살이 비치는 창가와 깔끔한 인테리어가 돋보인다.',
         background: 'testintro02.png',
         overlayColor: 'bg-black/5',
     }
