@@ -117,7 +117,7 @@ const InventoryApp = ({ onBack }) => {
                                     }`}>
                                     {selectedItem.type === 'key_item' ? 'KEY ITEM' : 'NORMAL'}
                                 </span>
-                                <span className="text-xs text-gray-400 font-mono text-center">#{selectedItem.id.split('_')[1] || '000'}</span>
+                                <span className="text-xs text-gray-400 font-mono text-center">#{selectedItem.id.replace('item', '')}</span>
                             </div>
 
                             <div className="w-full bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
@@ -130,7 +130,7 @@ const InventoryApp = ({ onBack }) => {
                             </div>
 
                             {/* Contract Content View */}
-                            {selectedItem.id === 'contract_001' && (
+                            {(selectedItem.id === 'item004' || selectedItem.isContract) && (
                                 <div className="w-full bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
                                     <h3 className="text-lg font-bold mb-4 text-center text-gray-800 border-b pb-2">
                                         참가자 <span className="text-red-500 font-mono">[뻐끔뻐끔]</span> 및 <span className="text-red-500 font-mono">[뻐끔]</span> 각서

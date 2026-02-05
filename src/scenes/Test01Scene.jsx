@@ -26,7 +26,7 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const { npcData, mapData, isLoading, inventoryItems, addItem } = useGame();
 
     // Check if user already has contract
-    const hasContract = inventoryItems && inventoryItems.some(i => i.id === 'contract_001');
+    const hasContract = inventoryItems && inventoryItems.some(i => i.id === 'item004' || i.isContract);
 
     // Active NPC State
     const [activeNpc, setActiveNpc] = useState(null);
@@ -183,7 +183,7 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 isOpen={showContract}
                 onClose={() => setShowContract(false)}
                 onSign={() => {
-                    addItem('contract_001');
+                    addItem('item004');
                     setShake(true);
                     setTimeout(() => setShake(false), 500);
                 }}

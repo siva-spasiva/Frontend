@@ -1,6 +1,7 @@
 
 // Import prompts
 import * as PROMPTS from '../utils/prompts.js';
+import { ITEM_DEFINITIONS } from './items.js';
 
 const PORTRAIT_ROOT = '/src/assets/portrait/';
 const MAP_ROOT = '/src/assets/map/';
@@ -181,7 +182,9 @@ export const getGameData = () => {
     return {
         npcData: resolvedNpcData,
         mapData: resolvedMapData,
-        floorData: FLOOR_DATA
+        mapData: resolvedMapData,
+        floorData: FLOOR_DATA,
+        itemData: ITEM_DEFINITIONS
     };
 };
 

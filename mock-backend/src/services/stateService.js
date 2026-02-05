@@ -8,7 +8,7 @@ export const INITIAL_STATS = {
     fishLevel: 0,
     umiLevel: 0,
     trust: 10,
-    inventory: ['smartphone', 'id_card', 'police_badge']
+    inventory: ['item001', 'item002', 'item003']
 };
 
 export const INITIAL_NPC_STATS = {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchGameStats, updateGameStats, fetchStaticGameData } from '../api/stats';
-import { ITEMS } from '../data/items';
+
 
 const GameContext = createContext();
 
@@ -26,7 +26,8 @@ export const GameProvider = ({ children }) => {
     const [gameData, setGameData] = useState({
         npcData: {},
         mapData: {},
-        floorData: []
+        floorData: [],
+        itemData: {}
     });
 
     // Custom Items (Dynamic, e.g. Transcripts)
@@ -159,7 +160,7 @@ export const GameProvider = ({ children }) => {
     };
 
     const inventoryItems = (stats.inventory || [])
-        .map(id => ITEMS[id] || customItems[id])
+        .map(id => gameData.itemData?.[id] || customItems[id])
         .filter(Boolean);
 
     const value = {
@@ -198,7 +199,7 @@ export const GameProvider = ({ children }) => {
         setChatLogs,
         currentLocationInfo,
         setCurrentLocationInfo,
-        ITEMS,
+        ITEMS: gameData.itemData || {},
 
         // Max values (hardcoded for now)
         maxHp: 100,
