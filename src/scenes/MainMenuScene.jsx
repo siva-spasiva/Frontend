@@ -111,7 +111,7 @@ const MainMenu = ({ onAppOpen }) => {
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
                 <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
                 <AppIcon icon={Grid} label="DEBUG 00" color="bg-orange-600" onClick={() => onAppOpen('test04')} />
-                <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
+                {/* <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
                 {/* Dummies to fill space if needed, or leave empty */}
             </div>
         </div>

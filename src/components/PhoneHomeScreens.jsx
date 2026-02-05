@@ -46,7 +46,7 @@ export const IngameHomeScreen = ({ onAppOpen, onBack }) => {
                 <AppIcon icon={Map} label="Map" color="bg-green-600" onClick={() => onAppOpen('map_app')} />
                 <AppIcon icon={FileText} label="Memo" color="bg-yellow-500" onClick={() => { }} />
                 <AppIcon icon={Mic} label="Rec" color="bg-red-500" onClick={() => { }} />
-                {/* <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
+                <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                 <AppIcon icon={Settings} label="Settings" color="bg-gray-500" onClick={() => { }} />
             </div>
 
@@ -140,7 +140,7 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
 
             <div className="grid grid-cols-4 gap-4">
                 <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
-                {/* <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
+                <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                 <AppIcon icon={Mic} label="Recorder" color="bg-red-500" onClick={() => onAppOpen('recorder_app')} />
                 <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
             </div>
@@ -209,7 +209,7 @@ export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
                 {/* Identical Grid to 03, but visually dimmer/grayscaled via parent filters */}
                 <div className="grid grid-cols-4 gap-4 filter saturate-50 contrast-125 brightness-90">
                     <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
-                    {/* <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
+                    <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                     <AppIcon icon={Camera} label="Photo" color="bg-pink-400" onClick={() => { }} />
                     <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
                 </div>
