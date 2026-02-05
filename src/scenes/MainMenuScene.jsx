@@ -13,12 +13,9 @@ const PhoneFrame = ({ children, header, isBroken }) => {
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -50, opacity: 0 }}
-                className={`w-full max-w-sm h-[95vh] max-h-[800px] bg-white rounded-[3rem] shadow-2xl border-8 overflow-hidden relative flex flex-col transition-all duration-500 ${isBroken ? 'border-gray-800' : 'border-gray-900'}`}
-                style={isBroken ? { boxShadow: '0 0 20px rgba(0,0,0,0.8)' } : {}}
+                className={`w-full max-w-sm h-[95vh] max-h-[800px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative flex flex-col transition-all duration-500 ${isBroken ? 'border-red-900/30' : 'border-white/20'}`}
+                style={isBroken ? { boxShadow: '0 0 20px rgba(0,0,0,0.8)' } : { boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
             >
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-30"></div>
-
                 {/* Cracks & Damage Overlays */}
                 {isBroken && (
                     <div className="absolute inset-0 z-40 pointer-events-none">
@@ -49,7 +46,7 @@ const PhoneFrame = ({ children, header, isBroken }) => {
 
                 {/* Content */}
                 <div
-                    className={`flex-1 flex flex-col relative bg-gray-50 overflow-hidden transition-all duration-500`}
+                    className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-500`}
                     style={isBroken ? {
                         filter: 'contrast(1.2) brightness(0.85) grayscale(0.4) blur(0.6px)',
                         transform: 'scale(1.005)' // Subtle zoom to feel 'off'
@@ -62,9 +59,6 @@ const PhoneFrame = ({ children, header, isBroken }) => {
                         <div className="absolute inset-0 bg-red-500 mix-blend-screen opacity-10 pointer-events-none translate-x-[1px]"></div>
                     )}
                 </div>
-
-                {/* Home Indicator */}
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-black rounded-full z-30"></div>
             </motion.div>
         </div>
     );
