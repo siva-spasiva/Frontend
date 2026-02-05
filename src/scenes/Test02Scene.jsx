@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useGame } from '../context/GameContext';
 import SmartphoneMenu from '../components/SmartphoneMenu';
+import PortraitDisplay from '../components/PortraitDisplay';
+import { useViewMode } from '../hooks/useViewMode';
 
 const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
-    const [viewMode, setViewMode] = useState('mini');
+    const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
     // History logs
@@ -88,13 +90,6 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
         }
     };
 
-
-    const toggleViewMode = () => {
-        if (viewMode === 'full') setViewMode('mini');
-        else if (viewMode === 'mini') setViewMode('hidden');
-        else setViewMode('full');
-    };
-
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -132,22 +127,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
             </motion.div>
 
             {/* Portrait Placeholder */}
-            <div className="absolute right-10 top-0 h-full w-[500px] flex items-end justify-center z-0 pointer-events-none">
-                <AnimatePresence mode="wait">
-                    {activeNpc && (
-                        <motion.img
-                            key={activeNpc.id}
-                            src={activeNpc.portraits?.default || activeNpc.initialPortrait}
-                            alt={activeNpc.name}
-                            className="h-[90%] object-contain drop-shadow-2xl"
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 50 }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                    )}
-                </AnimatePresence>
-            </div>
+            <PortraitDisplay activeNpc={activeNpc} />
 
             <SmartphoneMenu
                 logs={logs}
@@ -157,7 +137,8 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 inputText={inputText}
                 setInputText={setInputText}
                 viewMode={viewMode}
-                onToggleViewMode={toggleViewMode}
+                onToggleHidden={handleToggleHidden}
+                onToggleExpand={handleToggleExpand}
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
                 theme="corrupted"

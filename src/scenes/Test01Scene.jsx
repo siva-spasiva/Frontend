@@ -5,10 +5,12 @@ import { useGame } from '../context/GameContext';
 import SmartphoneMenu from '../components/SmartphoneMenu';
 import ContractModal from '../components/ContractModal';
 import { FileText } from 'lucide-react';
+import PortraitDisplay from '../components/PortraitDisplay';
+import { useViewMode } from '../hooks/useViewMode';
 
 const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
-    const [viewMode, setViewMode] = useState('mini');
+    const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
     // History logs
@@ -98,11 +100,7 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
         }
     };
 
-    const toggleViewMode = () => {
-        if (viewMode === 'full') setViewMode('mini');
-        else if (viewMode === 'mini') setViewMode('hidden');
-        else setViewMode('full');
-    };
+
 
     return (
         <motion.div
@@ -134,21 +132,10 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
             </motion.div>
 
             {/* Portrait Area */}
-            <div className="absolute right-0 top-0 h-full w-96 bg-gray-800/20 border-l border-gray-700/30 flex items-end justify-center pointer-events-none z-0 backdrop-blur-[2px]">
-                <AnimatePresence mode="wait">
-                    {activeNpc && (
-                        <motion.img
-                            key={activeNpc.id}
-                            src={activeNpc.portraits?.default || activeNpc.initialPortrait}
-                            alt={activeNpc.name}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="max-h-[80%] max-w-full object-contain mb-0 shadow-2xl drop-shadow-2xl"
-                        />
-                    )}
-                </AnimatePresence>
-            </div>
+            <PortraitDisplay
+                activeNpc={activeNpc}
+                className="!right-0 !w-96 bg-gray-800/20 border-l border-gray-700/30 backdrop-blur-[2px]"
+            />
 
             {/* Contract Object (Clickable) */}
             {!hasContract && (
@@ -188,7 +175,8 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 inputText={inputText}
                 setInputText={setInputText}
                 viewMode={viewMode}
-                onToggleViewMode={toggleViewMode}
+                onToggleHidden={handleToggleHidden}
+                onToggleExpand={handleToggleExpand}
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
                 theme="basic"
