@@ -13,6 +13,8 @@ import { GameProvider } from './context/GameContext'; // New
 
 import './index.css';
 
+import MainMenuBg from './assets/map/mainmenu01.png';
+
 function App() {
   // phase state: 'teamLogo' -> 'mainMenu' -> 'gameStart'/'mainGame' -> 'crash' -> 'terminal' -> 'test02' -> 'test03'
   const [phase, setPhase] = useState('teamLogo');
@@ -79,6 +81,21 @@ function App() {
             >
               {/* Background Types */}
               <AnimatePresence>
+                {phase === 'mainMenu' && (
+                  <motion.div
+                    key="mainMenu-bg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 z-0"
+                  >
+                    <img src={MainMenuBg} alt="Main Menu Background" className="w-full h-full object-cover" />
+                    {/* Overlay for better text/phone visibility */}
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+                  </motion.div>
+                )}
+
                 {phase === 'mainGame' && (
                   <motion.div
                     key="mainGame-bg"
@@ -140,6 +157,7 @@ function App() {
                       onTest02Start={toTest02}
                       onTest03Start={toTest03}
                       onTest04Start={toTest04}
+                      onHome={toMainMenu}
                       currentPhase={phase}
                     />
                   </div>

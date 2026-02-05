@@ -119,7 +119,7 @@ import MapApp from '../components/apps/MapApp';
 import RecorderApp from '../components/apps/RecorderApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, currentPhase }) => {
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onHome, currentPhase }) => {
     const [internalPhase, setInternalPhase] = useState('menu'); // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
 
     useEffect(() => {
@@ -129,6 +129,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             setInternalPhase('ingame02_home');
         } else if (currentPhase === 'test03') {
             setInternalPhase('ingame03_home');
+        } else if (currentPhase === 'mainMenu') {
+            setInternalPhase('menu');
         }
     }, [currentPhase]);
 
@@ -173,7 +175,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <IngameHomeScreen onAppOpen={handleAppOpen} onBack={() => setInternalPhase('menu')} />
+                        <IngameHomeScreen onAppOpen={handleAppOpen} onBack={onHome} />
                     </motion.div>
                 )}
 
@@ -185,7 +187,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <IngameCorruptedHomeScreen onAppOpen={handleAppOpen} onBack={() => setInternalPhase('menu')} />
+                        <IngameCorruptedHomeScreen onAppOpen={handleAppOpen} onBack={onHome} />
                     </motion.div>
                 )}
 
@@ -197,7 +199,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <Ingame03HomeScreen onAppOpen={handleAppOpen} onBack={() => setInternalPhase('menu')} />
+                        <Ingame03HomeScreen onAppOpen={handleAppOpen} onBack={onHome} />
                     </motion.div>
                 )}
 
