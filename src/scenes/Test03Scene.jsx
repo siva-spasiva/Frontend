@@ -161,12 +161,12 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 animate={{ left: isPhoneOpen ? '450px' : '40px' }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
             >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
+                <div className="flex items-center space-x-2 text-white/90 mb-1 drop-shadow-md">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-xs font-mono tracking-widest uppercase shadow-black drop-shadow-md">Location Information</span>
+                    <span className="text-xs font-mono tracking-widest uppercase shadow-black">Location Information</span>
                 </div>
                 {/* Updated Map Name */}
                 <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tighter drop-shadow-lg shadow-black">
