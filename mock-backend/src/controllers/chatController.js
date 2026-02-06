@@ -86,8 +86,10 @@ export const handleChat = async (req, res) => {
     systemPrompt = systemPrompt.replace(/{stat_instruction}/g, statInstruction);
 
     // [New] Inject Player Stats for context
-    const playerStatsContext = `
-[User Status]
+    // Only inject for Cultist NPCs (not friend_a)
+    let playerStatsContext = "";
+    if (npcId !== 'friend_a') {
+        playerStatsContext = `
 [User Status]
 - HP(체력): ${globalState.hp}/100
 - FishLevel(변이도): ${globalState.fishLevel}% (높을수록 당신의 '뻐끔' 언어를 알아듣습니다)
@@ -104,6 +106,7 @@ export const handleChat = async (req, res) => {
    - High Faith + High Friendly: 유저를 '구원(전도)'하려 합니다. 교단에 귀의시키는 것이 당신을 돕는 길이라 믿습니다.
    - Low Faith + High Friendly: 유저를 '탈출'시키려 합니다. 교단은 미쳤으니 도망쳐야 한다고 믿습니다.
 `;
+    }
 
     // Construct full prompt
     const fullPrompt = `${systemPrompt}\n${playerStatsContext}\n\nUser: ${message}\nCharacter:`;

@@ -51,6 +51,18 @@ const ViewControls = ({
                 </motion.button>
             )}
 
+            {/* Additional Buttons (NPC Toggle etc) - Moved Up */}
+            {children && React.Children.map(children, child => (
+                <motion.div
+                    animate={{ x: isPhoneOpen ? 400 : 0 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    {child}
+                </motion.div>
+            ))}
+
+            {/* View/Hide Toggle - Moved Down */}
             <motion.button
                 onClick={onToggleHidden || onToggleViewMode}
                 className={getToggleBtnStyle(viewMode === 'full')}
@@ -66,17 +78,6 @@ const ViewControls = ({
                     <MessageSquare className="w-6 h-6" />
                 )}
             </motion.button>
-
-            {/* Additional Buttons */}
-            {children && React.Children.map(children, child => (
-                <motion.div
-                    animate={{ x: isPhoneOpen ? 400 : 0 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    {child}
-                </motion.div>
-            ))}
         </div>
     );
 };

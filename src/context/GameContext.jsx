@@ -42,6 +42,7 @@ export const GameProvider = ({ children }) => {
     // Visual State for App Layout
     const [isPhoneCentered, setIsPhoneCentered] = useState(false);
     const [phoneScreenOverride, setPhoneScreenOverride] = useState(null);
+    const [appEvent, setAppEvent] = useState(null);
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -235,6 +236,10 @@ export const GameProvider = ({ children }) => {
         setIsPhoneCentered,
         phoneScreenOverride,
         setPhoneScreenOverride,
+
+        // Generic Event Bus for Scene-App Communication
+        appEvent: null,
+        triggerAppEvent: (event, payload) => setAppEvent({ event, payload, timestamp: Date.now() }),
 
         // Max values (hardcoded for now)
         maxHp: 100,

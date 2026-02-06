@@ -38,12 +38,14 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
             // Animation: Phone moves to center, screen changes to messenger
             setIsPhoneCentered(true);
             setPhoneScreenOverride('messenger');
-        } else if (phase === 'enter_room') {
-            // Phone moves back to left, screen back to home?
-            setIsPhoneCentered(false);
-            setPhoneScreenOverride(null); // Or 'ingame_home' if we had one for this phase
+        } else if (phase === 'contract') {
+            // SPLIT SCREEN MODE
+            // 1. Phone moves to Left
+            // 2. Contract appears on Right
+            setIsPhoneCentered(false); // Move phone to left
+            setPhoneScreenOverride('messenger'); // Keep messenger open!
 
-            // Map Update
+            // Map Update (Background change to Classroom/Hall)
             setMapInfo({
                 namePrefix: '1층',
                 highlightText: '메인 홀',
@@ -58,44 +60,28 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 highlightColor: 'text-yellow-400',
                 description: '학교의 중심이 되는 메인 홀.',
             });
-
-            // Auto transition to contract
-            const timer = setTimeout(() => {
-                setPhase('contract');
-            }, 2500);
-            return () => clearTimeout(timer);
         }
     }, [phase, setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride]);
 
+    // Listen for App Events (e.g. Messenger triggering Contract)
+    const { appEvent } = useGame();
+    useEffect(() => {
+        if (appEvent?.event === 'CONTRACT_TRIGGER') {
+            console.log("Test04Scene: Contract Trigger Received");
+            setPhase('contract');
+            setIsPhoneCentered(false); // Force explicit update immediately
+        }
+    }, [appEvent]);
 
-    // Setup Messenger Listener (Since Messenger is now in MainMenuScene, we need a way to know it finished)
-    // We can use a trick: MainMenuScene passes 'onNext' to MessengerApp.
-    // In App.jsx, onNext calls 'toGameStart'.
-    // We need to intercept this.
-    // BUT, MessengerApp is running inside MainMenuScene. 
-    // The MainMenuScene 'onNext' prop is currently 'toGameStart'.
-    // We need to change App.jsx so that when in Test04, onNext triggers Test04 logic.
-    // Actually, MessengerApp in MainMenuScene calls onComplete.
-
-    // ALTERNATIVE: Use an effect here to listen for logs?
-    // Or simpler: Just rely on timer for demo? No, user wants sequence.
-    // Let's modify MainMenuScene to handle 'messenger' completion differently in valid context?
-    // OR we can just inject a handler into Context.
-
-    // For now, let's assume the MessengerApp calls 'onComplete' passed to it.
-    // In MainMenuScene: <MessengerApp onComplete={onNext} ... />
-    // In App.jsx: <MainMenuScene onNext={toGameStart} ... />
-    // So finishing Messenger -> toGameStart (GameStartSequence). This is NOT what we want for Test04.
-
-    // FIX: We need to override 'onNext' behavior for Test04 in App.jsx.
-    // OR, we can just use a timer for the messenger phase in this specific scripted scene if we can't easily hook the callback.
-    // The user said "Sequence proceeds(Messenger)... then back to left".
-
-    // Let's add a global event/callback in GameContext for "PhaseComplete"
-    // Or let's just make App.jsx handle it.
 
     const handleContractSigned = () => {
         if (onComplete) onComplete();
+    };
+
+    // Callback from MessengerApp when it decides it's time to show the contract
+    const handleTriggerContract = () => {
+        console.log("Contract Phase Triggered!");
+        setPhase('contract');
     };
 
     return (
@@ -134,18 +120,33 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 </p>
             </motion.div>
 
-            {/* Phase 4: Contract Overlay */}
+            {/* Hidden Callback Handler for Messenger App */}
+            {/* The Messenger App is rendered inside MainMenuScene (inside PhoneFrame). 
+                We need to pass the 'handleTriggerContract' callback down to it.
+                Since we can't easily pass props through MainMenuScene -> MessengerApp without rewiring everything,
+                we will use a global event or simply rely on the fact that MainMenuScene calls 'onNext' when Messenger completes?
+                
+                Actually, MessengerApp has 'onTriggerContract' prop in my last edit. 
+                But Test04Scene doesn't render MessengerApp directly.
+                
+                Workaround: We will pass a specific prop 'onMessengerTrigger' via Context or App.jsx.
+                OR simpler: We update the 'onComplete' prop passed to MainMenuScene to handle intermediate steps.
+            */}
+
+            {/* Contract Container (Right Side) */}
             <AnimatePresence>
                 {phase === 'contract' && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                        initial={{ x: 500, opacity: 0, rotate: 5 }}
+                        animate={{ x: 0, opacity: 1, rotate: 0 }}
+                        exit={{ x: 500, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        className="absolute right-10 top-1/2 -translate-y-1/2 z-20 w-[600px] h-[800px] flex items-center justify-center pointer-events-auto"
                     >
-                        <div className="max-w-xl w-full p-4">
-                            <GameStartSequence onSign={handleContractSigned} />
-                        </div>
+                        {/* We pass a special prop 'externalControl' to GameStartSequence if we want to block signing until authorized.
+                             For now, let's just show it. 
+                          */}
+                        <GameStartSequence onSign={handleContractSigned} />
                     </motion.div>
                 )}
             </AnimatePresence>
