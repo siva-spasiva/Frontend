@@ -158,7 +158,11 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             {/* Location Info */}
             <motion.div
                 className="absolute top-8 z-10 pointer-events-none"
-                animate={{ left: isPhoneOpen ? '450px' : '40px' }}
+                animate={{
+                    left: isPhoneOpen ? '450px' : '40px',
+                    y: viewMode === 'hidden' ? -200 : 0, // Slide up if hidden
+                    opacity: viewMode === 'hidden' ? 0 : 1
+                }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
             >
                 <div className="flex items-center space-x-2 text-white/90 mb-1 drop-shadow-md">
