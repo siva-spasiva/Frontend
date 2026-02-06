@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useGame } from '../context/GameContext';
-import SmartphoneMenu from '../components/SmartphoneMenu';
 import ContractModal from '../components/ContractModal';
 import { FileText } from 'lucide-react';
-import PortraitDisplay from '../components/PortraitDisplay';
 import { useViewMode } from '../hooks/useViewMode';
+import GameHUD from '../components/GameHUD';
 
 const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -100,7 +99,10 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
         }
     };
 
-
+    const toggleNpc = () => {
+        if (activeNpc) setActiveNpc(null);
+        else setActiveNpc(npcData.npc_a);
+    };
 
     return (
         <motion.div
@@ -109,35 +111,28 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
             exit={{ opacity: 0, x: 20 }}
             className={`w-full h-full relative bg-gray-900 text-white overflow-hidden ${shake ? 'animate-shake' : ''}`}
         >
-
-            {/* Location Info */}
-            <motion.div
-                className="absolute top-8 z-10 pointer-events-none"
-                animate={{ left: isPhoneOpen ? '450px' : '40px' }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-                <div className="flex items-center space-x-2 text-gray-500 mb-1">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-xs font-mono tracking-widest uppercase">Location Information</span>
-                </div>
-                <h1 className="text-4xl font-extrabold text-gray-200 mb-2 tracking-tighter">
-                    {mapInfo.namePrefix} <span className={mapInfo.highlightColor}>{mapInfo.highlightText}</span>
-                </h1>
-                <p className="text-sm text-gray-400 max-w-md leading-relaxed border-l-2 border-gray-700 pl-4">
-                    {mapInfo.description}
-                </p>
-            </motion.div>
-
-            {/* Portrait Area */}
-            <PortraitDisplay
+            <GameHUD
+                mapInfo={mapInfo}
                 activeNpc={activeNpc}
-                className="!right-0 !w-96 bg-gray-800/20 border-l border-gray-700/30 backdrop-blur-[2px]"
+                logs={logs}
+                dialogContent={dialogContent}
+                isThinking={isThinking}
+                onSend={handleSend}
+                inputText={inputText}
+                setInputText={setInputText}
+                viewMode={viewMode}
+                onToggleHidden={handleToggleHidden}
+                onToggleExpand={handleToggleExpand}
+                isPhoneOpen={isPhoneOpen}
+                onTogglePhone={onTogglePhone}
+                onToggleNpc={toggleNpc}
+                theme="basic"
             />
 
-            {/* Contract Object (Clickable) */}
+            {/* Contract Object (Clickable) - Rendered AFTER GameHUD to ensure access? Actually GameHUD has overlay in it. 
+                If GameHUD has overlay, putting this here means it is ON TOP of overlay but maybe under phone. 
+                Z-20 is safer.
+            */}
             {!hasContract && (
                 <motion.button
                     initial={{ scale: 0, opacity: 0 }}
@@ -165,21 +160,6 @@ const Test01Scene = ({ isPhoneOpen, onTogglePhone }) => {
                     setShake(true);
                     setTimeout(() => setShake(false), 500);
                 }}
-            />
-
-            <SmartphoneMenu
-                logs={logs}
-                dialogContent={dialogContent}
-                isThinking={isThinking}
-                onSend={handleSend}
-                inputText={inputText}
-                setInputText={setInputText}
-                viewMode={viewMode}
-                onToggleHidden={handleToggleHidden}
-                onToggleExpand={handleToggleExpand}
-                isPhoneOpen={isPhoneOpen}
-                onTogglePhone={onTogglePhone}
-                theme="basic"
             />
         </motion.div>
     );

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useGame } from '../context/GameContext';
-import SmartphoneMenu from '../components/SmartphoneMenu';
-import PortraitDisplay from '../components/PortraitDisplay';
 import { useViewMode } from '../hooks/useViewMode';
+import GameHUD from '../components/GameHUD';
 
 const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -90,6 +89,11 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
         }
     };
 
+    const toggleNpc = () => {
+        if (activeNpc) setActiveNpc(null);
+        else setActiveNpc(npcData.reporter);
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -102,34 +106,9 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 backgroundPosition: 'center'
             }}
         >
-            {/* Dark Overlay for Readability */}
-            <div className={`absolute inset-0 ${mapInfo.overlayColor} pointer-events-none`} />
-
-            {/* Location Info */}
-            <motion.div
-                className="absolute top-8 z-10 pointer-events-none"
-                animate={{ left: isPhoneOpen ? '450px' : '40px' }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-xs font-mono tracking-widest uppercase shadow-black drop-shadow-md">Location Information</span>
-                </div>
-                <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tighter drop-shadow-lg shadow-black">
-                    {mapInfo.namePrefix} <span className={mapInfo.highlightColor}>{mapInfo.highlightText}</span>
-                </h1>
-                <p className="text-sm text-gray-300 max-w-md leading-relaxed border-l-2 border-gray-500 pl-4 bg-black/30 p-2 rounded-r backdrop-blur-sm">
-                    {mapInfo.description}
-                </p>
-            </motion.div>
-
-            {/* Portrait Placeholder */}
-            <PortraitDisplay activeNpc={activeNpc} />
-
-            <SmartphoneMenu
+            <GameHUD
+                mapInfo={mapInfo}
+                activeNpc={activeNpc}
                 logs={logs}
                 dialogContent={dialogContent}
                 isThinking={isThinking}
@@ -141,6 +120,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onToggleExpand={handleToggleExpand}
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
+                onToggleNpc={toggleNpc}
                 theme="corrupted"
             />
         </motion.div>

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
-import { UserPlus, UserMinus } from 'lucide-react';
-import SmartphoneMenu from '../components/SmartphoneMenu';
-import PortraitDisplay from '../components/PortraitDisplay';
+import { useViewMode } from '../hooks/useViewMode';
+import GameHUD from '../components/GameHUD';
 
 const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
-    const [viewMode, setViewMode] = useState('mini');
+    const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
     // History logs
@@ -26,7 +25,6 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const [activeNpc, setActiveNpc] = useState(null);
 
     // Initialize NPC from data once loaded
-    // Using useEffect to set initial NPC if not set
     React.useEffect(() => {
         if (!isLoading && npcData && !activeNpc) {
             setActiveNpc(npcData.npc_a);
@@ -125,16 +123,6 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
         }
     };
 
-    const handleToggleHidden = () => {
-        if (viewMode === 'hidden') setViewMode('mini');
-        else setViewMode('hidden');
-    };
-
-    const handleToggleExpand = () => {
-        if (viewMode === 'full') setViewMode('mini');
-        else setViewMode('full');
-    };
-
     const toggleNpc = () => {
         if (activeNpc) setActiveNpc(null);
         else setActiveNpc(npcData.npc_a);
@@ -152,39 +140,9 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 backgroundPosition: 'center'
             }}
         >
-            {/* Dark Overlay for Readability */}
-            <div className={`absolute inset-0 ${mapInfo.overlayColor} pointer-events-none`} />
-
-            {/* Location Info */}
-            <motion.div
-                className="absolute top-8 z-10 pointer-events-none"
-                animate={{
-                    left: isPhoneOpen ? '450px' : '40px',
-                    y: viewMode === 'hidden' ? -200 : 0, // Slide up if hidden
-                    opacity: viewMode === 'hidden' ? 0 : 1
-                }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-                <div className="flex items-center space-x-2 text-white/90 mb-1 drop-shadow-md">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-xs font-mono tracking-widest uppercase shadow-black">Location Information</span>
-                </div>
-                {/* Updated Map Name */}
-                <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tighter drop-shadow-lg shadow-black">
-                    {mapInfo.namePrefix} <span className={mapInfo.highlightColor}>{mapInfo.highlightText}</span>
-                </h1>
-                <p className={`text-sm text-gray-300 max-w-md leading-relaxed border-l-2 ${mapInfo.highlightColor.replace('text', 'border')} pl-4 bg-black/30 p-2 rounded-r backdrop-blur-sm`}>
-                    {mapInfo.description}
-                </p>
-            </motion.div>
-
-            {/* Portrait Placeholder - Conditional Rendering */}
-            <PortraitDisplay activeNpc={activeNpc} />
-
-            <SmartphoneMenu
+            <GameHUD
+                mapInfo={mapInfo}
+                activeNpc={activeNpc}
                 logs={logs}
                 dialogContent={dialogContent}
                 isThinking={isThinking}
@@ -196,16 +154,9 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onToggleExpand={handleToggleExpand}
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
+                onToggleNpc={toggleNpc}
                 theme="basic"
-            >
-                {/* Debug Button to Toggle NPC passed as child */}
-                <motion.button
-                    onClick={toggleNpc}
-                    className={`w-12 h-12 flex items-center justify-center bg-blue-500/30 hover:bg-blue-500/50 text-white rounded-full backdrop-blur-md border border-white/20 shadow-lg`}
-                >
-                    {activeNpc ? <UserMinus className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
-                </motion.button>
-            </SmartphoneMenu>
+            />
         </motion.div>
     );
 };
