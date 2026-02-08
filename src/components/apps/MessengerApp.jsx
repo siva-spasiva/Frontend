@@ -40,20 +40,30 @@ const MessengerLoading = ({ onLoaded }) => {
     );
 };
 
-const ChatListScreen = ({ onChatSelect }) => {
+const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplete }) => {
     const [notification, setNotification] = useState(null);
-    const [messagesArrived, setMessagesArrived] = useState(false);
+    
+    // If it was already animated, we show the list immediately as "arrived"
+    const [messagesArrived, setMessagesArrived] = useState(isAnimated);
 
     useEffect(() => {
+        if (isAnimated) return;
+
         const timer = setTimeout(() => {
             setMessagesArrived(true);
             setNotification({
                 sender: 'Friend_A',
                 text: '야 이거 봐! 대박임 ㅋㅋ'
             });
+            onAnimationComplete();
         }, 1500);
         return () => clearTimeout(timer);
-    }, []);
+    }, [isAnimated, onAnimationComplete]);
+
+    // Get last message for preview
+    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+    const previewText = lastMessage ? lastMessage.text : 'Sent a photo.';
+    const timeDisplay = lastMessage ? (lastMessage.time === 'Now' ? 'Just now' : lastMessage.time) : 'Yesterday';
 
     return (
         <div className="w-full h-full bg-white flex flex-col pt-12 text-gray-900">
@@ -96,11 +106,11 @@ const ChatListScreen = ({ onChatSelect }) => {
                         <div className="flex-1">
                             <div className="flex justify-between items-center mb-1">
                                 <span className={`font-semibold ${messagesArrived ? 'text-black' : 'text-gray-800'}`}>친구 A</span>
-                                <span className="text-xs text-gray-400">{messagesArrived ? 'Just now' : 'Yesterday'}</span>
+                                <span className="text-xs text-gray-400">{messagesArrived ? timeDisplay : 'Yesterday'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className={`text-sm truncate max-w-[180px] ${messagesArrived ? 'font-bold text-black' : 'text-gray-400'}`}>
-                                    {messagesArrived ? '솔피 리조트라고 새로 생긴...' : 'Sent a photo.'}
+                                    {messagesArrived ? previewText : 'Sent a photo.'}
                                 </span>
                                 {messagesArrived && (
                                     <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">1</div>
@@ -138,23 +148,10 @@ const ChatListScreen = ({ onChatSelect }) => {
     );
 };
 
-const ChatScreen = ({ onBack, onTriggerContract }) => {
-    const [messages, setMessages] = useState([]);
+const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const bottomRef = useRef(null);
-
-    // Initial conversation
-    useEffect(() => {
-        const initialMsgs = [
-            { id: 1, sender: 'Friend_A', text: '야 이거 봐! 대박임 ㅋㅋ', type: 'text', time: '오후 2:01' },
-            { id: 2, sender: 'Friend_A', text: '바다 뷰 무료 꽃꽂이 클래스 당첨됨! 너랑 나랑 2명임', type: 'text', time: '오후 2:01' },
-            { id: 3, sender: 'Friend_A', text: '솔피 리조트라고 새로 생긴 데라는데 시설 쩐대. 가자 제발 ㅠㅠ', type: 'text', time: '오후 2:02' },
-        ];
-
-        // Simulating "already received" state or fast arrival
-        setMessages(initialMsgs);
-    }, []);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -474,7 +471,7 @@ const ContractPhase = ({ onComplete }) => {
                                     className="flex-1 bg-transparent px-2 text-sm focus:outline-none text-black"
                                     placeholder="Reply based on the contract..."
                                     value={inputValue}
-                                    onChange={e => setInputValue(e.target.value)}
+                                    onChange={e => e.target.value.length <= 50 && setInputValue(e.target.value)}
                                     onKeyPress={e => e.key === 'Enter' && handleOverlaySend()}
                                 />
                                 <button onClick={handleOverlaySend} className="p-2 bg-blue-500 rounded-full text-white">
@@ -500,6 +497,22 @@ const MessengerApp = ({ onComplete, onBack }) => {
     // The Messenger stays in 'chat' mode.
     const [phase, setPhase] = useState('loading');
     const { triggerAppEvent } = useGame();
+    
+    // --- LIFTED STATE ---
+    const [messages, setMessages] = useState([]);
+    const [isListAnimated, setIsListAnimated] = useState(false); // Track if initial animation is done
+
+    // Initialize messages once
+    useEffect(() => {
+        if (messages.length === 0) {
+             const initialMsgs = [
+                { id: 1, sender: 'Friend_A', text: '야 이거 봐! 대박임 ㅋㅋ', type: 'text', time: '오후 2:01' },
+                { id: 2, sender: 'Friend_A', text: '바다 뷰 무료 꽃꽂이 클래스 당첨됨! 너랑 나랑 2명임', type: 'text', time: '오후 2:01' },
+                { id: 3, sender: 'Friend_A', text: '솔피 리조트라고 새로 생긴 데라는데 시설 쩐대. 가자 제발 ㅠㅠ', type: 'text', time: '오후 2:02' },
+            ];
+            setMessages(initialMsgs);
+        }
+    }, []); 
 
     // Blackout effect state
     const [blackout, setBlackout] = useState(false);
@@ -526,14 +539,24 @@ const MessengerApp = ({ onComplete, onBack }) => {
 
                 {phase === 'list' && (
                     <motion.div key="list" className="w-full h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        <ChatListScreen onChatSelect={() => setPhase('chat')} />
+                        <ChatListScreen 
+                            onChatSelect={() => setPhase('chat')} 
+                            messages={messages}
+                            isAnimated={isListAnimated}
+                            onAnimationComplete={() => setIsListAnimated(true)}
+                        />
                         <button onClick={onBack} className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-black/20 rounded-full z-50 hover:bg-black/40 transition-colors"></button>
                     </motion.div>
                 )}
 
                 {phase === 'chat' && (
                     <motion.div key="chat" className="w-full h-full" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "-50%", opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}>
-                        <ChatScreen onBack={() => setPhase('list')} onTriggerContract={handleTriggerContract} />
+                        <ChatScreen
+                            messages={messages}
+                            setMessages={setMessages}
+                            onBack={() => setPhase('list')}
+                            onTriggerContract={handleTriggerContract}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -4,10 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import IntroBg from '../assets/map/testintro02.png';
 import ClassroomBg from '../assets/map/classroom01.png';
 import GameStartSequence from './GameStartSequence';
+import GameHUD from '../components/GameHUD';
 
 const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
     // Phases: 'arrival' -> 'messenger' -> 'enter_room' -> 'contract'
     const [phase, setPhase] = useState('arrival');
+    const [viewMode, setViewMode] = useState('mini');
+
+    // Chat State (Dummy for HUD)
+    const [inputText, setInputText] = useState('');
+    const logs = []; 
 
     // Core Game State via Context
     const { setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride } = useGame();
@@ -28,6 +34,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
             // Initial State: Phone on Left.
             setIsPhoneCentered(false);
             setPhoneScreenOverride(null); // Default home screen
+            setViewMode('mini');
 
             // Timer to move phone to center and open messenger
             const timer = setTimeout(() => {
@@ -38,12 +45,14 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
             // Animation: Phone moves to center, screen changes to messenger
             setIsPhoneCentered(true);
             setPhoneScreenOverride('messenger');
+            // In this phase, we hide the HUD entirely via conditional rendering below
         } else if (phase === 'contract') {
             // SPLIT SCREEN MODE
             // 1. Phone moves to Left
             // 2. Contract appears on Right
             setIsPhoneCentered(false); // Move phone to left
             setPhoneScreenOverride('messenger'); // Keep messenger open!
+            setViewMode('mini');
 
             // Map Update (Background change to Classroom/Hall)
             setMapInfo({
@@ -78,12 +87,6 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
         if (onComplete) onComplete();
     };
 
-    // Callback from MessengerApp when it decides it's time to show the contract
-    const handleTriggerContract = () => {
-        console.log("Contract Phase Triggered!");
-        setPhase('contract');
-    };
-
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -96,42 +99,40 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 backgroundPosition: 'center'
             }}
         >
-            {/* Dark Overlay */}
-            <div className={`absolute inset-0 ${mapInfo.overlayColor} pointer-events-none transition-colors duration-1000`} />
-
-            {/* Location Info */}
-            <motion.div
-                className="absolute top-8 z-10 pointer-events-none"
-                animate={{ left: isPhoneOpen ? '450px' : '40px' }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-                <div className="flex items-center space-x-2 text-white/90 mb-1 drop-shadow-md">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-xs font-mono tracking-widest uppercase shadow-black">Location Information</span>
-                </div>
-                <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tighter drop-shadow-lg shadow-black">
-                    {mapInfo.namePrefix} <span className={mapInfo.highlightColor}>{mapInfo.highlightText}</span>
-                </h1>
-                <p className={`text-sm text-gray-300 max-w-md leading-relaxed border-l-2 ${mapInfo.highlightColor.replace('text', 'border')} pl-4 bg-black/30 p-2 rounded-r backdrop-blur-sm`}>
-                    {mapInfo.description}
-                </p>
-            </motion.div>
-
-            {/* Hidden Callback Handler for Messenger App */}
-            {/* The Messenger App is rendered inside MainMenuScene (inside PhoneFrame). 
-                We need to pass the 'handleTriggerContract' callback down to it.
-                Since we can't easily pass props through MainMenuScene -> MessengerApp without rewiring everything,
-                we will use a global event or simply rely on the fact that MainMenuScene calls 'onNext' when Messenger completes?
-                
-                Actually, MessengerApp has 'onTriggerContract' prop in my last edit. 
-                But Test04Scene doesn't render MessengerApp directly.
-                
-                Workaround: We will pass a specific prop 'onMessengerTrigger' via Context or App.jsx.
-                OR simpler: We update the 'onComplete' prop passed to MainMenuScene to handle intermediate steps.
+            {/* Dark Overlay handled by GameHUD or here if needed, but GameHUD has its own overlay logic if we pass it, 
+                however GameHUD renders overlay inside. Let's pass overlayColor to GameHUD.
+                BUT, we want the background image to be on the CONTAINER (this div), which it is.
+                GameHUD puts an overlay absolute inset-0.
+                Legacy code had manual overlay.
             */}
+            
+            {/* GameHUD: Manages Location Info, NPC Portraits, Chat Bubble, View Controls */}
+            {/* We hide the HUD completely during 'messenger' phase so the phone is the sole focus */}
+            <AnimatePresence>
+                {phase !== 'messenger' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-10 pointer-events-none"
+                    >
+                        <GameHUD
+                            mapInfo={mapInfo}
+                            logs={logs}
+                            inputText={inputText}
+                            setInputText={setInputText}
+                            viewMode={viewMode}
+                            onToggleHidden={() => setViewMode('hidden')}
+                            onToggleExpand={() => setViewMode(prev => prev === 'full' ? 'mini' : 'full')} // Simple toggle
+                            isPhoneOpen={isPhoneOpen}
+                            onTogglePhone={onTogglePhone}
+                            // No active NPC for now
+                            activeNpc={null} 
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
 
             {/* Contract Container (Right Side) */}
             <AnimatePresence>
@@ -143,9 +144,6 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                         transition={{ type: "spring", stiffness: 100, damping: 20 }}
                         className="absolute right-10 top-1/2 -translate-y-1/2 z-20 w-[600px] h-[800px] flex items-center justify-center pointer-events-auto"
                     >
-                        {/* We pass a special prop 'externalControl' to GameStartSequence if we want to block signing until authorized.
-                             For now, let's just show it. 
-                          */}
                         <GameStartSequence onSign={handleContractSigned} />
                     </motion.div>
                 )}
