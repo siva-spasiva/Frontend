@@ -167,13 +167,13 @@ export const FLOOR_DATA = [
                 highlightText: '001',
                 highlightColor: 'text-yellow-500',
                 description: '어둡고 조용한 방. 왠지 모르게 춥다.',
-                background: 'B2_room01.png',
+                background: 'B2_room02.png',
                 overlayColor: 'bg-black/40',
                 activeZones: [
                     {
                         id: 'zone_bed',
                         type: 'info',
-                        x: '10%',
+                        x: '18%',
                         y: '50%',
                         width: '30%',
                         height: '20%',
@@ -184,10 +184,10 @@ export const FLOOR_DATA = [
                         id: 'zone_table',
                         type: 'info',
                         x: '50%',
-                        y: '45%',
-                        width: '20%',
+                        y: '55%',
+                        width: '15%',
                         height: '15%',
-                        label: '베드 테이블',
+                        label: '작은 테이블',
                         message: '먼지가 쌓인 테이블.'
                     },
                     {
@@ -197,7 +197,7 @@ export const FLOOR_DATA = [
                         y: '60%',
                         width: '15%',
                         height: '20%',
-                        label: '나무 상자',
+                        label: '옷장 서랍',
                         message: '잠겨있다.'
                     }
                 ]
