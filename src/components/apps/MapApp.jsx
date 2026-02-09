@@ -130,15 +130,17 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
                                 </div>
                             )}
 
-                            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Sector List</h2>
-                            {currentFloor.rooms.map(room => (
-                                <RoomItem
-                                    key={room.id}
-                                    room={room}
-                                    onSelect={handleRoomSelect}
-                                    isCurrentRoom={room.id === currentRoomId}
-                                />
-                            ))}
+                            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">현재 위치</h2>
+                            {currentFloor.rooms
+                                .filter(room => room.id === currentRoomId)
+                                .map(room => (
+                                    <RoomItem
+                                        key={room.id}
+                                        room={room}
+                                        onSelect={handleRoomSelect}
+                                        isCurrentRoom={true}
+                                    />
+                                ))}
                         </motion.div>
                     ) : (
                         <div className="p-4 text-center text-gray-500 text-sm">

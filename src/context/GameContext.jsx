@@ -209,7 +209,6 @@ export const GameProvider = ({ children }) => {
         setFishLevel,
         setUmiLevel,
         setHp,
-        setHp,
         setTrust,
         setTutorialCompleted,
 
