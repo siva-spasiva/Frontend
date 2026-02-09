@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Map, Navigation, MapPin } from 'lucide-react';
+import { ChevronLeft, Map, Navigation, MapPin, Lock } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 
 const FloorItem = ({ floor, onSelect, isCurrent }) => (
@@ -31,41 +31,59 @@ const FloorItem = ({ floor, onSelect, isCurrent }) => (
     </motion.div>
 );
 
-const RoomItem = ({ room, onSelect, isCurrentFloor }) => (
-    <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onSelect(room)}
-        className={`rounded-xl p-4 mb-3 border cursor-pointer flex items-center justify-between ${room.linkedScene
-            ? 'bg-blue-50 border-blue-200 shadow-sm'
-            : 'bg-gray-50/80 border-gray-200 opacity-80'
-            }`}
-    >
-        <div>
-            <h4 className={`text-base font-bold ${room.linkedScene ? 'text-blue-900' : 'text-gray-700'}`}>
-                {room.name}
-            </h4>
-            <p className="text-xs text-gray-500 mt-1">{room.description}</p>
-        </div>
-        {room.linkedScene && (
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-md">
-                <Navigation className="w-4 h-4" />
-            </div>
-        )}
-    </motion.div>
-);
+const RoomItem = ({ room, onSelect, isCurrentRoom }) => {
+    const isLocked = !room.linkedScene;
 
-const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
+    return (
+        <motion.div
+            whileHover={!isLocked ? { scale: 1.02 } : {}}
+            whileTap={!isLocked ? { scale: 0.98 } : { x: [0, -5, 5, -5, 5, 0] }} // Shake if locked
+            onClick={() => onSelect(room)}
+            className={`rounded-xl p-4 mb-3 border flex items-center justify-between relative overflow-hidden transition-all duration-300 ${!isLocked
+                ? (isCurrentRoom ? 'bg-blue-100 border-blue-400 shadow-md ring-2 ring-blue-200' : 'bg-blue-50 border-blue-200 shadow-sm cursor-pointer')
+                : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+        >
+            {isLocked && (
+                <div className="absolute inset-0 bg-gray-200/50 backdrop-blur-[1px] z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center">
+                        <Lock className="w-3 h-3 mr-1" />
+                        Access Denied
+                    </div>
+                </div>
+            )}
+
+            <div className="z-0">
+                <h4 className={`text-base font-bold flex items-center ${!isLocked ? 'text-blue-900' : 'text-gray-500'}`}>
+                    {room.name}
+                    {isLocked && <Lock className="w-3 h-3 ml-2 text-gray-400" />}
+                    {isCurrentRoom && <span className="ml-2 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full">HERE</span>}
+                </h4>
+                <p className="text-xs text-gray-500 mt-1">{room.description}</p>
+            </div>
+            {!isLocked && (
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md z-0 ${isCurrentRoom ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                    {isCurrentRoom ? <MapPin className="w-4 h-4" /> : <Navigation className="w-4 h-4" />}
+                </div>
+            )}
+        </motion.div>
+    );
+};
+
+const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
     const { floorData } = useGame();
 
     // Auto-select current floor on mount or when data loads
     const [selectedFloor, setSelectedFloor] = useState(null);
 
+    // Filter floors to ONLY show current floor
+    const visibleFloors = floorData ? floorData.filter(f => f.id === currentFloorId) : [];
+
     useEffect(() => {
-        if (floorData && floorData.length > 0) {
-            const current = floorData.find(f => f.id === currentFloorId);
-            // Only set if we don't have a selection yet
-            if (current && selectedFloor === null) {
+        if (visibleFloors.length > 0) {
+            const current = visibleFloors.find(f => f.id === currentFloorId);
+            if (current) {
+                // Automatically select the current floor if it's the only one or receiving focus
                 setSelectedFloor(current);
             }
         }
@@ -75,8 +93,7 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
         if (room.linkedScene) {
             onNavigate(room.linkedScene);
         } else {
-            // Placeholder feedback
-            alert(`${room.name}: 접근 권한이 없거나 구현되지 않은 구역입니다.`);
+            // Visual feedback is handled by RoomItem shake/tooltip
         }
     };
 
@@ -97,6 +114,12 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
             {/* Header */}
             <div className="pt-12 px-6 pb-4 bg-white/80 backdrop-blur-md z-10 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
+                    {/* Only show back button if we are NOT on the filtered floor list (which is just one item now, so maybe auto-select is better) */}
+                    {/* Update: Client asked to NOT show other floors. So effectively we are always on the 'Room List' of the current floor. 
+                        But we might want to allow going back to a 'Floor List' that only has one item? 
+                        Let's keep the hierarchy but since it auto-selects, the back button might clear selection. 
+                        If we clear selection, we see the list of 1 floor. That's fine. 
+                    */}
                     {selectedFloor ? (
                         <button
                             onClick={() => setSelectedFloor(null)}
@@ -114,7 +137,7 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
                     )}
                     <h1 className="text-xl font-black text-gray-900 tracking-tight flex items-center">
                         <Map className="w-5 h-5 mr-2 text-blue-600" />
-                        {selectedFloor ? selectedFloor.name : 'MAIN MAP'}
+                        {selectedFloor ? selectedFloor.name : 'SECTOR MAP'}
                     </h1>
                 </div>
             </div>
@@ -131,15 +154,19 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
                             exit={{ opacity: 0, x: -20 }}
                         >
                             <div className="mb-6">
-                                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Select Floor</h2>
-                                {floorData && floorData.map(floor => (
+                                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Available Sectors</h2>
+                                {visibleFloors.length > 0 ? visibleFloors.map(floor => (
                                     <FloorItem
                                         key={floor.id}
                                         floor={floor}
                                         onSelect={setSelectedFloor}
                                         isCurrent={floor.id === currentFloorId}
                                     />
-                                ))}
+                                )) : (
+                                    <div className="p-4 text-center text-gray-500 text-sm">
+                                        No map data available for current location.
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     ) : (
@@ -165,7 +192,7 @@ const MapApp = ({ onNavigate, onBack, currentFloorId }) => {
                                     key={room.id}
                                     room={room}
                                     onSelect={handleRoomSelect}
-                                    isCurrentFloor={selectedFloor.id === currentFloorId}
+                                    isCurrentRoom={room.id === currentRoomId}
                                 />
                             ))}
                         </motion.div>

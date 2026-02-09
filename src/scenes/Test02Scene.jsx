@@ -5,6 +5,8 @@ import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
 
+import MapInteractiveLayer from '../components/MapInteractiveLayer';
+
 const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
@@ -94,6 +96,49 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
         else setActiveNpc(npcData.reporter);
     };
 
+    const handleInteraction = (zone) => {
+        console.log("Interacted with zone:", zone);
+
+        // Add interaction log
+        const timestamp = Date.now();
+        const newLogs = [...logs];
+
+        // Archive current dialog if exists
+        if (dialogContent) {
+            newLogs.push({
+                ...dialogContent,
+                id: timestamp + '_prev_npc',
+                type: 'npc'
+            });
+            setDialogContent(null);
+        }
+
+        // Add System/Interaction Log
+        newLogs.push({
+            id: timestamp + '_interaction',
+            speaker: 'System',
+            text: `[${zone.label}] 을(를) 조사합니다.`,
+            type: 'system_action'
+        });
+
+        // Show feedback in Dialog Box
+        let responseText = zone.message || '특별한 것은 없어 보인다.';
+
+        if (zone.type === 'move') {
+            responseText = `[${zone.label}] 로 이동을 시도합니다... (구현 예정)`;
+        }
+
+        setDialogContent({
+            speaker: 'System',
+            text: responseText,
+            type: 'system'
+        });
+
+        setLogs(newLogs);
+
+        if (viewMode === 'hidden') setViewMode('mini');
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -106,6 +151,12 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 backgroundPosition: 'center'
             }}
         >
+            {/* Interactive Layer */}
+            <MapInteractiveLayer
+                mapInfo={mapInfo}
+                onInteract={handleInteraction}
+            />
+
             <GameHUD
                 mapInfo={mapInfo}
                 activeNpc={activeNpc}

@@ -66,6 +66,49 @@ const MAP_DATA = {
         description: '어둡고 습한 지하실. 작은 침대와 나무상자, 그리고 낡은 베드테이블이 널브러져 있다.',
         background: 'testroom02.png',
         overlayColor: 'bg-black/40',
+        activeZones: [
+            {
+                id: 'zone_bed',
+                type: 'info',
+                x: '10%',
+                y: '50%',
+                width: '30%',
+                height: '20%',
+                label: '낡은 침대',
+                message: '딱딱하고 차가운 침대다. 잠이 올 것 같지 않다.'
+            },
+            {
+                id: 'zone_table',
+                type: 'info',
+                x: '50%',
+                y: '45%',
+                width: '20%',
+                height: '15%',
+                label: '베드 테이블',
+                message: '먼지가 쌓인 테이블. 누군가 쓰다 남은 쪽지가 있다.'
+            },
+            {
+                id: 'zone_box',
+                type: 'item',
+                x: '75%',
+                y: '60%',
+                width: '15%',
+                height: '20%',
+                label: '나무 상자',
+                message: '잠겨있다. 열쇠가 필요해 보인다.'
+            },
+            {
+                id: 'zone_door',
+                type: 'move',
+                target: 'hallway', // Logic in scene to handle this
+                x: '40%',
+                y: '20%',
+                width: '20%',
+                height: '25%',
+                label: '철제 문',
+                message: '굳게 닫겨있다.'
+            }
+        ]
     },
     umi_class: {
         id: 'umi_class',

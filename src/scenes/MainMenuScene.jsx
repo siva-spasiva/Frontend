@@ -226,6 +226,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                     >
                         <MapApp
                             currentFloorId={currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : 'B4')}
+                            currentRoomId={currentPhase === 'test02' ? 'player_room' : (currentPhase === 'test03' ? 'umi_class' : 'cold_storage')}
                             onNavigate={handleAppOpen}
                             onBack={() => {
                                 // Return to appropriate home screen based on currentPhase
