@@ -52,11 +52,6 @@ const NPC_DATA = {
 // Use getGameData() to retrieve the flat map data structure.
 
 export const FLOOR_DATA = [
-    // ----------------------------------------------------------------
-    // 2F: 창고 (The Attic)
-    // 기믹: 1층의 아름다움을 유지하기 위한 잡동사니들이 방치된 곳.
-    //       먼지 쌓인 그림들 속에서 기괴한 초기 컨셉(복선)을 발견할 수 있음.
-    // ----------------------------------------------------------------
     {
         id: '2F',
         name: '자재 창고',
@@ -73,22 +68,18 @@ export const FLOOR_DATA = [
                 overlayColor: 'bg-black/60',
             },
             {
-                id: 'terrace_locked',
-                name: '폐쇄된 테라스',
+                id: 'terrace',
+                name: '테라스',
                 namePrefix: '2F 테라스',
                 highlightText: 'LOCKED',
                 highlightColor: 'text-red-500',
-                description: '판자로 막힌 테라스 입구. 바람 소리가 들린다.',
+                description: '테라스. 바람 소리가 들린다.',
                 overlayColor: 'bg-black/40',
+                mapImage: '2F_terrace01.png',
             }
         ]
     },
 
-    // ----------------------------------------------------------------
-    // 1F: 지상 (The Paradise)
-    // 기믹: Fishlevel 0 상태의 완벽한 평화. 공포 요소가 전혀 없는 '힐링' 공간.
-    //       플레이어가 "여기가 정말 사이비 종교 맞아?"라고 의심하게 만들어야 함.
-    // ----------------------------------------------------------------
     {
         id: '1F',
         name: '우미 갤러리 & 카페',
@@ -124,8 +115,8 @@ export const FLOOR_DATA = [
             {
                 id: 'stairs_down',
                 name: '계단',
-                description: '2층으로 이어지는 목조 계단. "관계자 외 출입금지" 팻말이 작게 붙어있다... ',
-                background: '1F_stair02.png', // 계단과 비밀 통로 이미지 사용
+                description: '2층으로 이어지는 목조 계단. 지하로 내려가는 계단이 보인다.',
+                background: '1F_stair02.png',
             }
         ]
     },
@@ -141,14 +132,15 @@ export const FLOOR_DATA = [
                 namePrefix: 'B1 중앙 식당',
                 highlightText: 'DINING',
                 highlightColor: 'text-orange-300',
-                description: '점심시간(12:00)에 모든 NPC가 모인다. 구석 자리는 도청하기 완벽하다.',
+                description: '조금 소란스러운 식당. 신도들이 식사를 하고 있다.',
                 mapImage: 'B1_restaurant01.png',
                 overlayColor: 'bg-black/20',
             },
             {
                 id: 'lounge',
                 name: '휴게실 (자판기 구역)',
-                description: '솔피의 눈물(하급)이 들어있는 자판기가 있다. 청갈치(사기꾼)가 자주 출몰한다.',
+                description: '솔피의 눈물이 들어있는 자판기가 있다.',
+                background: null,
             },
             {
                 id: 'kitchen',
@@ -165,16 +157,16 @@ export const FLOOR_DATA = [
 
     {
         id: 'B2',
-        name: 'B2: 침묵의 복도',
-        description: '신도들의 숙소. 밤이 되면 기괴한 신음소리([뻐끔] 소리)가 벽 너머로 들린다.',
+        name: '복도',
+        description: '신도들의 숙소. 기묘한 소리가 벽 너머로 들린다.',
         rooms: [
             {
-                id: 'test02', // Renamed from player_room for consistency
-                name: '304호 (나의 방)',
-                namePrefix: 'TEST MAP',
-                highlightText: '02',
+                id: 'room001', // Renamed from player_room for consistency
+                name: '001호',
+                namePrefix: '001호',
+                highlightText: '001',
                 highlightColor: 'text-yellow-500',
-                description: '안전 가옥. 파트너 형사(또는 기자)가 대기 중이다. 획득한 아이템을 숨길 수 있다.',
+                description: '어둡고 조용한 방. 왠지 모르게 춥다.',
                 background: 'testroom02.png',
                 overlayColor: 'bg-black/40',
                 activeZones: [
@@ -207,17 +199,6 @@ export const FLOOR_DATA = [
                         height: '20%',
                         label: '나무 상자',
                         message: '잠겨있다.'
-                    },
-                    {
-                        id: 'zone_door',
-                        type: 'move',
-                        target: 'hallway',
-                        x: '40%',
-                        y: '20%',
-                        width: '20%',
-                        height: '25%',
-                        label: '철제 문',
-                        message: '굳게 닫겨있다.'
                     }
                 ]
             },
@@ -232,18 +213,18 @@ export const FLOOR_DATA = [
             },
             {
                 id: 'suspect_room_1',
-                name: '305호 (박복어의 방)',
+                name: '002호 (박복어의 방)',
                 description: '항상 잠겨있다. 문틈으로 비린내가 새어 나온다. 살인의 증거가 있을지 모른다.',
             },
             {
                 id: 'suspect_room_2',
-                name: '306호 (곽민어의 방)',
+                name: '003호 (곽민어의 방)',
                 description: '잡동사니가 가득하다. 훔친 물건들을 숨겨둔 것 같다.',
             },
             {
                 id: 'shower_room',
                 name: '공용 샤워실',
-                description: '물소리 때문에 도청당하지 않는다. 기자와 은밀한 거래를 하기에 적합하다.',
+                description: '비린내가 난다.',
             }
         ]
     },
