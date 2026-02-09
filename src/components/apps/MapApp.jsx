@@ -73,21 +73,8 @@ const RoomItem = ({ room, onSelect, isCurrentRoom }) => {
 const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
     const { floorData } = useGame();
 
-    // Auto-select current floor on mount or when data loads
-    const [selectedFloor, setSelectedFloor] = useState(null);
-
-    // Filter floors to ONLY show current floor
-    const visibleFloors = floorData ? floorData.filter(f => f.id === currentFloorId) : [];
-
-    useEffect(() => {
-        if (visibleFloors.length > 0) {
-            const current = visibleFloors.find(f => f.id === currentFloorId);
-            if (current) {
-                // Automatically select the current floor if it's the only one or receiving focus
-                setSelectedFloor(current);
-            }
-        }
-    }, [floorData, currentFloorId]);
+    // Directly find the current floor data
+    const currentFloor = floorData ? floorData.find(f => f.id === currentFloorId) : null;
 
     const handleRoomSelect = (room) => {
         if (room.linkedScene) {
@@ -114,30 +101,15 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
             {/* Header */}
             <div className="pt-12 px-6 pb-4 bg-white/80 backdrop-blur-md z-10 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                    {/* Only show back button if we are NOT on the filtered floor list (which is just one item now, so maybe auto-select is better) */}
-                    {/* Update: Client asked to NOT show other floors. So effectively we are always on the 'Room List' of the current floor. 
-                        But we might want to allow going back to a 'Floor List' that only has one item? 
-                        Let's keep the hierarchy but since it auto-selects, the back button might clear selection. 
-                        If we clear selection, we see the list of 1 floor. That's fine. 
-                    */}
-                    {selectedFloor ? (
-                        <button
-                            onClick={() => setSelectedFloor(null)}
-                            className="p-1 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                            <ChevronLeft className="w-6 h-6 text-gray-800" />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={onBack}
-                            className="p-1 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                            <ChevronLeft className="w-6 h-6 text-gray-800" />
-                        </button>
-                    )}
+                    <button
+                        onClick={onBack}
+                        className="p-1 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-gray-800" />
+                    </button>
                     <h1 className="text-xl font-black text-gray-900 tracking-tight flex items-center">
                         <Map className="w-5 h-5 mr-2 text-blue-600" />
-                        {selectedFloor ? selectedFloor.name : 'SECTOR MAP'}
+                        {currentFloor ? currentFloor.name : 'UNKNOWN SECTOR'}
                     </h1>
                 </div>
             </div>
@@ -145,49 +117,23 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-hide z-0">
                 <AnimatePresence mode="wait">
-                    {!selectedFloor ? (
-                        // Floor List View
-                        <motion.div
-                            key="floor-list"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                        >
-                            <div className="mb-6">
-                                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Available Sectors</h2>
-                                {visibleFloors.length > 0 ? visibleFloors.map(floor => (
-                                    <FloorItem
-                                        key={floor.id}
-                                        floor={floor}
-                                        onSelect={setSelectedFloor}
-                                        isCurrent={floor.id === currentFloorId}
-                                    />
-                                )) : (
-                                    <div className="p-4 text-center text-gray-500 text-sm">
-                                        No map data available for current location.
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    ) : (
-                        // Room List View
+                    {currentFloor ? (
+                        // Room List View (Always Visible)
                         <motion.div
                             key="room-list"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
                         >
-                            <div className={`mb-4 text-sm font-medium p-4 rounded-xl border ${selectedFloor.id === currentFloorId ? 'bg-blue-100 border-blue-300 text-blue-900' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                            <div className={`mb-4 text-sm font-medium p-4 rounded-xl border bg-blue-100 border-blue-300 text-blue-900`}>
                                 <div className="flex justify-between items-start">
-                                    <span>{selectedFloor.description}</span>
-                                    {selectedFloor.id === currentFloorId && (
-                                        <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 whitespace-nowrap">Current Floor</span>
-                                    )}
+                                    <span>{currentFloor.description}</span>
+                                    <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 whitespace-nowrap">Current Floor</span>
                                 </div>
                             </div>
 
                             <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Sector List</h2>
-                            {selectedFloor.rooms.map(room => (
+                            {currentFloor.rooms.map(room => (
                                 <RoomItem
                                     key={room.id}
                                     room={room}
@@ -196,6 +142,10 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
                                 />
                             ))}
                         </motion.div>
+                    ) : (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                            No map data available.
+                        </div>
                     )}
                 </AnimatePresence>
             </div>

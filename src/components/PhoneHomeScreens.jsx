@@ -44,8 +44,8 @@ export const IngameHomeScreen = ({ onAppOpen, onBack }) => {
 
             <div className="grid grid-cols-4 gap-4">
                 <AppIcon icon={Map} label="Map" color="bg-green-600" onClick={() => onAppOpen('map_app')} />
-                <AppIcon icon={FileText} label="Memo" color="bg-yellow-500" onClick={() => { }} />
-                <AppIcon icon={Mic} label="Rec" color="bg-red-500" onClick={() => { }} />
+
+                <AppIcon icon={Mic} label="Rec" color="bg-red-500" onClick={() => onAppOpen('recorder_app')} />
                 <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                 <AppIcon icon={MessageCircle} label="Messenger" color="bg-green-600" onClick={() => onAppOpen('messenger')} />
             </div>
