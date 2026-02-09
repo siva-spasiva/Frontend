@@ -46,7 +46,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
             // Timer to move phone to center and open messenger
             const timer = setTimeout(() => {
                 setPhase('messenger');
-            }, 1500);
+            }, 100);
             return () => clearTimeout(timer);
         } else if (phase === 'messenger') {
             // Animation: Phone moves to center, screen changes to messenger
@@ -57,7 +57,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
             // SPLIT SCREEN MODE
             // 1. Phone moves to Left
             // 2. Contract appears on Right
-            setIsPhoneCentered(false); // Move phone to left
+            setIsPhoneCentered(false); // Phone moves left
             setPhoneScreenOverride('messenger'); // Keep messenger open!
             setViewMode('mini');
 
@@ -76,6 +76,10 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 highlightColor: 'text-yellow-400',
                 description: '학교의 중심이 되는 메인 홀.',
             });
+        } else if (phase === 'inventory_check') {
+            // After Contract: Move Phone Center to check Inventory
+            setIsPhoneCentered(true);
+            setPhoneScreenOverride('inventory');
         }
     }, [phase, setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride]);
 
@@ -92,7 +96,8 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
 
     const handleContractSigned = () => {
         setTutorialCompleted(true);
-        if (onComplete) onComplete();
+        // Transition to Inventory Check instead of finishing immediately
+        setPhase('inventory_check');
     };
 
     return (

@@ -157,7 +157,7 @@ export const FLOOR_DATA = [
 
     {
         id: 'B2',
-        name: '복도',
+        name: '거주층',
         description: '신도들의 숙소. 기묘한 소리가 벽 너머로 들린다.',
         rooms: [
             {
@@ -167,7 +167,7 @@ export const FLOOR_DATA = [
                 highlightText: '001',
                 highlightColor: 'text-yellow-500',
                 description: '어둡고 조용한 방. 왠지 모르게 춥다.',
-                background: 'testroom02.png',
+                background: 'B2_room01.png',
                 overlayColor: 'bg-black/40',
                 activeZones: [
                     {
@@ -208,23 +208,38 @@ export const FLOOR_DATA = [
                 namePrefix: 'B2 복도',
                 highlightText: 'HALL',
                 highlightColor: 'text-gray-600',
-                description: '감시 초소 포함',
+                description: 'CCTV가 모든 것을 지켜보고 있다. 곰팡이 냄새가 진동한다.',
                 overlayColor: 'bg-black/50',
             },
             {
                 id: 'suspect_room_1',
-                name: '002호 (박복어의 방)',
+                name: '002호',
+                namePrefix: '002호',
+                highlightText: 'LOCKED',
+                highlightColor: 'text-red-500',
                 description: '항상 잠겨있다. 문틈으로 비린내가 새어 나온다. 살인의 증거가 있을지 모른다.',
+                background: null,
+                overlayColor: 'bg-black/40',
             },
             {
                 id: 'suspect_room_2',
-                name: '003호 (곽민어의 방)',
+                name: '003호',
+                namePrefix: '003호',
+                highlightText: '003',
+                highlightColor: 'text-gray-400',
                 description: '잡동사니가 가득하다. 훔친 물건들을 숨겨둔 것 같다.',
+                background: null,
+                overlayColor: 'bg-black/40',
             },
             {
                 id: 'shower_room',
                 name: '공용 샤워실',
-                description: '비린내가 난다.',
+                namePrefix: 'B2 샤워실',
+                highlightText: 'SHOWER',
+                highlightColor: 'text-blue-200',
+                description: '물때와 곰팡이로 얼룩진 샤워실. 비린내가 난다.',
+                background: null,
+                overlayColor: 'bg-black/30',
             }
         ]
     },

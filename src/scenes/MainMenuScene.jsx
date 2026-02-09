@@ -100,7 +100,7 @@ const MainMenu = ({ onAppOpen }) => {
             <div className="grid grid-cols-4 gap-4">
                 <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('test04')} />
                 <AppIcon icon={Save} label="Load" color="bg-green-500" onClick={() => { }} />
-                <AppIcon icon={MessageCircle} label="Messenger" color="bg-green-500" onClick={() => onAppOpen('messenger')} />
+
                 <AppIcon icon={FileText} label="Credits" color="bg-purple-500" onClick={() => { }} />
                 <AppIcon icon={Grid} label="Test01" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
@@ -126,7 +126,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
     const [internalPhase, setInternalPhase] = useState('menu');
 
     // Context for overrides
-    const { phoneScreenOverride } = useGame();
+    const { phoneScreenOverride, setPhoneScreenOverride } = useGame();
 
     useEffect(() => {
         if (phoneScreenOverride) {
@@ -226,11 +226,11 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                     >
                         <MapApp
                             currentFloorId={currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4'))}
-                            currentRoomId={currentPhase === 'test02' ? 'test02' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate'))}
+                            currentRoomId={currentPhase === 'test02' ? 'room001' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate'))}
                             onNavigate={(roomId) => {
                                 // Simplified Navigation Map
                                 const roomToScene = {
-                                    'test02': 'test02',
+                                    'room001': 'test02', // Mapped to room001 (B2)
                                     'umi_class': 'test03', // Assuming test03 is 1F/Umi Class
                                     'test01': 'test01',
                                     'ocean_gate': 'crash', // Fallback or crash
@@ -279,6 +279,10 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             // Return to appropriate home screen
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'test04') {
+                                setPhoneScreenOverride(null);
+                                onTest03Start && onTest03Start();
+                            }
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
                             else setInternalPhase('menu');
                         }} />

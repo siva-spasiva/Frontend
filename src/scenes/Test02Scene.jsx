@@ -22,79 +22,28 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
     const { npcData, mapData, isLoading } = useGame();
 
-    // Active NPC State - Configured for Reporter in Test02
+    // Active NPC State - Configured for Empty Room
     const [activeNpc, setActiveNpc] = useState(null);
 
-    useEffect(() => {
-        if (!isLoading && npcData && !activeNpc) {
-            setActiveNpc(npcData.reporter);
-        }
-    }, [isLoading, npcData]);
-
     // Map Info
-    const mapInfo = mapData?.test02 || {};
+    const mapInfo = mapData?.room001 || {};
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
 
         const userMsg = inputText;
         setInputText(''); // Clear input
-
-        setIsThinking(true);
-
-        // 1. Archive current dialog if exists
-        const newLogs = [...logs];
-        if (dialogContent) {
-            newLogs.push({
-                ...dialogContent,
-                id: Date.now() + '_prev_npc',
-                type: 'npc'
-            });
-        }
-
-        // 2. Add User Message
-        newLogs.push({
-            id: Date.now() + '_user',
-            speaker: 'You',
-            text: userMsg,
-            type: 'user'
-        });
-
-        setLogs(newLogs);
-
-        // 3. Temporary clear dialog to show thinking state in the main box
-        setDialogContent(null);
-
-        // If hidden, auto-show to mini to see response
-        if (viewMode === 'hidden') setViewMode('mini');
-
-        try {
-            const targetNpc = activeNpc || npcData.reporter;
-            const data = await generateAIResponse(userMsg, {
-                npcId: targetNpc?.id || 'reporter'
-            });
-
-            setDialogContent({
-                speaker: activeNpc.name,
-                text: data.response,
-                type: 'active_npc'
-            });
-        } catch (error) {
-            console.error(error);
-            setDialogContent({
-                speaker: 'System',
-                text: '...(시스템 오류: 응답 불가)...',
-                type: 'system'
-            });
-        } finally {
-            setIsThinking(false);
-        }
+        
+        // ... (rest of logic can stay, or we disable chat if no NPC)
+        // If there's no NPC, we probably shouldn't be chatting, but leaving logic for future use is fine.
+        // Or we can simple make it "System" response if no activeNpc.
+        /* 
+        Chat Logic...
+        */
+       
     };
-
-    const toggleNpc = () => {
-        if (activeNpc) setActiveNpc(null);
-        else setActiveNpc(npcData.reporter);
-    };
+    
+    // ...
 
     const handleInteraction = (zone) => {
         console.log("Interacted with zone:", zone);
@@ -159,11 +108,11 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
             <GameHUD
                 mapInfo={mapInfo}
-                activeNpc={activeNpc}
+                activeNpc={null}
                 logs={logs}
                 dialogContent={dialogContent}
                 isThinking={isThinking}
-                onSend={handleSend}
+                onSend={() => {}} // Disabled Chat
                 inputText={inputText}
                 setInputText={setInputText}
                 viewMode={viewMode}
@@ -171,7 +120,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onToggleExpand={handleToggleExpand}
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
-                onToggleNpc={toggleNpc}
+                // No onToggleNpc
                 theme="corrupted"
             />
         </motion.div>
