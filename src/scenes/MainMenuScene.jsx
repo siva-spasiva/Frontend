@@ -225,15 +225,15 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0, y: 20 }}
                     >
                         <MapApp
-                            currentFloorId={currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : 'B4')}
-                            currentRoomId={currentPhase === 'test02' ? 'player_room' : (currentPhase === 'test03' ? 'umi_class' : 'cold_storage')}
+                            currentFloorId={currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4'))}
+                            currentRoomId={currentPhase === 'test02' ? 'test02' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate'))}
                             onNavigate={(roomId) => {
                                 // Simplified Navigation Map
                                 const roomToScene = {
-                                    'player_room': 'test02',
+                                    'test02': 'test02',
                                     'umi_class': 'test03', // Assuming test03 is 1F/Umi Class
-                                    'cold_storage': 'test01',
-                                    'ocean_gate': 'test01', // Fallback
+                                    'test01': 'test01',
+                                    'ocean_gate': 'crash', // Fallback or crash
                                     // Add other mappings as needed
                                 };
 

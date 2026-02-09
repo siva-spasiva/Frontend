@@ -119,6 +119,17 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
                                 </div>
                             </div>
 
+                            {/* Map Image Display */}
+                            {currentFloor.mapImage && (
+                                <div className="mb-6 rounded-xl overflow-hidden shadow-lg border-2 border-white/50 ring-1 ring-gray-200 bg-black/5">
+                                    <img
+                                        src={currentFloor.mapImage}
+                                        alt={`${currentFloor.name} Map`}
+                                        className="w-full h-auto object-contain bg-gray-100/50"
+                                    />
+                                </div>
+                            )}
+
                             <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Sector List</h2>
                             {currentFloor.rooms.map(room => (
                                 <RoomItem

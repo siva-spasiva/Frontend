@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import IntroBg from '../assets/map/testintro02.png';
-import ClassroomBg from '../assets/map/classroom01.png';
+import IntroBg from '../assets/map/mainmenu01.png';
+import ClassroomBg from '../assets/map/1F_class02.png';
 import GameStartSequence from './GameStartSequence';
 import GameHUD from '../components/GameHUD';
 
