@@ -13,6 +13,7 @@ const Debug00Scene = ({ onBack }) => {
 
         trust,
         hp, fishLevel, umiLevel,
+        tutorialCompleted, // Destructure tutorialCompleted
         inventory, // Current inventory array
         ITEMS // Static item definitions
     } = useGame();
@@ -58,7 +59,9 @@ const Debug00Scene = ({ onBack }) => {
 
     const handleGlobalStatChange = (key, val) => {
         console.log(`Debug Global Update: ${key} -> ${val}`);
-        updateStatsBackend({ [key]: parseInt(val) });
+        // If val is boolean, don't parse it.
+        const valueToUpdate = typeof val === 'boolean' ? val : parseInt(val);
+        updateStatsBackend({ [key]: valueToUpdate });
         setLastSaved(new Date());
     };
 
@@ -119,6 +122,7 @@ const Debug00Scene = ({ onBack }) => {
                     EXIT SEQ
                 </button>
                 <MessengerApp
+                    initialMessages={!tutorialCompleted ? [] : undefined}
                     onBack={() => setViewMode('debug')}
                     onComplete={() => {
                         alert("Sequence Completed!");
@@ -203,6 +207,16 @@ const Debug00Scene = ({ onBack }) => {
                                 <StatSlider label="Trust (신뢰)" value={trust} color="text-emerald-300" accent="accent-emerald-500" onChange={(v) => handleGlobalStatChange('trust', v)} />
                                 <StatSlider label="FishLevel (이해)" value={fishLevel} color="text-cyan-300" accent="accent-cyan-500" onChange={(v) => handleGlobalStatChange('fishLevel', v)} />
                                 <StatSlider label="UmiLevel (권한)" value={umiLevel} color="text-indigo-300" accent="accent-indigo-500" onChange={(v) => handleGlobalStatChange('umiLevel', v)} />
+
+                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+                                    <span className="text-xs text-gray-300">Tutorial Completed</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={tutorialCompleted || false}
+                                        onChange={(e) => handleGlobalStatChange('tutorialCompleted', e.target.checked)}
+                                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                                    />
+                                </div>
                             </div>
                         </div>
 

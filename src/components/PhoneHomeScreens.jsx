@@ -47,7 +47,7 @@ export const IngameHomeScreen = ({ onAppOpen, onBack }) => {
                 <AppIcon icon={FileText} label="Memo" color="bg-yellow-500" onClick={() => { }} />
                 <AppIcon icon={Mic} label="Rec" color="bg-red-500" onClick={() => { }} />
                 <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
-                <AppIcon icon={Settings} label="Settings" color="bg-gray-500" onClick={() => { }} />
+                <AppIcon icon={MessageCircle} label="Messenger" color="bg-green-600" onClick={() => onAppOpen('messenger')} />
             </div>
 
             <StatusWidget className="absolute bottom-6 left-6 right-6" />

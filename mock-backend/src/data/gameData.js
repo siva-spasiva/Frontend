@@ -36,10 +36,10 @@ const NPC_DATA = {
             model: 'gpt-oss:20b-cloud',
         }
     },
-    friend_a: {
-        id: 'friend_a',
-        name: 'Friend A',
-        prompt: PROMPTS.FRIEND_A_PROMPT
+    detective_kang: {
+        id: 'detective_kang',
+        name: '강 형사',
+        prompt: PROMPTS.DETECTIVE_KANG_PROMPT
     },
     test02: {
         id: 'test02',

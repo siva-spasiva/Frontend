@@ -6,7 +6,7 @@ import { NPC_DATA } from '../data/gameData.js';
 // Helper to get prompt by npcId
 const getPromptForNpc = (npcId) => {
     const npc = NPC_DATA[npcId];
-    return npc ? npc.prompt : PROMPTS.FRIEND_A_PROMPT;
+    return npc ? npc.prompt : PROMPTS.DETECTIVE_KANG_PROMPT;
 };
 
 // Masking Logic
@@ -88,7 +88,7 @@ export const handleChat = async (req, res) => {
     // [New] Inject Player Stats for context
     // Only inject for Cultist NPCs (not friend_a)
     let playerStatsContext = "";
-    if (npcId !== 'friend_a') {
+    if (npcId !== 'detective_kang') {
         playerStatsContext = `
 [User Status]
 - HP(체력): ${globalState.hp}/100

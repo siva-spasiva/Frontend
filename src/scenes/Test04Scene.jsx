@@ -13,10 +13,17 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
 
     // Chat State (Dummy for HUD)
     const [inputText, setInputText] = useState('');
-    const logs = []; 
+    const logs = [];
 
     // Core Game State via Context
-    const { setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride } = useGame();
+    const { setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride, appEvent, triggerAppEvent, tutorialCompleted, setTutorialCompleted } = useGame();
+
+    useEffect(() => {
+        if (tutorialCompleted) {
+            setPhase('classroom');
+            return;
+        }
+    }, [tutorialCompleted]);
 
     // Map Info State
     const [mapInfo, setMapInfo] = useState({
@@ -73,7 +80,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
     }, [phase, setCurrentLocationInfo, setIsPhoneCentered, setPhoneScreenOverride]);
 
     // Listen for App Events (e.g. Messenger triggering Contract)
-    const { appEvent } = useGame();
+    // Listen for App Events (e.g. Messenger triggering Contract)
     useEffect(() => {
         if (appEvent?.event === 'CONTRACT_TRIGGER') {
             console.log("Test04Scene: Contract Trigger Received");
@@ -84,6 +91,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
 
 
     const handleContractSigned = () => {
+        setTutorialCompleted(true);
         if (onComplete) onComplete();
     };
 
@@ -105,7 +113,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 GameHUD puts an overlay absolute inset-0.
                 Legacy code had manual overlay.
             */}
-            
+
             {/* GameHUD: Manages Location Info, NPC Portraits, Chat Bubble, View Controls */}
             {/* We hide the HUD completely during 'messenger' phase so the phone is the sole focus */}
             <AnimatePresence>
@@ -127,7 +135,7 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                             isPhoneOpen={isPhoneOpen}
                             onTogglePhone={onTogglePhone}
                             // No active NPC for now
-                            activeNpc={null} 
+                            activeNpc={null}
                         />
                     </motion.div>
                 )}

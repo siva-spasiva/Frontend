@@ -140,7 +140,7 @@ const MainLayout = () => {
                   transition={{ duration: 0.5 }}
                   className="absolute inset-0 z-0"
                 >
-                  <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onComplete={toTest02} />
+                  <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onComplete={toTest03} />
                 </motion.div>
               )}
             </AnimatePresence>

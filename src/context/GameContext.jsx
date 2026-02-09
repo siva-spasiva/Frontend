@@ -18,6 +18,7 @@ export const GameProvider = ({ children }) => {
         umiLevel: 0,
         hp: 50,
         trust: 10,
+        tutorialCompleted: false, // New flag
         npcStats: {}, // Initialize empty
         inventory: ['smartphone', 'id_card', 'police_badge'] // Initialize inventory
     });
@@ -147,6 +148,7 @@ export const GameProvider = ({ children }) => {
     const setUmiLevel = (val) => updateStatsBackend({ umiLevel: typeof val === 'function' ? val(stats.umiLevel) : val });
     const setHp = (val) => updateStatsBackend({ hp: typeof val === 'function' ? val(stats.hp) : val });
     const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
+    const setTutorialCompleted = (val) => updateStatsBackend({ tutorialCompleted: val });
 
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
@@ -207,7 +209,9 @@ export const GameProvider = ({ children }) => {
         setFishLevel,
         setUmiLevel,
         setHp,
+        setHp,
         setTrust,
+        setTutorialCompleted,
 
         // Expose updaters
         updateHp,
@@ -217,11 +221,8 @@ export const GameProvider = ({ children }) => {
         incrementFishLevel,
         incrementUmiLevel,
         addItem,
-        incrementFishLevel,
-        incrementUmiLevel,
-        addItem,
         addCustomItem,
-        removeItem, // Expose removeItem
+        removeItem,
         inventoryItems,
 
         // Chat Logs
@@ -238,7 +239,7 @@ export const GameProvider = ({ children }) => {
         setPhoneScreenOverride,
 
         // Generic Event Bus for Scene-App Communication
-        appEvent: null,
+        appEvent: appEvent, // Fixed: Pass actual state
         triggerAppEvent: (event, payload) => setAppEvent({ event, payload, timestamp: Date.now() }),
 
         // Max values (hardcoded for now)

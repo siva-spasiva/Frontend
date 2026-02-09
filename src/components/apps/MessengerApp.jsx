@@ -40,9 +40,9 @@ const MessengerLoading = ({ onLoaded }) => {
     );
 };
 
-const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplete }) => {
+const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplete, isDisconnected }) => {
     const [notification, setNotification] = useState(null);
-    
+
     // If it was already animated, we show the list immediately as "arrived"
     const [messagesArrived, setMessagesArrived] = useState(isAnimated);
 
@@ -52,8 +52,8 @@ const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplet
         const timer = setTimeout(() => {
             setMessagesArrived(true);
             setNotification({
-                sender: 'Friend_A',
-                text: '야 이거 봐! 대박임 ㅋㅋ'
+                sender: '강 형사',
+                text: '야, 본부에서 아직도 안 믿어주는 눈치다.'
             });
             onAnimationComplete();
         }, 1500);
@@ -99,13 +99,16 @@ const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplet
                                     </div>
                                 </div>
                             </div>
-                            {messagesArrived && (
+                            {messagesArrived && !isDisconnected && (
                                 <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                            )}
+                            {isDisconnected && (
+                                <div className="absolute bottom-0 right-0 w-4 h-4 bg-gray-400 rounded-full border-2 border-white"></div>
                             )}
                         </div>
                         <div className="flex-1">
                             <div className="flex justify-between items-center mb-1">
-                                <span className={`font-semibold ${messagesArrived ? 'text-black' : 'text-gray-800'}`}>친구 A</span>
+                                <span className={`font-semibold ${messagesArrived ? 'text-black' : 'text-gray-800'}`}>강 형사</span>
                                 <span className="text-xs text-gray-400">{messagesArrived ? timeDisplay : 'Yesterday'}</span>
                             </div>
                             <div className="flex justify-between items-center">
@@ -119,10 +122,10 @@ const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplet
                         </div>
                     </motion.div>
                 </div>
-            </div>
+            </div >
 
             {/* Notification Toast */}
-            <AnimatePresence>
+            < AnimatePresence >
                 {notification && (
                     <motion.div
                         initial={{ y: -100, opacity: 0 }}
@@ -143,14 +146,15 @@ const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplet
                         </div>
                     </motion.div>
                 )}
-            </AnimatePresence>
-        </div>
+            </AnimatePresence >
+        </div >
     );
 };
 
-const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
+const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDisconnected, setIsDisconnected }) => {
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    // isDisconnected is now a prop
     const bottomRef = useRef(null);
 
     useEffect(() => {
@@ -166,19 +170,28 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
         // Add User Message
         const userMsg = { id: Date.now(), sender: 'Me', text: userText, type: 'text', time: 'Now' };
         setMessages(prev => [...prev, userMsg]);
+
+        // If disconnected, show error immediately and return
+        if (isDisconnected) {
+            setTimeout(() => {
+                setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'System', text: '메시지를 전송할 수 없습니다. (연결 끊김)', type: 'system', time: 'Now' }]);
+            }, 500);
+            return;
+        }
+
         setIsLoading(true);
 
         try {
             // Call AI
-            const data = await sendChatMessage(userText, 'friend_a');
+            const data = await sendChatMessage(userText, 'detective_kang');
             const aiText = data.response;
 
-            const aiMsg = { id: Date.now() + 1, sender: 'Friend_A', text: aiText, type: 'text', time: 'Now' };
+            const aiMsg = { id: Date.now() + 1, sender: '강 형사', text: aiText, type: 'text', time: 'Now' };
             setMessages(prev => [...prev, aiMsg]);
 
             // Check trigger condition
             // IF we haven't triggered yet
-            const isContractPhase = messages.length >= 4; // Or logic based on props
+            const isContractPhase = messages.length >= 2; // Trigger faster for testing
 
             if (isContractPhase) {
                 setTimeout(() => {
@@ -186,14 +199,20 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
 
                     // Start Special Contract Dialogue Sequence
                     setTimeout(() => {
-                        setMessages(prev => [...prev, { id: Date.now() + 2, sender: 'Friend_A', text: '야 근데 거기 계약서 내용 좀 이상하지 않음? 막 뻐끔뻐끔거리는데?', type: 'text', time: 'Now' }]);
-                    }, 3000);
+                        setMessages(prev => [...prev, { id: Date.now() + 2, sender: '강 형사', text: '잠깐, 그 계약서 뭐야? 뻐끔뻐끔? 그게 무슨 소리야?', type: 'text', time: 'Now' }]);
+
+                        // Signal Loss Effect
+                        setTimeout(() => {
+                            setMessages(prev => [...prev, { id: Date.now() + 3, sender: 'System', text: '통신 상태가 불안정합니다. 연결이 종료됩니다.', type: 'system', time: 'Now' }]);
+                            setIsDisconnected(true); // Set Disconnected State
+                        }, 2000);
+                    }, 2000);
                 }, 1000);
             }
 
         } catch (error) {
             console.error("Chat Error:", error);
-            const fallbackMsg = { id: Date.now() + 1, sender: 'Friend_A', text: '...통신이 자꾸 끊기네.', type: 'text', time: 'Now' };
+            const fallbackMsg = { id: Date.now() + 1, sender: '강 형사', text: '...치직... 본부... 응답하라...', type: 'text', time: 'Now' };
             setMessages(prev => [...prev, fallbackMsg]);
         } finally {
             setIsLoading(false);
@@ -208,7 +227,7 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
                     <button onClick={onBack}>
                         <ChevronLeft className="w-6 h-6 text-black" />
                     </button>
-                    <div className="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 rounded-full p-[2px]">
+                    <div className="w-8 h-8 bg-gradient-to-tr from-blue-800 to-slate-900 rounded-full p-[2px]">
                         <div className="w-full h-full bg-white rounded-full p-[2px]">
                             <div className="w-full h-full bg-gray-300 rounded-full overflow-hidden">
                                 <User className="w-full h-full text-gray-500 p-1" />
@@ -216,10 +235,13 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
                         </div>
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-sm">친구 A</span>
-                        <span className="text-xs text-gray-500">Active Now</span>
+                        <span className="font-bold text-sm">강 형사 (동료)</span>
+                        <span className={`text-xs font-bold ${isDisconnected ? 'text-gray-500' : 'text-green-600'}`}>
+                            {isDisconnected ? '● 연결 끊김' : '● 보안 연결됨'}
+                        </span>
                     </div>
                 </div>
+
                 <div className="flex space-x-3 text-black">
                     <Phone className="w-6 h-6" />
                     <Video className="w-6 h-6" />
@@ -234,19 +256,28 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract }) => {
                         key={msg.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${msg.sender === 'Me' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${msg.sender === 'Me' ? 'justify-end' : ((msg.type === 'system' || msg.sender === 'system' || msg.sender === 'security_bot') ? 'justify-center w-full my-2' : 'justify-start w-full my-1')}`}
                     >
-                        {msg.sender === 'Friend_A' && (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 mr-2 flex-shrink-0 self-end mb-1 overflow-hidden">
-                                <User className="w-full h-full text-gray-500 p-1" />
+                        {(msg.type === 'system' || msg.sender === 'system' || msg.sender === 'security_bot') ? (
+                            <div className="bg-gray-100 text-gray-500 text-xs px-4 py-1 rounded-full border border-gray-200 shadow-sm flex items-center space-x-1">
+                                {msg.text.includes('연결') && <div className="w-2 h-2 rounded-full bg-gray-400 mr-1" />}
+                                <span>{msg.text}</span>
                             </div>
+                        ) : (
+                            <>
+                                {msg.sender !== 'Me' && (
+                                    <div className="w-8 h-8 rounded-full bg-gray-200 mr-2 flex-shrink-0 self-end mb-1 overflow-hidden">
+                                        <User className="w-full h-full text-gray-500 p-1" />
+                                    </div>
+                                )}
+                                <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm ${msg.sender === 'Me'
+                                    ? 'bg-blue-600 text-white rounded-br-none'
+                                    : 'bg-gray-100 text-black rounded-bl-none border border-gray-200'
+                                    }`}>
+                                    {msg.text}
+                                </div>
+                            </>
                         )}
-                        <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm ${msg.sender === 'Me'
-                            ? 'bg-blue-500 text-white rounded-br-none'
-                            : 'bg-gray-100 text-black rounded-bl-none border border-gray-200'
-                            }`}>
-                            {msg.text}
-                        </div>
                     </motion.div>
                 ))}
                 {isLoading && (
@@ -491,28 +522,77 @@ const ContractPhase = ({ onComplete }) => {
     );
 };
 
-const MessengerApp = ({ onComplete, onBack }) => {
+const MessengerApp = ({ onComplete, onBack, initialMessages }) => {
     // phase: 'loading' | 'list' | 'chat'
     // NOTE: 'contract' phase is now handled globally by Test04Scene (Split Screen). 
     // The Messenger stays in 'chat' mode.
     const [phase, setPhase] = useState('loading');
     const { triggerAppEvent } = useGame();
-    
+
     // --- LIFTED STATE ---
     const [messages, setMessages] = useState([]);
+    const [isDisconnected, setIsDisconnected] = useState(false); // Lifted state
     const [isListAnimated, setIsListAnimated] = useState(false); // Track if initial animation is done
 
-    // Initialize messages once
+    const { chatLogs, setChatLogs, inventoryItems } = useGame();
+
+    // Check for "Suspicious Contract" or "Enlightenment Contract" (item004 or item020)
+    // If user has these, it means they completed the intro sequence.
+    const hasContract = inventoryItems.some(item => item.id === 'item004' || item.id === 'item020');
+
+    // Initialize messages
     useEffect(() => {
-        if (messages.length === 0) {
-             const initialMsgs = [
-                { id: 1, sender: 'Friend_A', text: '야 이거 봐! 대박임 ㅋㅋ', type: 'text', time: '오후 2:01' },
-                { id: 2, sender: 'Friend_A', text: '바다 뷰 무료 꽃꽂이 클래스 당첨됨! 너랑 나랑 2명임', type: 'text', time: '오후 2:01' },
-                { id: 3, sender: 'Friend_A', text: '솔피 리조트라고 새로 생긴 데라는데 시설 쩐대. 가자 제발 ㅠㅠ', type: 'text', time: '오후 2:02' },
+        if (initialMessages) {
+            setMessages(initialMessages);
+            setIsListAnimated(true);
+        } else if (chatLogs && chatLogs.length > 0) {
+            // Restore from context
+            console.log("Restoring chat logs from context:", chatLogs);
+            setMessages(chatLogs);
+            setIsListAnimated(true); // Skip animation
+        } else if (messages.length === 0) {
+            // New Game Start (Tutorial not done yet)
+            // Or if we just started fresh
+            const initialMsgs = [
+                { id: 1, sender: '강 형사', text: '지금 도착했냐? 위치 추적기 켜둬라.', type: 'text', time: '오후 2:01' },
+                { id: 2, sender: '강 형사', text: '본부에서는 전광어 그 놈 그냥 뜬소문이라고 생각한다고.', type: 'text', time: '오후 2:01' },
+                { id: 3, sender: '강 형사', text: '무리하지 말고 그냥 동태나 살피다 와. 알겠지?', type: 'text', time: '오후 2:02' },
             ];
             setMessages(initialMsgs);
         }
-    }, []); 
+    }, [initialMessages]); // Run when initialMessages prop changes or on mount
+
+    // Sync messages back to context whenever they change
+    useEffect(() => {
+        if (messages.length > 0) {
+            setChatLogs(messages);
+        }
+    }, [messages, setChatLogs]);
+
+    // Check Disconnect State based on Inventory
+    useEffect(() => {
+        if (hasContract) {
+            setIsDisconnected(true);
+
+            // Append explicit "Connection Lost" message if not already there
+            setMessages(prev => {
+                const hasSystemMsg = prev.some(m => m.text === '상대방과의 연결이 종료되었습니다.');
+                if (!hasSystemMsg) {
+                    return [
+                        ...prev,
+                        {
+                            id: Date.now(),
+                            sender: 'security_bot',
+                            text: '상대방과의 연결이 종료되었습니다.',
+                            type: 'system',
+                            time: ''
+                        }
+                    ];
+                }
+                return prev;
+            });
+        }
+    }, [hasContract]);
 
     // Blackout effect state
     const [blackout, setBlackout] = useState(false);
@@ -539,11 +619,12 @@ const MessengerApp = ({ onComplete, onBack }) => {
 
                 {phase === 'list' && (
                     <motion.div key="list" className="w-full h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        <ChatListScreen 
-                            onChatSelect={() => setPhase('chat')} 
+                        <ChatListScreen
+                            onChatSelect={() => setPhase('chat')}
                             messages={messages}
                             isAnimated={isListAnimated}
                             onAnimationComplete={() => setIsListAnimated(true)}
+                            isDisconnected={isDisconnected}
                         />
                         <button onClick={onBack} className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-black/20 rounded-full z-50 hover:bg-black/40 transition-colors"></button>
                     </motion.div>
@@ -556,6 +637,8 @@ const MessengerApp = ({ onComplete, onBack }) => {
                             setMessages={setMessages}
                             onBack={() => setPhase('list')}
                             onTriggerContract={handleTriggerContract}
+                            isDisconnected={isDisconnected}
+                            setIsDisconnected={setIsDisconnected}
                         />
                     </motion.div>
                 )}

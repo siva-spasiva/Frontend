@@ -55,7 +55,7 @@ const ContractModal = ({ isOpen, onClose, onSign }) => {
                             </p>
                             <p>
                                 3. 본 클래스 종료 시, 참가자의{' '}
-                                <span className="font-bold text-red-600">[모든 권리]</span>
+                                <span className="font-bold text-red-600">[뻐끔뻐끔]</span>
                                 의 소유권은{' '}
                                 <span className="font-bold text-blue-800">[위대한 솔피]</span>에게{' '}
                                 <span className="font-bold text-red-600">영구히 귀속됨</span>에 동의합니다.

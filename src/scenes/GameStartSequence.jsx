@@ -74,7 +74,7 @@ const GameStartSequence = ({ onSign }) => {
                     </p>
                     <p>
                         3. 본 클래스 종료 시, 참가자의{' '}
-                        <span className="glitch-text font-bold" data-text="[육체와 영혼]">[모든 권리]</span>
+                        <span className="glitch-text font-bold" data-text="[육체와 영혼]">[뻐끔뻐끔]</span>
                         의 소유권은{' '}
                         <span className="glitch-text font-bold text-blue-600" data-text="[위대한 솔피]">[뻐끔뻐끔]</span>에게{' '}
                         <span className="glitch-text font-bold" data-text="영구히 귀속됨">[뻐끔뻐끔]</span>에 동의합니다.

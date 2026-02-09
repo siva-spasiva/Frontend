@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Save, Settings, FileText, Grid, Map, Mic } from 'lucide-react';
+import { Play, Save, Settings, FileText, Grid, Map, Mic, MessageCircle } from 'lucide-react';
 import MessengerApp from '../components/apps/MessengerApp';
 import InventoryApp from '../components/apps/InventoryApp';
 
@@ -98,9 +98,9 @@ const MainMenu = ({ onAppOpen }) => {
             <h1 className="text-3xl font-bold text-gray-900 mb-10 px-2">Home</h1>
 
             <div className="grid grid-cols-4 gap-4">
-                <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('messenger')} />
+                <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('test04')} />
                 <AppIcon icon={Save} label="Load" color="bg-green-500" onClick={() => { }} />
-                <AppIcon icon={Settings} label="Settings" color="bg-gray-500" onClick={() => { }} />
+                <AppIcon icon={MessageCircle} label="Messenger" color="bg-green-500" onClick={() => onAppOpen('messenger')} />
                 <AppIcon icon={FileText} label="Credits" color="bg-purple-500" onClick={() => { }} />
                 <AppIcon icon={Grid} label="Test01" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
