@@ -126,7 +126,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
     const [internalPhase, setInternalPhase] = useState('menu');
 
     // Context for overrides
-    const { phoneScreenOverride, setPhoneScreenOverride } = useGame();
+    const { phoneScreenOverride, setPhoneScreenOverride, currentLocationInfo } = useGame();
 
     useEffect(() => {
         if (phoneScreenOverride) {
@@ -225,8 +225,14 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0, y: 20 }}
                     >
                         <MapApp
-                            currentFloorId={currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4'))}
-                            currentRoomId={currentPhase === 'test02' ? 'room001' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate'))}
+                            currentFloorId={
+                                currentLocationInfo?.floorId || 
+                                (currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4')))
+                            }
+                            currentRoomId={
+                                currentLocationInfo?.roomId ||
+                                (currentPhase === 'test02' ? 'room001' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate')))
+                            }
                             onNavigate={(roomId) => {
                                 // Simplified Navigation Map
                                 const roomToScene = {

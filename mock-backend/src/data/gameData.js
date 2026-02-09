@@ -198,7 +198,18 @@ export const FLOOR_DATA = [
                         width: '15%',
                         height: '20%',
                         label: '옷장 서랍',
-                        message: '잠겨있다.'
+                        message: '잠겨있다. 무언가 열쇠가 필요해 보인다...'
+                    },
+                    {
+                        id: 'zone_door',
+                        type: 'move',
+                        target: 'hallway',
+                        x: '69%',
+                        y: '22%',
+                        width: '8%',
+                        height: '50%',
+                        label: '지하 복도',
+                        message: '복도로 나간다.'
                     }
                 ]
             },
@@ -210,6 +221,52 @@ export const FLOOR_DATA = [
                 highlightColor: 'text-gray-600',
                 description: 'CCTV가 모든 것을 지켜보고 있다. 곰팡이 냄새가 진동한다.',
                 overlayColor: 'bg-black/50',
+                activeZones: [
+                    {
+                        id: 'door_001',
+                        type: 'move',
+                        target: 'room001',
+                        x: '10%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '001호',
+                        message: '내 방(001호)으로 들어간다.'
+                    },
+                    {
+                        id: 'door_002',
+                        type: 'move',
+                        target: 'suspect_room_1',
+                        x: '30%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '002호',
+                        message: '002호 문을 연다.'
+                    },
+                    {
+                        id: 'door_003',
+                        type: 'move',
+                        target: 'suspect_room_2',
+                        x: '50%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '003호',
+                        message: '003호로 들어간다.'
+                    },
+                    {
+                        id: 'door_shower',
+                        type: 'move',
+                        target: 'shower_room',
+                        x: '75%',
+                        y: '20%',
+                        width: '14%',
+                        height: '60%',
+                        label: '샤워실',
+                        message: '공용 샤워실로 이동한다.'
+                    }
+                ]
             },
             {
                 id: 'suspect_room_1',

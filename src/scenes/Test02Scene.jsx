@@ -6,27 +6,55 @@ import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
 
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
+import { useInteraction } from '../hooks/useInteraction';
+import NavigationConfirmation from '../components/NavigationConfirmation';
 
 const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
-    // History logs
-    const [logs, setLogs] = useState([]);
+    // Active Room State
+    const [currentRoomId, setCurrentRoomId] = useState('room001');
 
-    // Current Dialog (Active Message)
-    const [dialogContent, setDialogContent] = useState(null);
+    const handleMove = (targetId) => {
+        console.log("Moving to:", targetId);
+        setCurrentRoomId(targetId);
+        
+        // Sync to GameContext for MapApp
+        // We find the floor that contains this room
+        if (floorData) {
+             const floor = floorData.find(f => f.rooms.some(r => r.id === targetId));
+             if (floor) {
+                 setCurrentLocationInfo({
+                     floorId: floor.id,
+                     roomId: targetId
+                 });
+             }
+        }
+    };
+
+    // History logs & Dialog handled by useInteraction hook
+    const { 
+        logs, 
+        dialogContent, 
+        handleInteraction,
+        pendingMove,
+        confirmMove,
+        cancelMove,
+        setDialogContent, // Exposed if needed for chat
+        setLogs // Exposed if needed for chat
+    } = useInteraction({ viewMode, setViewMode, onMove: handleMove });
 
     const [isThinking, setIsThinking] = useState(false);
 
-    const { npcData, mapData, isLoading } = useGame();
+    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo } = useGame();
 
     // Active NPC State - Configured for Empty Room
     const [activeNpc, setActiveNpc] = useState(null);
 
-    // Map Info
-    const mapInfo = mapData?.room001 || {};
+    // Map Info (Dynamic based on currentRoomId)
+    const mapInfo = mapData?.[currentRoomId] || {};
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
@@ -45,48 +73,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     
     // ...
 
-    const handleInteraction = (zone) => {
-        console.log("Interacted with zone:", zone);
-
-        // Add interaction log
-        const timestamp = Date.now();
-        const newLogs = [...logs];
-
-        // Archive current dialog if exists
-        if (dialogContent) {
-            newLogs.push({
-                ...dialogContent,
-                id: timestamp + '_prev_npc',
-                type: 'npc'
-            });
-            setDialogContent(null);
-        }
-
-        // Add System/Interaction Log
-        newLogs.push({
-            id: timestamp + '_interaction',
-            speaker: 'System',
-            text: `[${zone.label}] 을(를) 조사합니다.`,
-            type: 'system_action'
-        });
-
-        // Show feedback in Dialog Box
-        let responseText = zone.message || '특별한 것은 없어 보인다.';
-
-        if (zone.type === 'move') {
-            responseText = `[${zone.label}] 로 이동을 시도합니다... (구현 예정)`;
-        }
-
-        setDialogContent({
-            speaker: 'System',
-            text: responseText,
-            type: 'system'
-        });
-
-        setLogs(newLogs);
-
-        if (viewMode === 'hidden') setViewMode('mini');
-    };
+    // Interaction handled by useInteraction hook
 
     return (
         <motion.div
@@ -122,6 +109,14 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onTogglePhone={onTogglePhone}
                 // No onToggleNpc
                 theme="corrupted"
+            />
+
+            {/* Navigation Confirmation Popup */}
+            <NavigationConfirmation
+                isOpen={!!pendingMove}
+                targetLabel={pendingMove?.label}
+                onConfirm={confirmMove}
+                onCancel={cancelMove}
             />
         </motion.div>
     );
