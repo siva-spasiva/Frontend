@@ -32,40 +32,28 @@ const FloorItem = ({ floor, onSelect, isCurrent }) => (
 );
 
 const RoomItem = ({ room, onSelect, isCurrentRoom }) => {
-    const isLocked = !room.linkedScene;
+    // Legacy lock logic removed. All rooms displayed are potentially interactive.
+    // Logic for "can I go there?" should be handled by the onSelect callback or separate state.
 
     return (
         <motion.div
-            whileHover={!isLocked ? { scale: 1.02 } : {}}
-            whileTap={!isLocked ? { scale: 0.98 } : { x: [0, -5, 5, -5, 5, 0] }} // Shake if locked
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(room)}
-            className={`rounded-xl p-4 mb-3 border flex items-center justify-between relative overflow-hidden transition-all duration-300 ${!isLocked
-                ? (isCurrentRoom ? 'bg-blue-100 border-blue-400 shadow-md ring-2 ring-blue-200' : 'bg-blue-50 border-blue-200 shadow-sm cursor-pointer')
-                : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
+            className={`rounded-xl p-4 mb-3 border flex items-center justify-between relative overflow-hidden transition-all duration-300 ${isCurrentRoom
+                ? 'bg-blue-100 border-blue-400 shadow-md ring-2 ring-blue-200'
+                : 'bg-blue-50 border-blue-200 shadow-sm cursor-pointer'}`}
         >
-            {isLocked && (
-                <div className="absolute inset-0 bg-gray-200/50 backdrop-blur-[1px] z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <div className="bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center">
-                        <Lock className="w-3 h-3 mr-1" />
-                        Access Denied
-                    </div>
-                </div>
-            )}
-
             <div className="z-0">
-                <h4 className={`text-base font-bold flex items-center ${!isLocked ? 'text-blue-900' : 'text-gray-500'}`}>
+                <h4 className={`text-base font-bold flex items-center text-blue-900`}>
                     {room.name}
-                    {isLocked && <Lock className="w-3 h-3 ml-2 text-gray-400" />}
                     {isCurrentRoom && <span className="ml-2 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full">HERE</span>}
                 </h4>
                 <p className="text-xs text-gray-500 mt-1">{room.description}</p>
             </div>
-            {!isLocked && (
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md z-0 ${isCurrentRoom ? 'bg-blue-600' : 'bg-blue-500'}`}>
-                    {isCurrentRoom ? <MapPin className="w-4 h-4" /> : <Navigation className="w-4 h-4" />}
-                </div>
-            )}
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md z-0 ${isCurrentRoom ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                {isCurrentRoom ? <MapPin className="w-4 h-4" /> : <Navigation className="w-4 h-4" />}
+            </div>
         </motion.div>
     );
 };
@@ -77,11 +65,10 @@ const MapApp = ({ onNavigate, onBack, currentFloorId, currentRoomId }) => {
     const currentFloor = floorData ? floorData.find(f => f.id === currentFloorId) : null;
 
     const handleRoomSelect = (room) => {
-        if (room.linkedScene) {
-            onNavigate(room.linkedScene);
-        } else {
-            // Visual feedback is handled by RoomItem shake/tooltip
-        }
+        // Just bubble up the room ID. The parent should handle logic.
+        // We can check if it's "interactive" if we had that data, 
+        // but for now we assume all rooms are clickable, and parent decides if it goes somewhere.
+        onNavigate(room.id);
     };
 
     return (
