@@ -29,29 +29,40 @@ const ViewControls = ({
         return `w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md border shadow-lg transition-colors ${getThemeClasses(isActive)}`;
     };
 
+    const handleMasterToggle = () => {
+        // Toggle Phone
+        if (onTogglePhone) onTogglePhone();
+
+        // Sync View Mode
+        // If Phone is OPENING (currently false), ensure View is Visible (mini)
+        // If Phone is CLOSING (currently true), ensure View is Hidden
+        if (!isPhoneOpen) {
+            // Opening
+            if (viewMode === 'hidden' && onToggleHidden) onToggleHidden();
+        } else {
+            // Closing
+            if (viewMode !== 'hidden' && onToggleHidden) onToggleHidden();
+        }
+    };
+
     return (
         <div className="absolute bottom-10 left-10 z-50 flex flex-col space-y-4 pointer-events-auto">
-            {onTogglePhone && (
-                <motion.button
-                    onClick={onTogglePhone}
-                    className={getToggleBtnStyle(false)}
-                    animate={{ x: isPhoneOpen ? 400 : 0 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    {isPhoneOpen ? (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                        </svg>
-                    ) : (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                    )}
-                </motion.button>
-            )}
+            {/* Master Toggle Button */}
+            <motion.button
+                onClick={handleMasterToggle}
+                className={getToggleBtnStyle(isPhoneOpen)}
+                animate={{ x: isPhoneOpen ? 400 : 0 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+            >
+                {isPhoneOpen ? (
+                    <EyeOff className="w-6 h-6" /> // Icon to Hide
+                ) : (
+                    <MessageSquare className="w-6 h-6" /> // Icon to Show
+                )}
+            </motion.button>
 
-            {/* Additional Buttons (NPC Toggle etc) - Moved Up */}
+            {/* Additional Buttons (NPC Toggle etc) */}
             {children && React.Children.map(children, child => (
                 <motion.div
                     animate={{ x: isPhoneOpen ? 400 : 0 }}
@@ -61,23 +72,6 @@ const ViewControls = ({
                     {child}
                 </motion.div>
             ))}
-
-            {/* View/Hide Toggle - Moved Down */}
-            <motion.button
-                onClick={onToggleHidden || onToggleViewMode}
-                className={getToggleBtnStyle(viewMode === 'full')}
-                animate={{ x: isPhoneOpen ? 400 : 0 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-            >
-                {viewMode === 'full' ? (
-                    <Minimize2 className="w-6 h-6" />
-                ) : viewMode === 'mini' ? (
-                    <EyeOff className="w-6 h-6" />
-                ) : (
-                    <MessageSquare className="w-6 h-6" />
-                )}
-            </motion.button>
         </div>
     );
 };
