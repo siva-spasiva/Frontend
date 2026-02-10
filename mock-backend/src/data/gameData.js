@@ -65,7 +65,7 @@ export const FLOOR_DATA = [
                 highlightColor: 'text-gray-400',
                 description: '쓰지 않는 미술 도구와 카페 비품들이 쌓여있다. 1층의 활기찬 소리가 먹먹하게 들려온다.',
                 background: '2F_storage01.png',
-                overlayColor: 'bg-black/60',
+                overlayColor: 'bg-black/20',
                 activeZones: [
                     {
                         id: 'to_terrace',
@@ -88,6 +88,16 @@ export const FLOOR_DATA = [
                         height: '10%',
                         label: '작은 상자',
                         message: '구석에 놓인 낡은 상자.'
+                    },
+                    {
+                        id: 'easel',
+                        type: 'info',
+                        x: '20%',
+                        y: '50%',
+                        width: '10%',
+                        height: '10%',
+                        label: '이젤',
+                        message: '이젤이 놓여있다.'
                     }
                 ]
             },
@@ -300,9 +310,9 @@ export const FLOOR_DATA = [
                     {
                         id: 'zone_table',
                         type: 'info',
-                        x: '50%',
+                        x: '55%',
                         y: '55%',
-                        width: '15%',
+                        width: '10%',
                         height: '15%',
                         label: '작은 테이블',
                         message: '먼지가 쌓인 테이블.'

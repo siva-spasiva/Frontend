@@ -69,7 +69,7 @@ const GameHUD = ({
             </motion.div>
 
             {/* Portrait Placeholder */}
-            <PortraitDisplay activeNpc={activeNpc} />
+            <PortraitDisplay activeNpc={activeNpc} isPhoneOpen={isPhoneOpen} viewMode={viewMode} />
 
             {/* Smartphone Menu */}
             <SmartphoneMenu
