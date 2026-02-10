@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Package, Info, CheckCircle, Trash2, PlayCircle } from 'lucide-react';
+import { ChevronLeft, Package, Info, CheckCircle, Trash2, PlayCircle, HandMetal } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import ChatLog from '../ChatLog';
 
 const InventoryApp = ({ onBack }) => {
-    const { inventoryItems, removeItem } = useGame();
+    const { inventoryItems, removeItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
     const [selectedItem, setSelectedItem] = useState(null);
     const [isReading, setIsReading] = useState(false); // Reading mode for transcripts
 
@@ -184,6 +184,34 @@ const InventoryApp = ({ onBack }) => {
                             )}
 
                             <div className="mt-auto w-full pb-8 space-y-3">
+                                {/* 제시 Button — active only when NPC is present in field */}
+                                <button
+                                    onClick={() => {
+                                        if (selectedItem && isNpcPresent) {
+                                            presentItem(selectedItem);
+                                            onBack(); // Close inventory and return to game
+                                        }
+                                    }}
+                                    disabled={!isNpcPresent}
+                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${
+                                        isNpcPresent
+                                            ? presentedItem?.itemId === selectedItem?.id
+                                                ? 'bg-yellow-700 text-yellow-200 border-2 border-yellow-500'
+                                                : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-900/30'
+                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    }`}
+                                >
+                                    <HandMetal className="w-5 h-5" />
+                                    <span>
+                                        {!isNpcPresent
+                                            ? 'NPC가 없어 제시할 수 없음'
+                                            : presentedItem?.itemId === selectedItem?.id
+                                                ? `${activeNpcInField?.name || 'NPC'}에게 제시 중`
+                                                : `${activeNpcInField?.name || 'NPC'}에게 제시하기`
+                                        }
+                                    </span>
+                                </button>
+
                                 <button
                                     onClick={() => {
                                         if (selectedItem.type === 'transcript') {

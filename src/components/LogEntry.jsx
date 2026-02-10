@@ -4,6 +4,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LogEntry = ({ log }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // Item Presentation log type
+    if (log.type === 'item_presentation') {
+        return (
+            <div className="mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 bg-amber-900/30 border-yellow-600">
+                <div className="flex items-center space-x-2">
+                    <span className="text-2xl">{log.icon || '📦'}</span>
+                    <div>
+                        <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider bg-yellow-900/40 px-1.5 py-0.5 rounded mr-2">
+                            아이템 제시
+                        </span>
+                        <span className="text-yellow-200 font-medium">{log.itemName}</span>
+                    </div>
+                </div>
+                {log.text && (
+                    <p className="text-xs text-gray-400 mt-1 pl-9">
+                        {log.text}
+                    </p>
+                )}
+            </div>
+        );
+    }
+
     if (log.type === 'active_npc' || log.type === 'npc' || log.type === 'system') {
         const isSystem = log.type === 'system';
         return (

@@ -40,6 +40,12 @@ export const GameProvider = ({ children }) => {
     // Current Location Info (Synced from active scene)
     const [currentLocationInfo, setCurrentLocationInfo] = useState(null);
 
+    // === Item Presentation System ===
+    // Currently presented item (shown above chat UI when presenting to NPC)
+    const [presentedItem, setPresentedItem] = useState(null);
+    // Active NPC in current field (synced from scene)
+    const [activeNpcInField, setActiveNpcInField] = useState(null);
+
     // Visual State for App Layout
     const [isPhoneCentered, setIsPhoneCentered] = useState(false);
     const [phoneScreenOverride, setPhoneScreenOverride] = useState(null);
@@ -195,6 +201,41 @@ export const GameProvider = ({ children }) => {
         .map(id => gameData.itemData?.[id] || customItems[id])
         .filter(Boolean);
 
+    // === Item Presentation Helpers ===
+    /**
+     * Present an item to the current NPC.
+     * @param {object} item - The item object to present (from inventoryItems or customItems)
+     */
+    const presentItem = (item) => {
+        if (!item) return;
+        // Verify it's actually in inventory
+        if (!(stats.inventory || []).includes(item.id)) {
+            console.warn('Cannot present item not in inventory:', item.id);
+            return;
+        }
+        const presented = {
+            itemId: item.id,
+            name: item.name,
+            icon: item.icon || '📦',
+            description: item.description,
+            type: item.type, // 'normal' | 'key_item' | 'transcript'
+        };
+        // For transcript items, include a summary line
+        if (item.type === 'transcript' && item.content) {
+            const firstNpcLine = item.content.find(l => l.type === 'npc' || l.type === 'active_npc');
+            presented.transcriptSummary = firstNpcLine
+                ? firstNpcLine.text.substring(0, 40) + (firstNpcLine.text.length > 40 ? '...' : '')
+                : '대화 기록';
+            presented.transcriptContent = item.content;
+        }
+        console.log('Presenting item:', presented);
+        setPresentedItem(presented);
+    };
+
+    const clearPresentation = () => {
+        setPresentedItem(null);
+    };
+
     const value = {
         // Expose all stats directly
         ...stats,
@@ -230,6 +271,14 @@ export const GameProvider = ({ children }) => {
         currentLocationInfo,
         setCurrentLocationInfo,
         ITEMS: gameData.itemData || {},
+
+        // Item Presentation System
+        presentedItem,
+        presentItem,
+        clearPresentation,
+        activeNpcInField,
+        setActiveNpcInField,
+        isNpcPresent: !!activeNpcInField,
 
         // Layout Control
         isPhoneCentered,

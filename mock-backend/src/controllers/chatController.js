@@ -46,7 +46,7 @@ const applyFishMasking = (text, npcFishLevel, playerFishLevel = 0) => {
 };
 
 export const handleChat = async (req, res) => {
-    const { userId = 'default_user', message, npcId = 'npc_a' } = req.body;
+    const { userId = 'default_user', message, npcId = 'npc_a', presentedItem = null } = req.body;
 
     // 1. Get NPC Logic (Stats)
     const npcStats = getNpcState(userId, npcId);
@@ -108,8 +108,27 @@ export const handleChat = async (req, res) => {
 `;
     }
 
+    // [New] Inject Presented Item Context
+    let presentedItemContext = "";
+    if (presentedItem) {
+        presentedItemContext = `
+[ITEM PRESENTED - 아이템 제시됨]
+플레이어가 당신에게 [${presentedItem.name}]을(를) 제시했습니다.
+아이템 설명: ${presentedItem.description || '(설명 없음)'}
+아이템 유형: ${presentedItem.type === 'transcript' ? '녹음된 대화 기록' : presentedItem.type === 'key_item' ? '핵심 아이템' : '일반 아이템'}
+${presentedItem.type === 'transcript' && presentedItem.transcriptSummary ? `녹음 내용 요약: ${presentedItem.transcriptSummary}` : ''}
+
+[제시 반응 지침]
+- 이 아이템을 인식하고, 캐릭터답게 반응하세요.
+- 아이템이 당신(${npcId})과 관련이 있다면 강하게 반응하세요.
+- 관련이 없다면 미적지근하게 반응하거나 무관심하게 대응하세요.
+- 반응은 SAY에 자연스럽게 녹여내세요.
+`;
+    }
+
     // Construct full prompt
-    const fullPrompt = `${systemPrompt}\n${playerStatsContext}\n\nUser: ${message}\nCharacter:`;
+    const fullPrompt = `${systemPrompt}\n${playerStatsContext}\n${presentedItemContext}\nUser: ${message}\nCharacter:`;
+
 
     try {
         const rawResponse = await generateAIResponse(fullPrompt);

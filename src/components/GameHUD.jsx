@@ -29,6 +29,11 @@ const GameHUD = ({
     // Theme & Options
     theme = 'basic',
     onToggleNpc, // Optional: for the debug button
+
+    // Item Presentation
+    presentedItem = null,
+    onClearPresentation = null,
+
     children
 }) => {
     return (
@@ -85,6 +90,9 @@ const GameHUD = ({
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
                 theme={theme}
+                presentedItem={presentedItem}
+                npcName={activeNpc?.name || null}
+                onClearPresentation={onClearPresentation}
             >
                 {/* Debug / Extra Buttons */}
                 {children}

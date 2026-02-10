@@ -21,6 +21,9 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // Access Global Stats and Data
     const { syncStats, npcData, mapData, isLoading } = useGame();
 
+    // Item Presentation
+    const { presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+
     // NPC State
     const [activeNpc, setActiveNpc] = useState(null);
 
@@ -30,6 +33,12 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             setActiveNpc(npcData.npc_a);
         }
     }, [isLoading, npcData]);
+
+    // Sync activeNpc to GameContext for InventoryApp presentation awareness
+    React.useEffect(() => {
+        setActiveNpcInField(activeNpc);
+        return () => setActiveNpcInField(null); // Clear on unmount
+    }, [activeNpc, setActiveNpcInField]);
 
     // Map Info
     const mapInfo = mapData?.umi_class || {}; // Safe access
@@ -79,6 +88,18 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             type: 'user'
         });
 
+        // 2.5. If presenting an item, add presentation log
+        if (presentedItem) {
+            newLogs.push({
+                id: Date.now() + '_presentation',
+                speaker: 'System',
+                text: `${presentedItem.name}을(를) 제시했습니다.`,
+                itemName: presentedItem.name,
+                icon: presentedItem.icon,
+                type: 'item_presentation'
+            });
+        }
+
         setLogs(newLogs);
 
         // 3. Temporary clear dialog to show thinking state in the main box
@@ -92,7 +113,8 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             const targetNpc = activeNpc || npcData.npc_a;
 
             const data = await generateAIResponse(userMsg, {
-                npcId: targetNpc.id
+                npcId: targetNpc.id,
+                presentedItem: presentedItem || undefined,
             });
 
             setDialogContent({
@@ -109,6 +131,11 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             // Auto-spawn NPC if not present when they speak
             if (!activeNpc) {
                 setActiveNpc(targetNpc);
+            }
+
+            // Clear presented item after it's been sent with the message
+            if (presentedItem) {
+                clearPresentation();
             }
 
         } catch (error) {
@@ -156,6 +183,8 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onTogglePhone={onTogglePhone}
                 onToggleNpc={toggleNpc}
                 theme="basic"
+                presentedItem={presentedItem}
+                onClearPresentation={clearPresentation}
             />
         </motion.div>
     );

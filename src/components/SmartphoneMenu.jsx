@@ -5,6 +5,7 @@ import ChatLog from './ChatLog';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
 import ViewControls from './ViewControls';
+import ItemPresentationBanner from './ItemPresentationBanner';
 
 const SmartphoneMenu = ({
     logs = [],
@@ -20,7 +21,11 @@ const SmartphoneMenu = ({
     isPhoneOpen,
     onTogglePhone,
     children, // For extra buttons
-    theme = 'basic' // 'basic' | 'corrupted'
+    theme = 'basic', // 'basic' | 'corrupted'
+    // Item Presentation
+    presentedItem = null,
+    npcName = null,
+    onClearPresentation = null,
 }) => {
 
     // Derived border color for container
@@ -49,6 +54,13 @@ const SmartphoneMenu = ({
 
                         {/* Recent Dialog Box + Input Wrapper */}
                         <div className={`pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl border ${containerBorderClass} shadow-2xl overflow-hidden flex flex-col`}>
+
+                            {/* Item Presentation Banner (above chat) */}
+                            <ItemPresentationBanner
+                                presentedItem={presentedItem}
+                                onClear={onClearPresentation}
+                                npcName={npcName}
+                            />
 
                             {/* Sticky Header for Collapse/Expand */}
                             <div
