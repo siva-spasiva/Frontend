@@ -32,24 +32,37 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                     onMouseLeave={() => setHoveredZone(null)}
                     onClick={() => onInteract(zone)}
                 >
-                    {/* Visual Debug / Highlight (Optional: make transparent in prod) */}
-                    <div className={`w-full h-full border-2 border-dashed rounded-lg transition-colors duration-300 flex items-center justify-center
-                        ${hoveredZone === zone.id ? 'border-white/50 bg-white/10' : 'border-transparent'}
-                    `}>
-                        {/* Icon Indicator (Shows on hover or always if critical) */}
-                        <AnimatePresence>
-                            {hoveredZone === zone.id && (
-                                <motion.div
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0, opacity: 0 }}
-                                    className="bg-black/60 backdrop-blur-md p-2 rounded-full shadow-lg"
-                                >
-                                    {getIcon(zone.type)}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    {/* Visual Debug / Highlight */}
+                    {zone.type === 'item_dot' ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <motion.div
+                                animate={{
+                                    boxShadow: ['0 0 5px #fbbf24', '0 0 15px #fbbf24', '0 0 5px #fbbf24'],
+                                    scale: [1, 1.2, 1]
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="w-4 h-4 bg-yellow-400 rounded-full"
+                            />
+                        </div>
+                    ) : (
+                        <div className={`w-full h-full border-2 border-dashed rounded-lg transition-colors duration-300 flex items-center justify-center
+                            ${hoveredZone === zone.id ? 'border-white/50 bg-white/10' : 'border-transparent'}
+                        `}>
+                            {/* Icon Indicator (Shows on hover or always if critical) */}
+                            <AnimatePresence>
+                                {hoveredZone === zone.id && (
+                                    <motion.div
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        className="bg-black/60 backdrop-blur-md p-2 rounded-full shadow-lg"
+                                    >
+                                        {getIcon(zone.type)}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
 
                     {/* Label Tooltip */}
                     <AnimatePresence>

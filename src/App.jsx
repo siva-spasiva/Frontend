@@ -8,6 +8,7 @@ import Test01Scene from './scenes/Test01Scene';
 import Test02Scene from './scenes/Test02Scene';
 import Test03Scene from './scenes/Test03Scene';
 import Test04Scene from './scenes/Test04Scene';
+import Test05Scene from './scenes/Test05Scene';
 import Debug00Scene from './scenes/Debug00Scene';
 import CrashScene from './scenes/CrashScene';
 import TerminalScene from './scenes/TerminalScene';
@@ -19,7 +20,8 @@ import MainMenuBg from './assets/map/mainmenu01.png';
 // Inner Layout Component that has access to Context
 const MainLayout = () => {
   // phase state: 'teamLogo' -> 'mainMenu' -> 'gameStart'/'mainGame' -> 'crash' -> 'terminal' -> 'test02' -> 'test03'
-  const [phase, setPhase] = useState('teamLogo');
+  const [phase, setPhase] = useState('mainMenu');
+  // teamlogoscene 으로 나중에 교체 
 
   // Access Game Context for Layout
   const { isPhoneCentered, setIsPhoneCentered } = useGame();
@@ -31,6 +33,7 @@ const MainLayout = () => {
   const toTest02 = () => setPhase('test02');
   const toTest03 = () => setPhase('test03');
   const toTest04 = () => setPhase('test04');
+  const toTest05 = () => setPhase('test05');
   const toDebug00 = () => setPhase('debug00');
   const toCrash = () => setPhase('crash');
   const toTerminal = () => {
@@ -40,12 +43,12 @@ const MainLayout = () => {
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
 
-  // Reset phone state when entering MainGame or Test02/03/04
+  // Reset phone state when entering MainGame or Test02/03/04/05
   React.useEffect(() => {
-    if (phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') setIsPhoneOpen(true);
+    if (phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') setIsPhoneOpen(true);
   }, [phase]);
 
-  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04';
+  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05';
 
   return (
     <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
@@ -67,7 +70,7 @@ const MainLayout = () => {
         )}
 
         {/* Unified Split Layout Group */}
-        {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') && (
+        {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') && (
           <motion.div
             key="split-group"
             className="w-full h-full relative"
@@ -143,6 +146,19 @@ const MainLayout = () => {
                   <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onComplete={toTest03} />
                 </motion.div>
               )}
+
+              {phase === 'test05' && (
+                <motion.div
+                  key="test05-bg"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0 z-0"
+                >
+                  <Test05Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Foreground UI (Split Layout) */}
@@ -159,7 +175,7 @@ const MainLayout = () => {
                   width: isPhoneCentered
                     ? '100%'
                     : (isSplit
-                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04')
+                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05')
                         ? (isPhoneOpen ? '420px' : '0px')
                         : '50%')
                       : '100%'),
@@ -167,7 +183,7 @@ const MainLayout = () => {
                   // If phone centered, we might want to ensure background is transparent so we see scene behind?
                   // But standard layout has transparent background for phone container anyway.
                   // Check opacity logic
-                  opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04') && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
+                  opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
 
                   // Position Absolute if Centering over content?
                   // If we use Flex row, making it 100% width PUSHES the right content off screen or squeezes it.
@@ -193,6 +209,7 @@ const MainLayout = () => {
                     onTest02Start={toTest02}
                     onTest03Start={toTest03}
                     onTest04Start={toTest04}
+                    onTest05Start={toTest05}
                     onDebug00Start={toDebug00}
                     onHome={toMainMenu}
                     currentPhase={phase}

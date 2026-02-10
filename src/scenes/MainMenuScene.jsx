@@ -106,6 +106,7 @@ const MainMenu = ({ onAppOpen }) => {
                 <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
                 <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
                 <AppIcon icon={Grid} label="Test04" color="bg-teal-600" onClick={() => onAppOpen('test04')} />
+                <AppIcon icon={Grid} label="Test05" color="bg-orange-500" onClick={() => onAppOpen('test05')} />
                 <AppIcon icon={Grid} label="DEBUG 00" color="bg-orange-600" onClick={() => onAppOpen('debug00')} />
                 {/* <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
                 {/* Dummies to fill space if needed, or leave empty */}
@@ -121,7 +122,7 @@ import MapApp from '../components/apps/MapApp';
 import RecorderApp from '../components/apps/RecorderApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onDebug00Start, onHome, currentPhase }) => {
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onDebug00Start, onHome, currentPhase }) => {
     // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
     const [internalPhase, setInternalPhase] = useState('menu');
 
@@ -141,6 +142,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
         } else if (currentPhase === 'test03') {
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'test04') {
+            setInternalPhase('ingame03_home');
+        } else if (currentPhase === 'test05') {
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'mainMenu') {
             setInternalPhase('menu');
@@ -164,6 +167,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             onTest03Start && onTest03Start();
         } else if (appName === 'test04') {
             onTest04Start && onTest04Start();
+        } else if (appName === 'test05') {
+            onTest05Start && onTest05Start(); // New Handler
         } else if (appName === 'debug00') {
             onDebug00Start && onDebug00Start();
         } else if (appName === 'umi_class') { // Alias for test03
@@ -237,11 +242,11 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         <MapApp
                             currentFloorId={
                                 currentLocationInfo?.floorId ||
-                                (currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4')))
+                                (currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'test05' ? '2F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4'))))
                             }
                             currentRoomId={
                                 currentLocationInfo?.roomId ||
-                                (currentPhase === 'test02' ? 'room001' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate')))
+                                (currentPhase === 'test02' ? 'room001' : (currentPhase === 'test03' ? 'umi_class' : (currentPhase === 'test05' ? 'storage_main' : (currentPhase === 'mainGame' ? 'test01' : 'ocean_gate'))))
                             }
                             onNavigate={(roomId) => {
                                 // Simplified Navigation Map
@@ -267,6 +272,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                                 if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                                 else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                                 else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
+                                else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
                                 else setInternalPhase('ingame_home');
                             }}
                         />
@@ -286,6 +292,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
                             else setInternalPhase('menu');
                         }} />
@@ -308,6 +315,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                                 setPhoneScreenOverride(null);
                                 onTest03Start && onTest03Start();
                             }
+                            else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
                             else setInternalPhase('menu');
                         }} />
@@ -328,6 +336,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
                             else setInternalPhase('menu');
                         }} />

@@ -64,18 +64,66 @@ export const FLOOR_DATA = [
                 highlightText: 'MAIN',
                 highlightColor: 'text-gray-400',
                 description: '쓰지 않는 미술 도구와 카페 비품들이 쌓여있다. 1층의 활기찬 소리가 먹먹하게 들려온다.',
-                mapImage: '2F_storage01.png',
+                background: '2F_storage01.png',
                 overlayColor: 'bg-black/60',
+                activeZones: [
+                    {
+                        id: 'to_terrace',
+                        type: 'move',
+                        target: 'terrace',
+                        x: '80%',
+                        y: '30%',
+                        width: '15%',
+                        height: '40%',
+                        label: '테라스',
+                        message: '테라스로 나간다.'
+                    },
+                    {
+                        id: 'item_box_01',
+                        type: 'item',
+                        itemId: 'item010', // Black Key
+                        x: '50%',
+                        y: '75%',
+                        width: '10%',
+                        height: '10%',
+                        label: '작은 상자',
+                        message: '구석에 놓인 낡은 상자.'
+                    }
+                ]
             },
             {
                 id: 'terrace',
                 name: '테라스',
                 namePrefix: '2F 테라스',
-                highlightText: 'LOCKED',
-                highlightColor: 'text-red-500',
-                description: '테라스. 바람 소리가 들린다.',
-                overlayColor: 'bg-black/40',
-                mapImage: '2F_terrace01.png',
+                highlightText: 'OPEN',
+                highlightColor: 'text-blue-200',
+                description: '테라스. 바닷바람이 시원하게 불어온다.',
+                overlayColor: 'bg-black/10',
+                background: '2F_terrace01.png',
+                activeZones: [
+                    {
+                        id: 'back_to_storage',
+                        type: 'move',
+                        target: 'storage_main',
+                        x: '10%',
+                        y: '50%',
+                        width: '10%',
+                        height: '30%',
+                        label: '창고로',
+                        message: '창고 안으로 돌아간다.'
+                    },
+                    {
+                        id: 'terrace_to_stairs',
+                        type: 'move',
+                        target: 'stairs_up',
+                        x: '30%',
+                        y: '85%',
+                        width: '40%',
+                        height: '15%',
+                        label: '1층 계단',
+                        message: '계단을 통해 1층으로 내려간다.'
+                    }
+                ]
             }
         ]
     },
@@ -111,12 +159,81 @@ export const FLOOR_DATA = [
                 name: '계단',
                 description: '2층으로 이어지는 목조 계단. "관계자 외 출입금지" 팻말이 작게 붙어있다.',
                 background: '1F_stair01.png',
+                activeZones: [
+                    {
+                        id: 'to_storage',
+                        type: 'move',
+                        target: 'storage_main',
+                        x: '45%',
+                        y: '10%',
+                        width: '15%',
+                        height: '20%',
+                        label: '2층 창고',
+                        message: '2층 자재 창고로 올라간다.'
+                    },
+                    {
+                        id: 'center_door_locked',
+                        type: 'info', // Changed to info to represent locked state
+                        x: '65%',
+                        y: '50%',
+                        width: '15%',
+                        height: '30%',
+                        label: '지하 1층 (잠김)',
+                        message: '문이 굳게 잠겨있다. "관계자 외 출입금지"'
+                    },
+                    {
+                        id: 'to_umi_class',
+                        type: 'move',
+                        target: 'umi_class',
+                        x: '90%',
+                        y: '40%',
+                        width: '10%',
+                        height: '40%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
             },
             {
                 id: 'stairs_down',
                 name: '계단',
                 description: '2층으로 이어지는 목조 계단. 지하로 내려가는 계단이 보인다.',
                 background: '1F_stair02.png',
+                activeZones: [
+                    {
+                        id: 'to_storage',
+                        type: 'move',
+                        target: 'storage_main',
+                        x: '5%',
+                        y: '20%',
+                        width: '25%',
+                        height: '70%',
+                        label: '2층 창고',
+                        message: '2층 자재 창고로 올라간다.'
+                    },
+                    {
+                        id: 'to_b1',
+                        type: 'move',
+                        target: 'cafeteria',
+                        x: '35%',
+                        y: '30%',
+                        width: '30%',
+                        height: '60%',
+                        label: '지하 1층',
+                        message: '지하 1층으로 내려간다.'
+                    },
+                    {
+                        id: 'to_umi_class',
+                        type: 'move',
+                        target: 'umi_class',
+                        x: '75%',
+                        y: '40%',
+                        width: '20%',
+                        height: '50%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
             }
         ]
     },

@@ -1,15 +1,16 @@
 import { useState, useCallback } from 'react';
 
-export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
+export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [] } = {}) => {
     const [logs, setLogs] = useState([]);
     const [dialogContent, setDialogContent] = useState(null);
     const [pendingMove, setPendingMove] = useState(null);
+    const [pendingItem, setPendingItem] = useState(null); // New state for item pickup
 
     const handleInteraction = useCallback((zone) => {
         console.log("System Interaction with zone:", zone);
 
         const timestamp = Date.now();
-        
+
         setLogs(currentLogs => {
             const newLogs = [...currentLogs];
 
@@ -31,17 +32,17 @@ export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
 
             return newLogs;
         });
-        
+
         // Show feedback in Dialog Box
         let responseText = zone.message || '특별한 것은 없어 보인다.';
 
         if (zone.type === 'move') {
-             if (onMove && zone.target) {
+            if (onMove && zone.target) {
                 setPendingMove({
                     target: zone.target,
                     label: zone.label
                 });
-                
+
                 // Prompt user in dialog as well
                 responseText = `[${zone.label}] (으)로 이동하시겠습니까?`;
                 setDialogContent({
@@ -49,18 +50,38 @@ export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
                     text: responseText,
                     type: 'system_decision' // Special type if needed, or just system
                 });
-                
+
                 // Don't move yet
             } else {
                 responseText = `[${zone.label}] (으)로 이동할 수 없습니다.`;
-                 setDialogContent({
+                setDialogContent({
                     speaker: 'System',
                     text: responseText,
                     type: 'system'
                 });
             }
+        } else if (zone.type === 'item') {
+            // Handle Item Pickup
+            const itemId = zone.itemId || 'item010';
+
+            // Check if already in inventory
+            if (inventory.includes(itemId)) {
+                setDialogContent({
+                    speaker: 'System',
+                    text: '비어있다.',
+                    type: 'system'
+                });
+            } else {
+                setPendingItem(itemId);
+                setDialogContent({
+                    speaker: 'System',
+                    text: '무언가 발견했습니다!',
+                    type: 'system'
+                });
+            }
+
         } else {
-             setDialogContent({
+            setDialogContent({
                 speaker: 'System',
                 text: responseText,
                 type: 'system'
@@ -88,13 +109,13 @@ export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
             });
             onMove(pendingMove.target);
             setPendingMove(null);
-            setDialogContent(null); 
+            setDialogContent(null);
         }
     }, [pendingMove, onMove, addLog]);
 
     const cancelMove = useCallback(() => {
         if (pendingMove) {
-             addLog({
+            addLog({
                 id: Date.now() + '_move_cancel',
                 speaker: 'System',
                 text: `이동을 취소했습니다.`,
@@ -108,6 +129,11 @@ export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
             });
         }
     }, [pendingMove, addLog]);
+
+    const resolveItem = useCallback(() => {
+        setPendingItem(null);
+    }, []);
+
     const setDialog = useCallback((content) => {
         setDialogContent(content);
     }, []);
@@ -121,6 +147,8 @@ export const useInteraction = ({ viewMode, setViewMode, onMove } = {}) => {
         handleInteraction,
         pendingMove,
         confirmMove,
-        cancelMove
+        cancelMove,
+        pendingItem,
+        resolveItem
     };
 };
