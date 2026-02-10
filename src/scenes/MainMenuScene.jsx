@@ -126,7 +126,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
     const [internalPhase, setInternalPhase] = useState('menu');
 
     // Context for overrides
-    const { phoneScreenOverride, setPhoneScreenOverride, currentLocationInfo } = useGame();
+    const { phoneScreenOverride, setPhoneScreenOverride, currentLocationInfo, setIsPhoneCentered } = useGame();
 
     useEffect(() => {
         if (phoneScreenOverride) {
@@ -140,10 +140,20 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             setInternalPhase('ingame02_home');
         } else if (currentPhase === 'test03') {
             setInternalPhase('ingame03_home');
+        } else if (currentPhase === 'test04') {
+            setInternalPhase('ingame03_home');
         } else if (currentPhase === 'mainMenu') {
             setInternalPhase('menu');
         }
     }, [currentPhase, phoneScreenOverride]);
+
+    // Initialize position logic: When on Home Screen, move Phone to Left (Initialize Position)
+    useEffect(() => {
+        const homeScreens = ['menu', 'ingame_home', 'ingame02_home', 'ingame03_home'];
+        if (homeScreens.includes(internalPhase)) {
+            setIsPhoneCentered(false);
+        }
+    }, [internalPhase, setIsPhoneCentered]);
 
     const handleAppOpen = (appName) => {
         if (appName === 'test01') {
@@ -226,7 +236,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                     >
                         <MapApp
                             currentFloorId={
-                                currentLocationInfo?.floorId || 
+                                currentLocationInfo?.floorId ||
                                 (currentPhase === 'test02' ? 'B2' : (currentPhase === 'test03' ? '1F' : (currentPhase === 'mainGame' ? 'DEBUG' : 'B4')))
                             }
                             currentRoomId={
@@ -252,9 +262,11 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                                 }
                             }}
                             onBack={() => {
+                                setPhoneScreenOverride(null);
                                 // Return to appropriate home screen based on currentPhase
                                 if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                                 else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                                else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
                                 else setInternalPhase('ingame_home');
                             }}
                         />
@@ -269,7 +281,14 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <MessengerApp onComplete={onNext} onBack={() => setInternalPhase('menu')} />
+                        <MessengerApp onComplete={onNext} onBack={() => {
+                            setPhoneScreenOverride(null);
+                            if (currentPhase === 'test02') setInternalPhase('ingame02_home');
+                            else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else setInternalPhase('menu');
+                        }} />
                     </motion.div>
                 )}
 
@@ -304,9 +323,11 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0, scale: 0.95 }}
                     >
                         <RecorderApp onBack={() => {
+                            setPhoneScreenOverride(null);
                             // Return to appropriate home screen
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
+                            else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
                             else setInternalPhase('menu');
                         }} />
