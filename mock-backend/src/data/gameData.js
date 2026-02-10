@@ -219,52 +219,64 @@ export const FLOOR_DATA = [
                 namePrefix: 'B2 복도',
                 highlightText: 'HALL',
                 highlightColor: 'text-gray-600',
-                description: 'CCTV가 모든 것을 지켜보고 있다. 곰팡이 냄새가 진동한다.',
-                overlayColor: 'bg-black/50',
+                description: '묘한 비린내와 곰팡이 냄새가 진동하는 복도.',
+                overlayColor: 'bg-black/20',
+                background: 'B2_hallway02.png',
                 activeZones: [
                     {
                         id: 'door_001',
                         type: 'move',
                         target: 'room001',
-                        x: '10%',
+                        x: '5%',
                         y: '20%',
-                        width: '12%',
+                        width: '16%',
                         height: '60%',
                         label: '001호',
-                        message: '내 방(001호)으로 들어간다.'
-                    },
-                    {
-                        id: 'door_002',
-                        type: 'move',
-                        target: 'suspect_room_1',
-                        x: '30%',
-                        y: '20%',
-                        width: '12%',
-                        height: '60%',
-                        label: '002호',
-                        message: '002호 문을 연다.'
-                    },
-                    {
-                        id: 'door_003',
-                        type: 'move',
-                        target: 'suspect_room_2',
-                        x: '50%',
-                        y: '20%',
-                        width: '12%',
-                        height: '60%',
-                        label: '003호',
-                        message: '003호로 들어간다.'
+                        message: '001호 문을 연다.'
                     },
                     {
                         id: 'door_shower',
                         type: 'move',
                         target: 'shower_room',
+                        x: '30%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '샤워실',
+                        message: '샤워실에 들어간다.'
+                    },
+                    {
+                        id: 'door_003',
+                        type: 'move',
+                        target: 'room003',
+                        x: '48%',
+                        y: '30%',
+                        width: '8%',
+                        height: '45%',
+                        label: '003호',
+                        message: '003호로 들어간다.'
+                    },
+                    {
+                        id: 'stair_001',
+                        type: 'move',
+                        target: 'B1',
+                        x: '70%',
+                        y: '40%',
+                        width: '7%',
+                        height: '20%',
+                        label: '지하 1층으로',
+                        message: '지하 1층으로 올라간다.'
+                    },
+                    {
+                        id: 'door_004',
+                        type: 'move',
+                        target: 'room004',
                         x: '75%',
                         y: '20%',
                         width: '14%',
                         height: '60%',
-                        label: '샤워실',
-                        message: '공용 샤워실로 이동한다.'
+                        label: '004호',
+                        message: '004호 문을 연다.'
                     }
                 ]
             },
