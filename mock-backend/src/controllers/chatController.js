@@ -3,10 +3,27 @@ import { generateAIResponse } from '../services/aiService.js';
 import { getState, updateGlobalState, getNpcState, updateNpcState } from '../services/stateService.js';
 import { NPC_DATA } from '../data/gameData.js';
 
-// Helper to get prompt by npcId
-const getPromptForNpc = (npcId) => {
+// Helper: Determine friendly tier for tiered prompt selection
+const getFriendlyTier = (friendly) => {
+    if (friendly <= 19) return 'BAD';
+    if (friendly <= 45) return 'NORMAL';
+    if (friendly <= 75) return 'GOOD';
+    return 'PERFECT';
+};
+
+// Helper to get prompt by npcId (supports tiered prompts)
+const getPromptForNpc = (npcId, npcStats = {}) => {
     const npc = NPC_DATA[npcId];
-    return npc ? npc.prompt : PROMPTS.DETECTIVE_KANG_PROMPT;
+    if (!npc) return PROMPTS.DETECTIVE_KANG_PROMPT;
+
+    // Tiered prompt system — friendly 구간에 따라 프롬프트 자동 전환
+    if (npc.promptTiers) {
+        const tier = getFriendlyTier(npcStats.friendly ?? 50);
+        console.log(`[Prompt Tier] NPC: ${npcId}, Friendly: ${npcStats.friendly}, Tier: ${tier}`);
+        return npc.promptTiers[tier] || npc.prompt || PROMPTS.DETECTIVE_KANG_PROMPT;
+    }
+
+    return npc.prompt || PROMPTS.DETECTIVE_KANG_PROMPT;
 };
 
 // Masking Logic
@@ -54,8 +71,8 @@ export const handleChat = async (req, res) => {
     // 2. Get User/Global Stats (if needed for context)
     const globalState = getState(userId).global;
 
-    // 3. Get Prompt Template
-    let systemPrompt = getPromptForNpc(npcId);
+    // 3. Get Prompt Template (tiered prompt 지원)
+    let systemPrompt = getPromptForNpc(npcId, npcStats);
 
     // 4. Replace Placeholders with NPC Stats
     systemPrompt = systemPrompt.replace(/{current_stats\['Friendly'\]}/g, npcStats.friendly);

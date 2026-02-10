@@ -45,6 +45,27 @@ const NPC_DATA = {
         id: 'test02',
         name: 'Test NPC 02',
         prompt: PROMPTS.TEST02_NPC_PROMPT
+    },
+    bokeo: {
+        id: 'bokeo',
+        name: '박복어',
+        initialPortrait: 'npc_bokeo_00.png',
+        portraits: {
+            default: 'npc_bokeo_00.png',
+            glare: 'npc_bokeo_01.png',
+            smirk: 'npc_bokeo_02.png',
+            confess: 'npc_bokeo_03.png',
+        },
+        // 친밀도(Friendly) 구간별 프롬프트 자동 전환
+        promptTiers: {
+            BAD: PROMPTS.BOKEO_PROMPT_BAD,         // 0-19
+            NORMAL: PROMPTS.BOKEO_PROMPT_NORMAL,   // 20-45
+            GOOD: PROMPTS.BOKEO_PROMPT_GOOD,       // 46-75
+            PERFECT: PROMPTS.BOKEO_PROMPT_PERFECT,  // 76-100
+        },
+        apiConfig: {
+            model: 'gpt-oss:20b-cloud',
+        }
     }
 };
 
@@ -426,6 +447,30 @@ export const FLOOR_DATA = [
                 description: '잡동사니가 가득하다. 훔친 물건들을 숨겨둔 것 같다.',
                 background: null,
                 overlayColor: 'bg-black/40',
+            },
+            {
+                id: 'room004',
+                name: '004호',
+                namePrefix: '004호',
+                highlightText: '004',
+                highlightColor: 'text-red-400',
+                description: '안쪽에서 묘한 냄새가 새어나온다. 창문 없이 컴컴하고, 벽에는 손톱으로 긁은 듯한 자국이 있다.',
+                background: null,
+                overlayColor: 'bg-black/50',
+                npcId: 'bokeo',
+                activeZones: [
+                    {
+                        id: 'zone_door_004',
+                        type: 'move',
+                        target: 'hallway',
+                        x: '70%',
+                        y: '25%',
+                        width: '10%',
+                        height: '50%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
             },
             {
                 id: 'shower_room',
