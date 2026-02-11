@@ -55,6 +55,7 @@ const NPC_DATA = {
             faith: 80,
             fishLevel: 6,
         },
+        initialInventory: ['npc_bokeo_001', 'npc_bokeo_002', 'npc_bokeo_003'],
         initialPortrait: 'npc_bokeo_00.png',
         portraits: {
             default: 'npc_bokeo_00.png',
@@ -81,6 +82,7 @@ const NPC_DATA = {
             faith: 10,
             fishLevel: 10,
         },
+        initialInventory: ['npc_galchi_001', 'npc_galchi_002', 'npc_galchi_003'],
         initialPortrait: 'npc_galchi_00.png',
         portraits: {
             default: 'npc_galchi_00.png',
@@ -105,6 +107,7 @@ const NPC_DATA = {
             faith: 20,
             fishLevel: 5,
         },
+        initialInventory: ['npc_bingeo_001', 'npc_bingeo_002', 'npc_bingeo_003'],
         initialPortrait: 'npc_bingeo_00.png',
         portraits: {
             default: 'npc_bingeo_00.png',

@@ -1,4 +1,4 @@
-import { getState, updateGlobalState, updateNpcState, resetState } from '../services/stateService.js';
+import { getState, updateGlobalState, updateNpcState, resetState, transferItemFromNpc, transferItemToNpc } from '../services/stateService.js';
 
 export const getStats = (req, res) => {
     const { userId = 'default_user' } = req.query;
@@ -38,3 +38,32 @@ export const resetStats = (req, res) => {
         npcStats: state.npcStats
     });
 }
+
+// NPC ↔ Player 아이템 전달
+export const transferItem = (req, res) => {
+    const { userId = 'default_user', npcId, itemId, direction = 'fromNpc' } = req.body;
+
+    if (!npcId || !itemId) {
+        return res.status(400).json({ error: 'Missing npcId or itemId' });
+    }
+
+    let result;
+    if (direction === 'fromNpc') {
+        result = transferItemFromNpc(userId, npcId, itemId);
+    } else if (direction === 'toNpc') {
+        result = transferItemToNpc(userId, npcId, itemId);
+    } else {
+        return res.status(400).json({ error: `Invalid direction '${direction}'. Use 'fromNpc' or 'toNpc'.` });
+    }
+
+    if (!result.success) {
+        return res.status(400).json({ error: result.error });
+    }
+
+    // Return full state
+    const state = getState(userId);
+    res.json({
+        ...state.global,
+        npcStats: state.npcStats
+    });
+};

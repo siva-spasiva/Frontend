@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, fetchStaticGameData } from '../api/stats';
+import { fetchGameStats, updateGameStats, fetchStaticGameData, transferItem } from '../api/stats';
 
 // Fish Level Tier 유틸리티
 const getFishTier = (fishLevel) => {
@@ -349,6 +349,44 @@ export const GameProvider = ({ children }) => {
         setPresentedItem(presented);
     };
 
+    // === NPC ↔ Player 아이템 전달 ===
+    const transferItemFromNpc = async (npcId, itemId) => {
+        try {
+            const data = await transferItem(npcId, itemId, 'fromNpc');
+            setStats(prev => ({
+                ...prev,
+                ...data,
+                npcStats: data.npcStats || prev.npcStats,
+            }));
+            console.log(`[Transfer] NPC '${npcId}' → Player: ${itemId}`);
+            return true;
+        } catch (err) {
+            console.error('[Transfer Error]', err);
+            return false;
+        }
+    };
+
+    const transferItemToNpc = async (npcId, itemId) => {
+        try {
+            const data = await transferItem(npcId, itemId, 'toNpc');
+            setStats(prev => ({
+                ...prev,
+                ...data,
+                npcStats: data.npcStats || prev.npcStats,
+            }));
+            console.log(`[Transfer] Player → NPC '${npcId}': ${itemId}`);
+            return true;
+        } catch (err) {
+            console.error('[Transfer Error]', err);
+            return false;
+        }
+    };
+
+    const getNpcInventory = (npcId) => {
+        const npcInv = stats.npcStats?.[npcId]?.inventory || [];
+        return npcInv.map(id => gameData.itemData?.[id]).filter(Boolean);
+    };
+
     const clearPresentation = () => {
         setPresentedItem(null);
     };
@@ -418,6 +456,11 @@ export const GameProvider = ({ children }) => {
         activeNpcInField,
         setActiveNpcInField,
         isNpcPresent: !!activeNpcInField,
+
+        // NPC Inventory & Transfer
+        transferItemFromNpc,
+        transferItemToNpc,
+        getNpcInventory,
 
         // Layout Control
         isPhoneCentered,

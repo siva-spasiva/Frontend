@@ -30,3 +30,17 @@ export const updateGameStats = async (updates, npcId = null, userId = 'user_dev_
 export const fetchStaticGameData = async () => {
     return apiClient('/api/data/static');
 };
+
+/**
+ * NPC ↔ Player 간 아이템 전달
+ * @param {string} npcId - NPC ID
+ * @param {string} itemId - 아이템 ID
+ * @param {'fromNpc'|'toNpc'} direction - 전달 방향
+ * @param {string} userId - 사용자 ID
+ */
+export const transferItem = async (npcId, itemId, direction = 'fromNpc', userId = 'user_dev_session') => {
+    return apiClient('/api/stats/transfer-item', {
+        method: 'POST',
+        body: JSON.stringify({ npcId, itemId, direction, userId }),
+    });
+};

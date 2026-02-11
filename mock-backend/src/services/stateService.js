@@ -32,12 +32,22 @@ export const getState = (userId) => {
 
 // Helper to get specific NPC stats (auto-init if missing)
 // NPC_DATA에 initialStats가 정의되어 있으면 기본값 대신 우선 적용
+// NPC inventory도 자동 초기화
 export const getNpcState = (userId, npcId) => {
     const state = getState(userId);
     if (!state.npcStats[npcId]) {
         const npcDef = NPC_DATA[npcId];
         const customInitial = npcDef?.initialStats;
-        state.npcStats[npcId] = { ...INITIAL_NPC_STATS, ...customInitial };
+        state.npcStats[npcId] = {
+            ...INITIAL_NPC_STATS,
+            ...customInitial,
+            inventory: npcDef?.initialInventory ? [...npcDef.initialInventory] : [],
+        };
+    }
+    // Migration: add inventory if missing (for already-initialized NPCs)
+    if (!state.npcStats[npcId].inventory) {
+        const npcDef = NPC_DATA[npcId];
+        state.npcStats[npcId].inventory = npcDef?.initialInventory ? [...npcDef.initialInventory] : [];
     }
     return state.npcStats[npcId];
 };
@@ -107,3 +117,53 @@ export const resetState = (userId) => {
     });
     return userStates.get(userId);
 }
+
+/**
+ * NPC → 플레이어 아이템 전달
+ * NPC 인벤토리에서 제거하고 플레이어 인벤토리에 추가
+ * @returns {{ success: boolean, error?: string }}
+ */
+export const transferItemFromNpc = (userId, npcId, itemId) => {
+    const npcState = getNpcState(userId, npcId);
+    const globalState = getState(userId).global;
+
+    // Check NPC has the item
+    if (!npcState.inventory || !npcState.inventory.includes(itemId)) {
+        return { success: false, error: `NPC '${npcId}' does not have item '${itemId}'` };
+    }
+
+    // Check player doesn't already have it
+    const playerInv = globalState.inventory || [];
+    if (playerInv.includes(itemId)) {
+        return { success: false, error: `Player already has item '${itemId}'` };
+    }
+
+    // Transfer: remove from NPC, add to player
+    npcState.inventory = npcState.inventory.filter(id => id !== itemId);
+    globalState.inventory = [...playerInv, itemId];
+
+    return { success: true };
+};
+
+/**
+ * 플레이어 → NPC 아이템 전달
+ * 플레이어 인벤토리에서 제거하고 NPC 인벤토리에 추가
+ * @returns {{ success: boolean, error?: string }}
+ */
+export const transferItemToNpc = (userId, npcId, itemId) => {
+    const npcState = getNpcState(userId, npcId);
+    const globalState = getState(userId).global;
+
+    // Check player has the item
+    const playerInv = globalState.inventory || [];
+    if (!playerInv.includes(itemId)) {
+        return { success: false, error: `Player does not have item '${itemId}'` };
+    }
+
+    // Transfer: remove from player, add to NPC
+    globalState.inventory = playerInv.filter(id => id !== itemId);
+    if (!npcState.inventory) npcState.inventory = [];
+    npcState.inventory.push(itemId);
+
+    return { success: true };
+};

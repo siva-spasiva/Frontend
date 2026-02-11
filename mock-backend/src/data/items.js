@@ -108,4 +108,91 @@ export const ITEM_DEFINITIONS = {
         icon: '📜',
         isContract: true
     },
+
+    // ═══ 박복어 소지 아이템 ═══
+    npc_bokeo_001: {
+        id: 'npc_bokeo_001',
+        name: '피 묻은 쪽지',
+        description: '구겨진 쪽지에 알 수 없는 글씨가 적혀 있다. 한쪽 모서리에 검붉은 얼룩.',
+        flavorText: '"지하 4층 냉동고. 새벽 1시. 혼자 가지 마." — 필체가 떨리고 있다.',
+        type: 'key_item',
+        icon: '🩸',
+        npcOrigin: 'bokeo',
+    },
+    npc_bokeo_002: {
+        id: 'npc_bokeo_002',
+        name: '녹슨 면도칼',
+        description: '날이 무뎌진 접이식 면도칼. 손잡이에 새겨진 이니셜이 닳아 있다.',
+        flavorText: '이것으로 무엇을 했는지는... 묻지 않는 게 좋겠다.',
+        type: 'normal',
+        icon: '🔪',
+        npcOrigin: 'bokeo',
+    },
+    npc_bokeo_003: {
+        id: 'npc_bokeo_003',
+        name: '교주의 방 약도',
+        description: '박복어가 직접 그린 교주 거처의 약도. 경비 교대 시간까지 적혀 있다.',
+        flavorText: '"틀릴 수도 있어. 하지만 내가 아는 건 이게 전부야."',
+        type: 'key_item',
+        icon: '🗺️',
+        npcOrigin: 'bokeo',
+    },
+
+    // ═══ 청갈치 소지 아이템 ═══
+    npc_galchi_001: {
+        id: 'npc_galchi_001',
+        name: '위조 통행증',
+        description: '정교하게 위조된 시설 내 통행증. 일반 구역 밖으로 나갈 수 있을 것 같다.',
+        flavorText: '"공짜는 아니지. 대가는 네가 정해."',
+        type: 'key_item',
+        icon: '🪪',
+        npcOrigin: 'galchi',
+    },
+    npc_galchi_002: {
+        id: 'npc_galchi_002',
+        name: '교단 장부 사본',
+        description: '청갈치가 몰래 복사해 둔 교단의 재정 장부 일부. 수상한 외부 송금 내역이 있다.',
+        flavorText: '"이거 갖고 있다가 걸리면 나도 너도 끝이야."',
+        type: 'key_item',
+        icon: '📒',
+        npcOrigin: 'galchi',
+    },
+    npc_galchi_003: {
+        id: 'npc_galchi_003',
+        name: '만능 열쇠 (조잡)',
+        description: '철사를 구부려 만든 조잡한 만능 열쇠. 간단한 잠금 정도는 딸 수 있을 것 같다.',
+        flavorText: '"이런 건 갖고 다니는 게 아니라, 필요할 때 찾는 거야." - 청갈치',
+        type: 'normal',
+        icon: '🔧',
+        npcOrigin: 'galchi',
+    },
+
+    // ═══ 곽빙어 소지 아이템 ═══
+    npc_bingeo_001: {
+        id: 'npc_bingeo_001',
+        name: '곽빙어의 수첩',
+        description: '해진 겉표지의 낡은 수첩. 실종자 이름, 날짜, 마지막 목격 장소, 의심 인물, 금기 구역 지도 스케치가 빼곡히 적혀 있다.',
+        flavorText: '"이건... 제가 모아둔 전부예요. 부탁이에요, 잘 써주세요."',
+        type: 'key_item',
+        icon: '📓',
+        npcOrigin: 'bingeo',
+    },
+    npc_bingeo_002: {
+        id: 'npc_bingeo_002',
+        name: '오래된 USB 메모리',
+        description: '긁히고 라벨이 벗겨진 USB. 녹음 파일, 사진, 문서 스캔본이 들어 있다.',
+        flavorText: '"이 안에 뭐가 있는지는... 직접 확인해보세요."',
+        type: 'key_item',
+        icon: '💾',
+        npcOrigin: 'bingeo',
+    },
+    npc_bingeo_003: {
+        id: 'npc_bingeo_003',
+        name: '빛바랜 사진',
+        description: '어린 아이와 한 여성이 희미하게 웃고 있는 오래된 사진. 뒷면에 날짜가 적혀 있다.',
+        flavorText: '"...돌려주실 거죠?"',
+        type: 'normal',
+        icon: '🖼️',
+        npcOrigin: 'bingeo',
+    },
 };
