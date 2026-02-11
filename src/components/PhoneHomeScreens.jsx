@@ -114,6 +114,11 @@ export const Ingame02HomeScreen = ({ onAppOpen, onBack }) => {
 };
 
 export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
+    const { currentDay, currentPeriod, PERIOD_LABELS, PERIOD_CLOCK } = useGame();
+    const dayLabel = currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`;
+    const periodLabel = PERIOD_LABELS?.[currentPeriod] || '아침';
+    const clockDisplay = PERIOD_CLOCK?.[currentPeriod] || '08:00';
+
     return (
         <div className="w-full h-full flex flex-col pt-12 px-6 relative">
             {/* Back Button */}
@@ -126,17 +131,17 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
                 </button>
             )}
 
-            {/* Status Bar Placeholder */}
+            {/* Status Bar */}
             <div className="flex justify-between items-center text-xs font-semibold text-gray-800 mb-8 px-2 pl-8">
-                <span>14:00</span>
+                <span>{clockDisplay}</span>
                 <div className='flex space-x-1'>
                     <span>5G</span>
                     <span>100%</span>
                 </div>
             </div>
 
-            <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2">Umi Class</h1>
-            <p className="text-sm text-gray-500 mb-8 px-2">Welcome to One-Day Class</p>
+            <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2">{dayLabel}</h1>
+            <p className="text-sm text-gray-500 mb-8 px-2">{periodLabel} | 우미 원데이 클래스</p>
 
             <div className="grid grid-cols-4 gap-4">
                 <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
@@ -163,7 +168,10 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
 };
 // Corrupted Home Screen for Test02
 export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
-    const { hp, maxHp } = useGame();
+    const { hp, maxHp, currentDay, currentPeriod, PERIOD_LABELS, PERIOD_CLOCK } = useGame();
+    const dayLabel = currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`;
+    const periodLabel = PERIOD_LABELS?.[currentPeriod] || '아침';
+    const clockDisplay = PERIOD_CLOCK?.[currentPeriod] || '08:00';
 
     return (
         <div className="w-full h-full flex flex-col pt-12 px-6 relative overflow-hidden bg-white text-gray-800">
@@ -196,15 +204,15 @@ export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
 
                 {/* Status Bar */}
                 <div className="flex justify-between items-center text-xs font-semibold text-gray-800 mb-8 px-2 pl-8 opacity-70">
-                    <span>14:00</span>
+                    <span>{clockDisplay}</span>
                     <div className='flex space-x-1'>
                         <span>5G</span>
                         <span>84%</span>
                     </div>
                 </div>
 
-                <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2 opacity-80">Umi Class</h1>
-                <p className="text-sm text-gray-500 mb-8 px-2 opacity-80">Welcome to One-Day Class</p>
+                <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2 opacity-80">{dayLabel}</h1>
+                <p className="text-sm text-gray-500 mb-8 px-2 opacity-80">{periodLabel} | 우미 원데이 클래스</p>
 
                 {/* Identical Grid to 03, but visually dimmer/grayscaled via parent filters */}
                 <div className="grid grid-cols-4 gap-4 filter saturate-50 contrast-125 brightness-90">

@@ -1,13 +1,14 @@
 const userStates = new Map();
 
+const VALID_PERIODS = ['morning', 'afternoon', 'evening'];
+
 export const INITIAL_STATS = {
     hp: 50,
-    hp: 50,
-    // trust: 10, // Removed
-    fishLevel: 0,
     fishLevel: 0,
     umiLevel: 0,
     trust: 10,
+    currentDay: 0,       // 0=Tutorial, 1~7=본편
+    currentPeriod: 'morning', // 'morning' | 'afternoon' | 'evening'
     inventory: ['item001', 'item002', 'item003']
 };
 
@@ -48,6 +49,10 @@ export const updateGlobalState = (userId, updates) => {
 
     // Bounds check
     if (newGlobal.hp !== undefined) newGlobal.hp = Math.max(0, Math.min(100, newGlobal.hp));
+    if (newGlobal.currentDay !== undefined) newGlobal.currentDay = Math.max(0, Math.min(7, newGlobal.currentDay));
+    if (newGlobal.currentPeriod !== undefined && !VALID_PERIODS.includes(newGlobal.currentPeriod)) {
+        newGlobal.currentPeriod = 'morning'; // fallback
+    }
 
     state.global = newGlobal;
     return newGlobal;

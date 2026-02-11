@@ -18,9 +18,11 @@ export const GameProvider = ({ children }) => {
         umiLevel: 0,
         hp: 50,
         trust: 10,
-        tutorialCompleted: false, // New flag
-        npcStats: {}, // Initialize empty
-        inventory: ['smartphone', 'id_card', 'police_badge'] // Initialize inventory
+        currentDay: 0,
+        currentPeriod: 'morning',
+        tutorialCompleted: false,
+        npcStats: {},
+        inventory: ['smartphone', 'id_card', 'police_badge']
     });
 
     // Static Data State
@@ -28,7 +30,8 @@ export const GameProvider = ({ children }) => {
         npcData: {},
         mapData: {},
         floorData: [],
-        itemData: {}
+        itemData: {},
+        scheduleData: {}  // NPC 스케줄 데이터
     });
 
     // Custom Items (Dynamic, e.g. Transcripts)
@@ -156,6 +159,54 @@ export const GameProvider = ({ children }) => {
     const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
     const setTutorialCompleted = (val) => updateStatsBackend({ tutorialCompleted: val });
 
+    // === Day / Period System ===
+    const PERIOD_ORDER = ['morning', 'afternoon', 'evening'];
+    const PERIOD_LABELS = { morning: '아침', afternoon: '오후', evening: '저녁' };
+    const PERIOD_CLOCK = { morning: '08:00', afternoon: '14:00', evening: '20:00' };
+
+    const setDay = (day) => updateStatsBackend({ currentDay: Math.max(0, Math.min(7, day)) });
+    const setPeriod = (period) => updateStatsBackend({ currentPeriod: period });
+
+    /**
+     * 시간대 전진: morning→afternoon→evening→(다음날 morning + day+1)
+     */
+    const advancePeriod = () => {
+        const currentIdx = PERIOD_ORDER.indexOf(stats.currentPeriod);
+        if (currentIdx < PERIOD_ORDER.length - 1) {
+            // 같은 날 다음 시간대
+            updateStatsBackend({ currentPeriod: PERIOD_ORDER[currentIdx + 1] });
+        } else {
+            // evening → 다음 날 morning
+            const nextDay = Math.min(stats.currentDay + 1, 7);
+            updateStatsBackend({ currentDay: nextDay, currentPeriod: 'morning' });
+        }
+    };
+
+    /**
+     * 특정 방에 있는 NPC 목록 조회 (스케줄 기반)
+     * @param {string} roomId
+     * @returns {string[]} NPC ID 배열
+     */
+    const getNpcsForRoom = (roomId) => {
+        const schedule = gameData.scheduleData;
+        if (!schedule || !roomId) return [];
+
+        const day = stats.currentDay;
+        const period = stats.currentPeriod;
+        const npcsInRoom = [];
+
+        for (const npcId in schedule) {
+            const npcSchedule = schedule[npcId];
+            const daySchedule = npcSchedule[day] ?? npcSchedule.default;
+            if (!daySchedule) continue;
+            if (daySchedule[period] === roomId) {
+                npcsInRoom.push(npcId);
+            }
+        }
+
+        return npcsInRoom;
+    };
+
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
 
@@ -244,7 +295,19 @@ export const GameProvider = ({ children }) => {
         npcData: gameData.npcData,
         mapData: gameData.mapData,
         floorData: gameData.floorData,
+        scheduleData: gameData.scheduleData,
         isLoading,
+
+        // Day / Period System
+        currentDay: stats.currentDay ?? 0,
+        currentPeriod: stats.currentPeriod ?? 'morning',
+        PERIOD_LABELS,
+        PERIOD_CLOCK,
+        PERIOD_ORDER,
+        setDay,
+        setPeriod,
+        advancePeriod,
+        getNpcsForRoom,
 
         // Expose setters
         setFishLevel,

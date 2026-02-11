@@ -4,6 +4,7 @@ import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
 
+import PortraitDisplay from '../components/PortraitDisplay';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import { useInteraction } from '../hooks/useInteraction';
 import NavigationConfirmation from '../components/NavigationConfirmation';
@@ -17,7 +18,7 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory } = useGame();
+    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -54,13 +55,30 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
         inventory: currentInventory // Pass current inventory to check for existing items
     });
 
-    const [isThinking, setIsThinking] = useState(false);
-
-    // Active NPC State - Configured for Empty Room
+    // Active NPC State - Driven by schedule
     const [activeNpc, setActiveNpc] = useState(null);
+    // All NPCs in current room (for future multi-NPC support)
+    const [npcsInRoom, setNpcsInRoom] = useState([]);
 
     // Map Info (Dynamic based on currentRoomId)
     const mapInfo = mapData?.[currentRoomId] || {};
+
+    // Update NPC presence when room, day, or period changes
+    useEffect(() => {
+        const npcIds = getNpcsForRoom(currentRoomId);
+        setNpcsInRoom(npcIds);
+
+        if (npcIds.length > 0 && npcData) {
+            // First NPC becomes active (primary interaction target)
+            const primaryNpc = npcData[npcIds[0]] || null;
+            setActiveNpc(primaryNpc);
+            console.log(`[Schedule] Room: ${currentRoomId}, Day: ${currentDay}, Period: ${currentPeriod}, NPCs:`, npcIds);
+        } else {
+            setActiveNpc(null);
+        }
+    }, [currentRoomId, currentDay, currentPeriod, npcData]);
+
+    const [isThinking, setIsThinking] = useState(false);
 
     return (
         <motion.div
@@ -80,9 +98,25 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 onInteract={handleInteraction}
             />
 
+            {/* NPC Portrait */}
+            <PortraitDisplay
+                activeNpc={activeNpc}
+                viewMode={viewMode}
+                isPhoneOpen={isPhoneOpen}
+            />
+
+            {/* Multi-NPC indicator */}
+            {npcsInRoom.length > 1 && (
+                <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20">
+                    <span className="text-xs text-gray-300">
+                        현재 방에 {npcsInRoom.length}명: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
+                    </span>
+                </div>
+            )}
+
             <GameHUD
                 mapInfo={mapInfo}
-                activeNpc={null}
+                activeNpc={activeNpc}
                 logs={logs}
                 dialogContent={dialogContent}
                 isThinking={isThinking}

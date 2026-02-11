@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import PortraitDisplay from '../components/PortraitDisplay';
-import { Send, MessageCircle, PlayCircle } from 'lucide-react';
+import { Send, MessageCircle, PlayCircle, ChevronRight } from 'lucide-react';
 import { sendChatMessage } from '../api/chat';
 import MessengerApp from '../components/apps/MessengerApp';
 
@@ -13,12 +13,22 @@ const Debug00Scene = ({ onBack }) => {
 
         trust,
         hp, fishLevel, umiLevel,
-        tutorialCompleted, // Destructure tutorialCompleted
-        inventory, // Current inventory array
-        ITEMS // Static item definitions
+        tutorialCompleted,
+        inventory,
+        ITEMS,
+
+        // Day/Period System
+        currentDay,
+        currentPeriod,
+        PERIOD_LABELS,
+        PERIOD_ORDER,
+        setDay,
+        setPeriod,
+        advancePeriod,
+        getNpcsForRoom,
     } = useGame();
 
-    const [targetNpcId] = useState('npc_a');
+    const [targetNpcId, setTargetNpcId] = useState('npc_a');
 
     // View Mode State: 'debug' | 'messenger'
     const [viewMode, setViewMode] = useState('debug');
@@ -218,6 +228,80 @@ const Debug00Scene = ({ onBack }) => {
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Day / Period Control */}
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                <h2 className="text-yellow-400 font-bold text-sm">DAY / PERIOD</h2>
+                            </div>
+
+                            {/* Day Selector */}
+                            <div className="mb-3">
+                                <span className="text-xs text-gray-400 mb-1 block">Day ({currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`})</span>
+                                <div className="flex flex-wrap gap-1">
+                                    {[0,1,2,3,4,5,6,7].map(d => (
+                                        <button
+                                            key={d}
+                                            onClick={() => setDay(d)}
+                                            className={`px-2 py-1 text-xs rounded font-mono transition-all ${
+                                                currentDay === d
+                                                    ? 'bg-yellow-500 text-black font-bold'
+                                                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                            }`}
+                                        >
+                                            {d === 0 ? 'T' : d}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Period Selector */}
+                            <div className="mb-3">
+                                <span className="text-xs text-gray-400 mb-1 block">Period ({PERIOD_LABELS?.[currentPeriod] || currentPeriod})</span>
+                                <div className="flex gap-1">
+                                    {PERIOD_ORDER.map(p => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setPeriod(p)}
+                                            className={`flex-1 px-2 py-1.5 text-xs rounded transition-all ${
+                                                currentPeriod === p
+                                                    ? 'bg-yellow-500 text-black font-bold'
+                                                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                            }`}
+                                        >
+                                            {PERIOD_LABELS?.[p] || p}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Advance Button */}
+                            <button
+                                onClick={advancePeriod}
+                                className="w-full px-3 py-2 bg-yellow-600/80 hover:bg-yellow-500 text-white text-xs font-bold rounded flex items-center justify-center space-x-1 transition-all"
+                            >
+                                <span>다음 시간대로</span>
+                                <ChevronRight className="w-3 h-3" />
+                            </button>
+                        </div>
+
+                        {/* NPC Selector */}
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                <h2 className="text-pink-400 font-bold text-sm">TARGET NPC</h2>
+                            </div>
+                            <select
+                                value={targetNpcId}
+                                onChange={(e) => setTargetNpcId(e.target.value)}
+                                className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500"
+                            >
+                                {npcData && Object.entries(npcData).map(([id, npc]) => (
+                                    <option key={id} value={id} className="bg-gray-900 text-white">
+                                        {npc.name} ({id})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Inventory Control */}

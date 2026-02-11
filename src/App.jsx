@@ -10,6 +10,7 @@ import Test03Scene from './scenes/Test03Scene';
 import Test04Scene from './scenes/Test04Scene';
 import Test05Scene from './scenes/Test05Scene';
 import Debug00Scene from './scenes/Debug00Scene';
+import Debug01Scene from './scenes/Debug01Scene';
 import CrashScene from './scenes/CrashScene';
 import TerminalScene from './scenes/TerminalScene';
 import { GameProvider } from './context/GameContext';
@@ -35,6 +36,7 @@ const MainLayout = () => {
   const toTest04 = () => setPhase('test04');
   const toTest05 = () => setPhase('test05');
   const toDebug00 = () => setPhase('debug00');
+  const toDebug01 = () => setPhase('debug01');
   const toCrash = () => setPhase('crash');
   const toTerminal = () => {
     setPhase('terminal');
@@ -63,6 +65,10 @@ const MainLayout = () => {
 
         {phase === 'debug00' && (
           <Debug00Scene key="debug00" onBack={toMainMenu} />
+        )}
+
+        {phase === 'debug01' && (
+          <Debug01Scene key="debug01" onBack={toMainMenu} />
         )}
 
         {phase === 'terminal' && (
@@ -211,6 +217,7 @@ const MainLayout = () => {
                     onTest04Start={toTest04}
                     onTest05Start={toTest05}
                     onDebug00Start={toDebug00}
+                    onDebug01Start={toDebug01}
                     onHome={toMainMenu}
                     currentPhase={phase}
                   />
