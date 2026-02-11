@@ -27,7 +27,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const { presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     // Fish Visual Effects
-    const { fishTier, mapEffects, mapFilter, mapTransform } = useFishVisuals();
+    const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
 
     // NPC State
     const [activeNpc, setActiveNpc] = useState(null);
@@ -176,7 +176,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             }}
         >
             {/* Fish Eye Effect Overlay */}
-            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />
+            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
             <GameHUD
                 mapInfo={mapInfo}

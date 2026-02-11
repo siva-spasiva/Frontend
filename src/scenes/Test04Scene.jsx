@@ -10,8 +10,8 @@ import useFishVisuals from '../hooks/useFishVisuals';
 
 // Wrapper component for FishEyeEffect that uses the hook
 const FishEyeEffectWrapper = () => {
-    const { fishTier, mapEffects } = useFishVisuals();
-    return <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />;
+    const { fishTier, mapEffects, waveFilterId } = useFishVisuals();
+    return <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />;
 };
 
 const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {

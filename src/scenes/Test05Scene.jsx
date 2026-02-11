@@ -83,7 +83,7 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const [isThinking, setIsThinking] = useState(false);
 
     // Fish Visual Effects
-    const { fishTier, mapEffects, mapFilter, mapTransform } = useFishVisuals();
+    const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
 
     return (
         <motion.div
@@ -101,7 +101,7 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
             }}
         >
             {/* Fish Eye Effect Overlay */}
-            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />
+            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
             {/* Interactive Layer */}
             <MapInteractiveLayer

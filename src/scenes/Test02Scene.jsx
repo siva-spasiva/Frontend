@@ -53,7 +53,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo } = useGame();
 
     // Fish Visual Effects
-    const { fishTier, mapEffects, mapFilter, mapTransform } = useFishVisuals();
+    const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
 
     // Active NPC State - Configured for Empty Room
     const [activeNpc, setActiveNpc] = useState(null);
@@ -96,7 +96,7 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
             }}
         >
             {/* Fish Eye Effect Overlay */}
-            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />
+            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
             {/* Interactive Layer */}
             <MapInteractiveLayer

@@ -78,6 +78,59 @@ const NPC_SCHEDULE = {
         },
     },
 
+    // ─── 청갈치 (galchi): 사기꾼 — 여기저기 돌아다님 (005호 거주) ───
+    galchi: {
+        default: {
+            morning: 'cafeteria',      // 중앙 식당 (정보 수집)
+            afternoon: 'lounge',       // 휴게실 (사람들과 어울림)
+            evening: 'room005',        // 005호 (자기 방)
+        },
+        0: { // 튜토리얼에는 등장 안 함
+            morning: null,
+            afternoon: null,
+            evening: null,
+        },
+        1: {
+            morning: 'cafeteria',
+            afternoon: 'hallway',
+            evening: 'room005',
+        },
+        2: {
+            morning: 'lounge',
+            afternoon: 'cafeteria',
+            evening: 'room005',
+        },
+    },
+
+    // ─── 곽빙어 (bingeo): 좁도둑/관찰자 — 003호 거주, 심부름으로 여기저기 ───
+    bingeo: {
+        default: {
+            morning: 'hallway',        // 복도 (심부름/청소)
+            afternoon: 'cafeteria',    // 식당 (관찰)
+            evening: 'room003',        // 003호 (자기 방 — 기록 정리)
+        },
+        0: { // 튜토리얼에는 등장 안 함
+            morning: null,
+            afternoon: null,
+            evening: null,
+        },
+        1: {
+            morning: 'hallway',
+            afternoon: 'cafeteria',
+            evening: 'room003',
+        },
+        2: {
+            morning: 'cafeteria',      // 2일차부터 아침 식당에서 목격
+            afternoon: 'lounge',
+            evening: 'room003',
+        },
+        3: {
+            morning: 'hallway',
+            afternoon: 'chapel',       // 3일차 대예배당 심부름
+            evening: 'room003',
+        },
+    },
+
     // ─── 강 형사 (detective_kang): 전화 전용 (맵에 등장하지 않음) ───
     detective_kang: {
         default: {

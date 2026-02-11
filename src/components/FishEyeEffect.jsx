@@ -7,15 +7,18 @@ import { motion } from 'framer-motion';
  * Props:
  *   fishTier (number) — 0~5 tier
  *   mapEffects (object) — useFishVisuals().mapEffects
+ *   waveFilterId (string) — 외부에서 사용할 SVG filter ID (scene 컨테이너에 filter: url(#id) 적용용)
  *
  * 구성:
- *   1. SVG 필터 (수중 물결 왜곡)
+ *   1. SVG 필터 정의 (수중 물결 왜곡) — 이 필터를 scene 배경에도 적용 가능
  *   2. 비네팅 그라데이션 (어안렌즈 가장자리 어둡게)
- *   3. 청록색 틴트 오버레이
+ *   3. 청록색 틴트 오버레이 (일렁이는 호흡)
  *   4. 수면 반사광 (caustics) 패턴
+ *   5. 떠다니는 파티클
  */
-const FishEyeEffect = ({ fishTier = 0, mapEffects = {} }) => {
-    const filterId = useId();
+const FishEyeEffect = ({ fishTier = 0, mapEffects = {}, waveFilterId: externalFilterId }) => {
+    const internalId = useId();
+    const filterId = externalFilterId || `wave-${internalId}`;
 
     if (fishTier === 0) return null;
 
@@ -28,13 +31,17 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {} }) => {
 
     return (
         <div className="absolute inset-0 pointer-events-none z-[5]" style={{ overflow: 'hidden' }}>
-            {/* === SVG Filter Definition (수중 물결 왜곡) === */}
+            {/* === SVG Filter Definition (수중 물결 왜곡) === 
+                 이 필터는 여기서 정의만 하고, 실제 적용은:
+                 - scene 컨테이너의 style={{ filter: url(#filterId) }}
+                 - 내부 오버레이 div
+                 두 곳에서 가능. */}
             <svg className="absolute w-0 h-0" aria-hidden="true">
                 <defs>
-                    <filter id={`wave-${filterId}`} x="-10%" y="-10%" width="120%" height="120%">
+                    <filter id={filterId} x="-10%" y="-10%" width="120%" height="120%">
                         <feTurbulence
                             type="fractalNoise"
-                            baseFrequency={`${0.008 + fishTier * 0.003} ${0.006 + fishTier * 0.002}`}
+                            baseFrequency={`${0.006 + fishTier * 0.002} ${0.004 + fishTier * 0.0015}`}
                             numOctaves={fishTier >= 3 ? 3 : 2}
                             seed="42"
                             result="turbulence"
@@ -43,7 +50,7 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {} }) => {
                                 attributeName="seed"
                                 from="0"
                                 to="100"
-                                dur={`${Math.max(8, 20 - fishTier * 3)}s`}
+                                dur={`${Math.max(6, 18 - fishTier * 3)}s`}
                                 repeatCount="indefinite"
                             />
                         </feTurbulence>
@@ -82,13 +89,13 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {} }) => {
                 />
             )}
 
-            {/* === 청록색 수중 틴트 === */}
+            {/* === 청록색 수중 틴트 (일렁이는 호흡) === */}
             <motion.div
                 className="absolute inset-0"
                 animate={{
-                    opacity: [tintOpacity, tintOpacity * 1.3, tintOpacity],
+                    opacity: [tintOpacity, tintOpacity * 1.4, tintOpacity],
                 }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
                     background: fishTier <= 2
                         ? 'linear-gradient(180deg, rgba(0, 180, 216, 0.05) 0%, rgba(0, 119, 182, 0.1) 100%)'
@@ -108,20 +115,6 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {} }) => {
                                           radial-gradient(ellipse at 50% 80%, rgba(80, 180, 255, ${0.08 + fishTier * 0.03}) 0%, transparent 45%)`,
                     }}
                 />
-            )}
-
-            {/* === 수중 물결 왜곡 오버레이 (SVG Filter Mapped) — Tier 2+ === */}
-            {fishTier >= 2 && waveIntensity > 0 && (
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        filter: `url(#wave-${filterId})`,
-                        background: 'transparent',
-                    }}
-                >
-                    {/* 이 내부 div가 displacement map 의 source graphic 역할 */}
-                    <div className="w-full h-full bg-transparent" />
-                </div>
             )}
 
             {/* === 떠다니는 미세 파티클 — Tier 3+ === */}

@@ -72,6 +72,54 @@ const NPC_DATA = {
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
         }
+    },
+    galchi: {
+        id: 'galchi',
+        name: '청갈치',
+        initialStats: {
+            friendly: 10,
+            faith: 10,
+            fishLevel: 10,
+        },
+        initialPortrait: 'npc_galchi_00.png',
+        portraits: {
+            default: 'npc_galchi_00.png',
+            smirk: 'npc_galchi_01.png',
+            serious: 'npc_galchi_02.png',
+        },
+        promptTiers: {
+            BAD: PROMPTS.GALCHI_PROMPT_BAD,         // 0-19
+            NORMAL: PROMPTS.GALCHI_PROMPT_NORMAL,   // 20-45
+            GOOD: PROMPTS.GALCHI_PROMPT_GOOD,       // 46-75
+            PERFECT: PROMPTS.GALCHI_PROMPT_PERFECT,  // 76-100
+        },
+        apiConfig: {
+            model: 'gpt-oss:20b-cloud',
+        }
+    },
+    bingeo: {
+        id: 'bingeo',
+        name: '곽빙어',
+        initialStats: {
+            friendly: 15,
+            faith: 20,
+            fishLevel: 5,
+        },
+        initialPortrait: 'npc_bingeo_00.png',
+        portraits: {
+            default: 'npc_bingeo_00.png',
+            nervous: 'npc_bingeo_01.png',
+            earnest: 'npc_bingeo_02.png',
+        },
+        promptTiers: {
+            BAD: PROMPTS.BINGEO_PROMPT_BAD,         // 0-19
+            NORMAL: PROMPTS.BINGEO_PROMPT_NORMAL,   // 20-45
+            GOOD: PROMPTS.BINGEO_PROMPT_GOOD,       // 46-75
+            PERFECT: PROMPTS.BINGEO_PROMPT_PERFECT,  // 76-100
+        },
+        apiConfig: {
+            model: 'gpt-oss:20b-cloud',
+        }
     }
 };
 
@@ -392,20 +440,31 @@ export const FLOOR_DATA = [
                         id: 'door_001',
                         type: 'move',
                         target: 'room001',
-                        x: '5%',
+                        x: '2%',
                         y: '20%',
-                        width: '16%',
+                        width: '12%',
                         height: '60%',
                         label: '001호',
                         message: '001호 문을 연다.'
                     },
                     {
+                        id: 'door_002',
+                        type: 'move',
+                        target: 'room002',
+                        x: '15%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '002호',
+                        message: '002호 문을 연다.'
+                    },
+                    {
                         id: 'door_shower',
                         type: 'move',
                         target: 'shower_room',
-                        x: '30%',
+                        x: '28%',
                         y: '20%',
-                        width: '12%',
+                        width: '10%',
                         height: '60%',
                         label: '샤워실',
                         message: '샤워실에 들어간다.'
@@ -414,21 +473,21 @@ export const FLOOR_DATA = [
                         id: 'door_003',
                         type: 'move',
                         target: 'room003',
-                        x: '48%',
-                        y: '30%',
-                        width: '8%',
-                        height: '45%',
+                        x: '39%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
                         label: '003호',
-                        message: '003호로 들어간다.'
+                        message: '003호 문을 연다.'
                     },
                     {
                         id: 'stair_001',
                         type: 'move',
                         target: 'B1',
-                        x: '70%',
-                        y: '40%',
-                        width: '7%',
-                        height: '20%',
+                        x: '52%',
+                        y: '35%',
+                        width: '8%',
+                        height: '30%',
                         label: '지하 1층으로',
                         message: '지하 1층으로 올라간다.'
                     },
@@ -436,17 +495,28 @@ export const FLOOR_DATA = [
                         id: 'door_004',
                         type: 'move',
                         target: 'room004',
-                        x: '75%',
+                        x: '62%',
                         y: '20%',
-                        width: '14%',
+                        width: '12%',
                         height: '60%',
                         label: '004호',
                         message: '004호 문을 연다.'
+                    },
+                    {
+                        id: 'door_005',
+                        type: 'move',
+                        target: 'room005',
+                        x: '76%',
+                        y: '20%',
+                        width: '12%',
+                        height: '60%',
+                        label: '005호',
+                        message: '005호 문을 연다.'
                     }
                 ]
             },
             {
-                id: 'suspect_room_1',
+                id: 'room002',
                 name: '002호',
                 namePrefix: '002호',
                 highlightText: 'LOCKED',
@@ -454,16 +524,83 @@ export const FLOOR_DATA = [
                 description: '항상 잠겨있다. 문틈으로 비린내가 새어 나온다. 살인의 증거가 있을지 모른다.',
                 background: null,
                 overlayColor: 'bg-black/40',
+                activeZones: [
+                    {
+                        id: 'zone_door_002',
+                        type: 'move',
+                        target: 'hallway',
+                        x: '70%',
+                        y: '25%',
+                        width: '10%',
+                        height: '50%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
             },
             {
-                id: 'suspect_room_2',
+                id: 'room003',
                 name: '003호',
                 namePrefix: '003호',
                 highlightText: '003',
-                highlightColor: 'text-gray-400',
-                description: '잡동사니가 가득하다. 훔친 물건들을 숨겨둔 것 같다.',
+                highlightColor: 'text-amber-400',
+                description: '낡은 수첩과 싸구려 볼편 뭉치, 오래된 MP3 플레이어 — 보쟘것없는 잡동사니로 가득한 방. 하지만 움쯄 파인 문구가 새겨진 머그컵이 묘하게 불안하다.',
                 background: null,
                 overlayColor: 'bg-black/40',
+                npcId: 'bingeo',
+                activeZones: [
+                    {
+                        id: 'zone_notebook_003',
+                        type: 'info',
+                        x: '15%',
+                        y: '55%',
+                        width: '15%',
+                        height: '15%',
+                        label: '낡은 수첩',
+                        message: '해진 겉표지의 수첩. 글씨가 빽곡히 적혀 있지만, 바로 펀쳐볼 수는 없다.'
+                    },
+                    {
+                        id: 'zone_photo_003',
+                        type: 'info',
+                        x: '40%',
+                        y: '30%',
+                        width: '10%',
+                        height: '15%',
+                        label: '빛바랜 사진',
+                        message: '벽에 테이프로 붙여둔 사진. 어린 아이와 한 여성이 희미하게 웃고 있다.'
+                    },
+                    {
+                        id: 'zone_usb_003',
+                        type: 'item',
+                        x: '60%',
+                        y: '60%',
+                        width: '10%',
+                        height: '10%',
+                        label: '오래된 USB',
+                        message: '서랍 속에 숨겨져 있는 USB 메모리. 긍이 가 있고 라벨이 벗겨져 있다.'
+                    },
+                    {
+                        id: 'zone_mug_003',
+                        type: 'info',
+                        x: '25%',
+                        y: '45%',
+                        width: '10%',
+                        height: '12%',
+                        label: '시설 로고 머그컵',
+                        message: '"새 삶을 축하합니다"라고 적혀 있다. 안에 싸구려 볼편 두세개가 꼽혀 있다.'
+                    },
+                    {
+                        id: 'zone_door_003',
+                        type: 'move',
+                        target: 'hallway',
+                        x: '70%',
+                        y: '25%',
+                        width: '10%',
+                        height: '50%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
             },
             {
                 id: 'room004',
@@ -478,6 +615,30 @@ export const FLOOR_DATA = [
                 activeZones: [
                     {
                         id: 'zone_door_004',
+                        type: 'move',
+                        target: 'hallway',
+                        x: '70%',
+                        y: '25%',
+                        width: '10%',
+                        height: '50%',
+                        label: '복도',
+                        message: '복도로 나간다.'
+                    }
+                ]
+            },
+            {
+                id: 'room005',
+                name: '005호',
+                namePrefix: '005호',
+                highlightText: '005',
+                highlightColor: 'text-cyan-400',
+                description: '정돈된 듯 어지러운 방. 잡다한 물건들이 전략적으로 배치되어 있다. 거래의 흔적이 곳곳에.',
+                background: null,
+                overlayColor: 'bg-black/40',
+                npcId: 'galchi',
+                activeZones: [
+                    {
+                        id: 'zone_door_005',
                         type: 'move',
                         target: 'hallway',
                         x: '70%',

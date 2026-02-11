@@ -15,6 +15,9 @@ const useFishVisuals = () => {
     const { fishLevel = 0, fishTier = 0 } = useGame();
 
     return useMemo(() => {
+        // === 고정 SVG 필터 ID (React useId 대신, scene에서 참조할 수 있도록) ===
+        const waveFilterId = 'fish-wave-distortion';
+
         // === 맵 어안렌즈 효과 ===
         const mapEffects = {
             // CSS perspective (낮을수록 왜곡 심함)
@@ -38,12 +41,14 @@ const useFishVisuals = () => {
         };
 
         // 맵 컨테이너에 적용할 CSS filter 문자열
+        // 색조 필터 + SVG 물결 왜곡 필터를 합쳐서 하나의 filter string으로 만듦
         const mapFilter = fishTier === 0
             ? 'none'
             : [
                 `hue-rotate(${mapEffects.hueRotate}deg)`,
                 `saturate(${mapEffects.saturate})`,
                 fishTier >= 3 ? `contrast(${1 + (fishTier - 2) * 0.05})` : '',
+                fishTier >= 2 ? `url(#${waveFilterId})` : '', // SVG 물결 왜곡 — 배경에 직접 적용!
             ].filter(Boolean).join(' ');
 
         // 맵 컨테이너에 적용할 CSS transform 문자열
@@ -124,6 +129,7 @@ const useFishVisuals = () => {
         return {
             fishLevel,
             fishTier,
+            waveFilterId,
             mapEffects,
             mapFilter,
             mapTransform,
