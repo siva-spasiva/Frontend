@@ -5,6 +5,14 @@ import IntroBg from '../assets/map/mainmenu01.png';
 import ClassroomBg from '../assets/map/1F_class02.png';
 import GameStartSequence from './GameStartSequence';
 import GameHUD from '../components/GameHUD';
+import FishEyeEffect from '../components/FishEyeEffect';
+import useFishVisuals from '../hooks/useFishVisuals';
+
+// Wrapper component for FishEyeEffect that uses the hook
+const FishEyeEffectWrapper = () => {
+    const { fishTier, mapEffects } = useFishVisuals();
+    return <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />;
+};
 
 const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
     // Phases: 'arrival' -> 'messenger' -> 'enter_room' -> 'contract'
@@ -112,6 +120,9 @@ const Test04Scene = ({ isPhoneOpen, onTogglePhone, onComplete }) => {
                 backgroundPosition: 'center'
             }}
         >
+            {/* Fish Eye Effect Overlay */}
+            <FishEyeEffectWrapper />
+
             {/* Dark Overlay handled by GameHUD or here if needed, but GameHUD has its own overlay logic if we pass it, 
                 however GameHUD renders overlay inside. Let's pass overlayColor to GameHUD.
                 BUT, we want the background image to be on the CONTAINER (this div), which it is.

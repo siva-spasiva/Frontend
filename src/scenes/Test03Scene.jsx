@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
+import FishEyeEffect from '../components/FishEyeEffect';
+import useFishVisuals from '../hooks/useFishVisuals';
 
 const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -23,6 +25,9 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
     // Item Presentation
     const { presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+
+    // Fish Visual Effects
+    const { fishTier, mapEffects, mapFilter, mapTransform } = useFishVisuals();
 
     // NPC State
     const [activeNpc, setActiveNpc] = useState(null);
@@ -164,9 +169,15 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             style={{
                 backgroundImage: mapInfo.background,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                filter: mapFilter !== 'none' ? mapFilter : undefined,
+                transform: mapTransform !== 'none' ? mapTransform : undefined,
+                transformOrigin: 'center center',
             }}
         >
+            {/* Fish Eye Effect Overlay */}
+            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />
+
             <GameHUD
                 mapInfo={mapInfo}
                 activeNpc={activeNpc}

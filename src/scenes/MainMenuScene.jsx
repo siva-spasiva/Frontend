@@ -4,18 +4,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Settings, FileText, Grid, Map, Mic, MessageCircle } from 'lucide-react';
 import MessengerApp from '../components/apps/MessengerApp';
 import InventoryApp from '../components/apps/InventoryApp';
+import FishPhoneOverlay from '../components/FishPhoneOverlay';
+import useFishVisuals from '../hooks/useFishVisuals';
 
 // --- Components ---
 
 const PhoneFrame = ({ children, header, isBroken }) => {
+    const { fishTier, phoneEffects } = useFishVisuals();
+
+    // Fish-tier에 따른 폰 테두리 색상
+    const fishBorderClass = fishTier > 0 && !isBroken ? phoneEffects.borderColor : '';
+    const borderClass = isBroken ? 'border-red-900/30' : (fishBorderClass || 'border-white/20');
+
+    // Fish-tier에 따른 그림자 색상
+    const fishShadow = fishTier >= 2
+        ? `0 25px 50px -12px rgba(0, 100, 180, ${0.15 + fishTier * 0.05}), 0 0 ${fishTier * 8}px rgba(0, 180, 216, ${fishTier * 0.06})`
+        : '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
+
     return (
         <div className="w-full h-full flex items-center justify-center font-sans">
             <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -50, opacity: 0 }}
-                className={`w-full max-w-sm h-[95vh] max-h-[800px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative flex flex-col transition-all duration-500 ${isBroken ? 'border-red-900/30' : 'border-white/20'}`}
-                style={isBroken ? { boxShadow: '0 0 20px rgba(0,0,0,0.8)' } : { boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                className={`w-full max-w-sm h-[95vh] max-h-[800px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative flex flex-col transition-all duration-500 ${borderClass}`}
+                style={isBroken ? { boxShadow: '0 0 20px rgba(0,0,0,0.8)' } : { boxShadow: fishShadow }}
             >
                 {/* Cracks & Damage Overlays */}
                 {isBroken && (
@@ -51,9 +64,14 @@ const PhoneFrame = ({ children, header, isBroken }) => {
                     style={isBroken ? {
                         filter: 'contrast(1.2) brightness(0.85) grayscale(0.4) blur(0.6px)',
                         transform: 'scale(1.005)' // Subtle zoom to feel 'off'
-                    } : {}}
+                    } : {
+                        filter: phoneEffects.filter !== 'none' ? phoneEffects.filter : undefined,
+                    }}
                 >
                     {children}
+
+                    {/* Fish Phone Overlay — 물고기화 효과 */}
+                    <FishPhoneOverlay fishTier={fishTier} phoneEffects={phoneEffects} />
 
                     {/* Color Channel Split (Chromatic Aberration Simulation) for Broken State - simplified overlay */}
                     {isBroken && (

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Map, FileText, Mic, Settings, Camera, MessageCircle, Info, Package, Fish } from 'lucide-react';
 import StatusWidget from './StatusWidget';
 import { useGame } from '../context/GameContext';
+import useFishVisuals from '../hooks/useFishVisuals';
 
 const AppIcon = ({ icon: Icon, label, color, onClick }) => (
     <motion.button
@@ -115,9 +116,31 @@ export const Ingame02HomeScreen = ({ onAppOpen, onBack }) => {
 
 export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
     const { currentDay, currentPeriod, PERIOD_LABELS, PERIOD_CLOCK } = useGame();
+    const { fishTier, phoneEffects, hasFishEffect, isHeavilyFishy } = useFishVisuals();
     const dayLabel = currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`;
     const periodLabel = PERIOD_LABELS?.[currentPeriod] || '아침';
     const clockDisplay = PERIOD_CLOCK?.[currentPeriod] || '08:00';
+
+    // Fish-tier에 따른 아이콘 색상 변화
+    const mapIconColor = fishTier >= 3 ? 'bg-teal-600' : fishTier >= 1 ? 'bg-blue-500' : 'bg-blue-400';
+    const invIconColor = fishTier >= 3 ? 'bg-teal-500' : 'bg-orange-500';
+    const recIconColor = fishTier >= 3 ? 'bg-cyan-700' : 'bg-red-500';
+    const settIconColor = fishTier >= 2 ? 'bg-slate-500' : 'bg-gray-400';
+
+    // Fish-tier 제목 색상
+    const titleColor = fishTier >= 3 ? 'text-teal-900' : 'text-blue-900';
+    const subtitleExtra = fishTier >= 2 ? (fishTier >= 4 ? ' 🐟' : ' 🫧') : '';
+
+    // 알림 카드 색상
+    const notifBg = fishTier >= 3 ? 'bg-teal-50' : 'bg-blue-50';
+    const notifBorder = fishTier >= 3 ? 'border-teal-200' : 'border-blue-100';
+    const notifIconBg = fishTier >= 3 ? 'bg-teal-200' : 'bg-blue-200';
+    const notifIconColor = fishTier >= 3 ? 'text-teal-600' : 'text-blue-600';
+    const notifTitleColor = fishTier >= 3 ? 'text-teal-900' : 'text-blue-900';
+    const notifTextColor = fishTier >= 3 ? 'text-teal-600' : 'text-blue-600';
+    const notifText = fishTier >= 4 ? '물이... 차갑다...'
+        : fishTier >= 3 ? '수업 시작... 10분 전...'
+            : 'Class starts in 10 mins.';
 
     return (
         <div className="w-full h-full flex flex-col pt-12 px-6 relative">
@@ -125,39 +148,56 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
             {onBack && (
                 <button
                     onClick={onBack}
-                    className="absolute top-12 left-4 z-20 p-2 -ml-2 rounded-full hover:bg-blue-50 active:bg-blue-100 transition-colors"
+                    className={`absolute top-12 left-4 z-20 p-2 -ml-2 rounded-full hover:bg-blue-50 active:bg-blue-100 transition-colors ${isHeavilyFishy ? 'opacity-80' : ''}`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-blue-900" />
+                    <ChevronLeft className={`w-6 h-6 ${titleColor}`} />
                 </button>
             )}
 
-            {/* Status Bar */}
+            {/* Status Bar — Fish Tier에 따라 변화 */}
             <div className="flex justify-between items-center text-xs font-semibold text-gray-800 mb-8 px-2 pl-8">
-                <span>{clockDisplay}</span>
+                <span className={isHeavilyFishy ? 'animate-pulse' : ''}>
+                    {phoneEffects.clockDistort ? clockDisplay.split('').map((c, i) =>
+                        Math.random() > 0.7 ? String.fromCharCode(c.charCodeAt(0) + Math.floor(Math.random() * 3 - 1)) : c
+                    ).join('') : clockDisplay}
+                </span>
                 <div className='flex space-x-1'>
-                    <span>5G</span>
-                    <span>100%</span>
+                    <span>{phoneEffects.statusBarText}</span>
+                    <span>{phoneEffects.batteryText}</span>
                 </div>
             </div>
 
-            <h1 className="text-3xl font-bold text-blue-900 mb-2 px-2">{dayLabel}</h1>
-            <p className="text-sm text-gray-500 mb-8 px-2">{periodLabel} | 우미 원데이 클래스</p>
+            <h1 className={`text-3xl font-bold ${titleColor} mb-2 px-2`}>{dayLabel}</h1>
+            <p className="text-sm text-gray-500 mb-8 px-2">{periodLabel} | 우미 원데이 클래스{subtitleExtra}</p>
 
-            <div className="grid grid-cols-4 gap-4">
-                <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
-                <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
-                <AppIcon icon={Mic} label="Recorder" color="bg-red-500" onClick={() => onAppOpen('recorder_app')} />
-                <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
+            <div className={`grid grid-cols-4 gap-4 ${isHeavilyFishy ? 'animate-[fishwave_6s_ease-in-out_infinite]' : ''}`}>
+                {isHeavilyFishy && (
+                    <style>{`
+                        @keyframes fishwave {
+                            0%, 100% { transform: translateY(0); }
+                            50% { transform: translateY(-2px); }
+                        }
+                    `}</style>
+                )}
+                <AppIcon icon={fishTier >= 4 ? Fish : Map} label={fishTier >= 4 ? '해역' : 'Map'} color={mapIconColor} onClick={() => onAppOpen('map_app')} />
+                <AppIcon icon={Package} label={fishTier >= 4 ? '비늘' : 'Inventory'} color={invIconColor} onClick={() => onAppOpen('inventory')} />
+                <AppIcon icon={Mic} label={fishTier >= 4 ? '노래' : 'Recorder'} color={recIconColor} onClick={() => onAppOpen('recorder_app')} />
+                <AppIcon icon={Settings} label="Settings" color={settIconColor} onClick={() => { }} />
             </div>
 
-            <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+            <div className={`mt-8 p-4 ${notifBg} rounded-xl border ${notifBorder} transition-colors duration-500`}>
                 <div className="flex items-center space-x-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center">
-                        <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <div className={`w-10 h-10 rounded-full ${notifIconBg} flex items-center justify-center`}>
+                        {fishTier >= 3
+                            ? <Fish className={`w-5 h-5 ${notifIconColor}`} />
+                            : <MessageCircle className={`w-5 h-5 ${notifIconColor}`} />
+                        }
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-blue-900">New Notification</p>
-                        <p className="text-xs text-blue-600">Class starts in 10 mins.</p>
+                        <p className={`text-sm font-bold ${notifTitleColor}`}>
+                            {fishTier >= 4 ? '물 속에서...' : fishTier >= 3 ? '알림' : 'New Notification'}
+                        </p>
+                        <p className={`text-xs ${notifTextColor}`}>{notifText}</p>
                     </div>
                 </div>
             </div>

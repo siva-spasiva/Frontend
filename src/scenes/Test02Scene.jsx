@@ -8,6 +8,8 @@ import GameHUD from '../components/GameHUD';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import { useInteraction } from '../hooks/useInteraction';
 import NavigationConfirmation from '../components/NavigationConfirmation';
+import FishEyeEffect from '../components/FishEyeEffect';
+import useFishVisuals from '../hooks/useFishVisuals';
 
 const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -50,6 +52,9 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
     const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo } = useGame();
 
+    // Fish Visual Effects
+    const { fishTier, mapEffects, mapFilter, mapTransform } = useFishVisuals();
+
     // Active NPC State - Configured for Empty Room
     const [activeNpc, setActiveNpc] = useState(null);
 
@@ -84,9 +89,15 @@ const Test02Scene = ({ isPhoneOpen, onTogglePhone }) => {
             style={{
                 backgroundImage: mapInfo.background,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                filter: mapFilter !== 'none' ? mapFilter : undefined,
+                transform: mapTransform !== 'none' ? mapTransform : undefined,
+                transformOrigin: 'center center',
             }}
         >
+            {/* Fish Eye Effect Overlay */}
+            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} />
+
             {/* Interactive Layer */}
             <MapInteractiveLayer
                 mapInfo={mapInfo}
