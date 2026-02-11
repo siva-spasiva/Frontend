@@ -1,3 +1,5 @@
+import { NPC_DATA } from '../data/gameData.js';
+
 const userStates = new Map();
 
 const VALID_PERIODS = ['morning', 'afternoon', 'evening'];
@@ -29,10 +31,13 @@ export const getState = (userId) => {
 };
 
 // Helper to get specific NPC stats (auto-init if missing)
+// NPC_DATA에 initialStats가 정의되어 있으면 기본값 대신 우선 적용
 export const getNpcState = (userId, npcId) => {
     const state = getState(userId);
     if (!state.npcStats[npcId]) {
-        state.npcStats[npcId] = { ...INITIAL_NPC_STATS };
+        const npcDef = NPC_DATA[npcId];
+        const customInitial = npcDef?.initialStats;
+        state.npcStats[npcId] = { ...INITIAL_NPC_STATS, ...customInitial };
     }
     return state.npcStats[npcId];
 };

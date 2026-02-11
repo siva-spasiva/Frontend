@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { fetchGameStats, updateGameStats, fetchStaticGameData } from '../api/stats';
+
+// Fish Level Tier 유틸리티
+const getFishTier = (fishLevel) => {
+    if (fishLevel >= 100) return 5;
+    if (fishLevel >= 81) return 4;
+    if (fishLevel >= 61) return 3;
+    if (fishLevel >= 41) return 2;
+    if (fishLevel >= 21) return 1;
+    return 0;
+};
+const FISH_TIER_LABELS = ['정상', '미세 변이', '중간 변이', '심각 변이', '거의 물고기', '완전한 물고기'];
 
 
 const GameContext = createContext();
@@ -54,6 +65,11 @@ export const GameProvider = ({ children }) => {
     const [phoneScreenOverride, setPhoneScreenOverride] = useState(null);
     const [appEvent, setAppEvent] = useState(null);
 
+    // === Fish Level Tier System ===
+    const [fishLevelUpWarning, setFishLevelUpWarning] = useState(null); // { prevTier, newTier, label }
+    const [isGameOver, setIsGameOver] = useState(false);
+    const prevFishTierRef = useRef(0);
+
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Initial Stats and Data
@@ -89,6 +105,29 @@ export const GameProvider = ({ children }) => {
             });
         }
     }, [stats.fishLevel, stats.inventory]); // Dependency on specific stats
+
+    // === Fish Level Tier Change Detection ===
+    useEffect(() => {
+        const currentTier = getFishTier(stats.fishLevel || 0);
+        const prevTier = prevFishTierRef.current;
+
+        if (currentTier > prevTier && prevTier !== undefined) {
+            if (currentTier >= 5) {
+                // 만렙 = 게임 오버
+                setIsGameOver(true);
+                console.log('[GAME OVER] Fish Level 100 도달 — 완전한 물고기');
+            } else {
+                // 레벨업 경고
+                setFishLevelUpWarning({
+                    prevTier,
+                    newTier: currentTier,
+                    label: FISH_TIER_LABELS[currentTier],
+                });
+                console.log(`[Fish Level Up] Tier ${prevTier} → ${currentTier} (${FISH_TIER_LABELS[currentTier]})`);
+            }
+        }
+        prevFishTierRef.current = currentTier;
+    }, [stats.fishLevel]);
 
     const fetchStats = async () => {
         try {
@@ -248,6 +287,33 @@ export const GameProvider = ({ children }) => {
         }
     };
 
+    // === Consumable Item Usage ===
+    const useItem = (item) => {
+        if (!item?.consumable) {
+            console.warn('Cannot use non-consumable item:', item?.id);
+            return false;
+        }
+        if (!(stats.inventory || []).includes(item.id)) {
+            console.warn('Item not in inventory:', item.id);
+            return false;
+        }
+
+        const updates = {};
+
+        // Apply effects
+        if (item.effect?.fishLevel) {
+            updates.fishLevel = Math.min(100, (stats.fishLevel || 0) + item.effect.fishLevel);
+        }
+
+        // Remove from inventory
+        const newInv = (stats.inventory || []).filter(id => id !== item.id);
+        updates.inventory = newInv;
+
+        console.log(`[Use Item] ${item.name} (${item.id}) → effects:`, item.effect);
+        updateStatsBackend(updates);
+        return true;
+    };
+
     const inventoryItems = (stats.inventory || [])
         .map(id => gameData.itemData?.[id] || customItems[id])
         .filter(Boolean);
@@ -326,7 +392,17 @@ export const GameProvider = ({ children }) => {
         addItem,
         addCustomItem,
         removeItem,
+        useItem,
         inventoryItems,
+
+        // Fish Level Tier System
+        fishTier: getFishTier(stats.fishLevel || 0),
+        fishTierLabel: FISH_TIER_LABELS[getFishTier(stats.fishLevel || 0)],
+        fishLevelUpWarning,
+        clearFishLevelUpWarning: () => setFishLevelUpWarning(null),
+        isGameOver,
+        FISH_TIER_LABELS,
+        getFishTier,
 
         // Chat Logs
         chatLogs,

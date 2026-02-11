@@ -5,7 +5,7 @@ import { useGame } from '../../context/GameContext';
 import ChatLog from '../ChatLog';
 
 const InventoryApp = ({ onBack }) => {
-    const { inventoryItems, removeItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
+    const { inventoryItems, removeItem, useItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
     const [selectedItem, setSelectedItem] = useState(null);
     const [isReading, setIsReading] = useState(false); // Reading mode for transcripts
 
@@ -193,13 +193,12 @@ const InventoryApp = ({ onBack }) => {
                                         }
                                     }}
                                     disabled={!isNpcPresent}
-                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${
-                                        isNpcPresent
-                                            ? presentedItem?.itemId === selectedItem?.id
-                                                ? 'bg-yellow-700 text-yellow-200 border-2 border-yellow-500'
-                                                : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-900/30'
-                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                    }`}
+                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${isNpcPresent
+                                        ? presentedItem?.itemId === selectedItem?.id
+                                            ? 'bg-yellow-700 text-yellow-200 border-2 border-yellow-500'
+                                            : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-900/30'
+                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
                                 >
                                     <HandMetal className="w-5 h-5" />
                                     <span>
@@ -216,16 +215,28 @@ const InventoryApp = ({ onBack }) => {
                                     onClick={() => {
                                         if (selectedItem.type === 'transcript') {
                                             setIsReading(true);
+                                        } else if (selectedItem.consumable) {
+                                            if (useItem(selectedItem)) {
+                                                setSelectedItem(null); // 사용 후 목록으로
+                                            }
                                         }
                                     }}
-                                    disabled={selectedItem.type !== 'transcript'}
+                                    disabled={selectedItem.type !== 'transcript' && !selectedItem.consumable}
                                     className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${selectedItem.type === 'transcript'
-                                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
-                                        : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
+                                            ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                                            : selectedItem.consumable
+                                                ? 'bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white shadow-teal-900/20'
+                                                : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
                                         }`}
                                 >
                                     {selectedItem.type === 'transcript' ? <PlayCircle className="w-5 h-5" /> : null}
-                                    <span>{selectedItem.type === 'transcript' ? '기록 보기' : '사용하기'}</span>
+                                    <span>
+                                        {selectedItem.type === 'transcript'
+                                            ? '기록 보기'
+                                            : selectedItem.consumable
+                                                ? '사용하기'
+                                                : '사용 불가'}
+                                    </span>
                                 </button>
 
                                 {selectedItem.type === 'transcript' && (

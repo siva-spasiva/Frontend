@@ -2,6 +2,7 @@ import * as PROMPTS from '../utils/prompts.js';
 import { generateAIResponse } from '../services/aiService.js';
 import { getState, updateGlobalState, getNpcState, updateNpcState } from '../services/stateService.js';
 import { NPC_DATA } from '../data/gameData.js';
+import { getFishTier, getMaskingRate } from '../utils/fishLevelUtils.js';
 
 // Helper: Determine friendly tier for tiered prompt selection
 const getFriendlyTier = (friendly) => {
@@ -26,33 +27,23 @@ const getPromptForNpc = (npcId, npcStats = {}) => {
     return npc.prompt || PROMPTS.DETECTIVE_KANG_PROMPT;
 };
 
-// Masking Logic
+// Masking Logic — Tier 기반
 const applyFishMasking = (text, npcFishLevel, playerFishLevel = 0) => {
     if (!text) return text;
 
-    // Logic: Masking Probability = (NPC Corruption - Player Comprehension)
-    // Normalized to 0.0 - 1.0 range (assuming levels are 0-100)
-    let maskProb = (npcFishLevel - playerFishLevel) / 100;
-
-    // Bounds check
-    maskProb = Math.max(0, Math.min(1.0, maskProb));
+    const npcTier = getFishTier(npcFishLevel);
+    const playerTier = getFishTier(playerFishLevel);
+    const maskProb = getMaskingRate(npcTier, playerTier);
 
     if (maskProb <= 0) return text;
 
-    // Tokenize: Split into words and punctuation
-    // Matches sequences of word characters OR non-whitespace non-word characters
-    // This simple regex might need tuning for Korean, but let's try a broader approach:
-    // We want to replace "meaningful parts".
-    // Simple approach: Split by space, then check if word has punctuation at end.
+    console.log(`[Masking] NPC Tier: ${npcTier}, Player Tier: ${playerTier}, Rate: ${(maskProb * 100).toFixed(0)}%`);
 
     return text.split(' ').map(token => {
-        // If empty string (multiple spaces), return
         if (!token) return token;
 
         if (Math.random() < maskProb) {
-            // Attempt to preserve trailing punctuation
-            // Match word part vs punctuation part
-            const match = token.match(/^(.+?)([\.,!\?~]+)$/);
+            const match = token.match(/^(.+?)([.,!?~]+)$/);
             if (match) {
                 return `[뻐끔]${match[2]}`;
             }

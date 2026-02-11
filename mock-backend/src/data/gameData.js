@@ -49,6 +49,12 @@ const NPC_DATA = {
     bokeo: {
         id: 'bokeo',
         name: '박복어',
+        // NPC별 초기 스탯 (기본값 대신 적용)
+        initialStats: {
+            friendly: 10,   // BAD 구간(0-19)에서 시작 — 극도의 경계
+            faith: 80,
+            fishLevel: 6,
+        },
         initialPortrait: 'npc_bokeo_00.png',
         portraits: {
             default: 'npc_bokeo_00.png',
@@ -153,6 +159,17 @@ export const FLOOR_DATA = [
                         height: '15%',
                         label: '1층 계단',
                         message: '계단을 통해 1층으로 내려간다.'
+                    },
+                    {
+                        id: 'item_solpi_tear',
+                        type: 'item',
+                        itemId: 'item005',
+                        x: '55%',
+                        y: '60%',
+                        width: '12%',
+                        height: '15%',
+                        label: '푸른 병',
+                        message: '푸른빛의 음료가 담긴 병이 놓여 있다.'
                     }
                 ]
             }

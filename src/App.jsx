@@ -253,10 +253,13 @@ const MainLayout = () => {
   );
 };
 
+import FishLevelWarning from './components/FishLevelWarning';
+
 function App() {
   return (
     <GameProvider>
       <MainLayout />
+      <FishLevelWarning />
     </GameProvider>
   );
 }

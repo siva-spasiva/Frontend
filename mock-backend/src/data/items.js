@@ -38,8 +38,10 @@ export const ITEM_DEFINITIONS = {
         name: '솔피의 눈물',
         description: '달달하면서 짭짤한, 묘한 느낌의 비린내가 나는 음료. 우미 클래스의 웰컴 드링크다.',
         flavorText: '주의사항: 뻐끔 뻐끔! 너무 맛있으니 중독되지 않도록 하세요!',
-        type: 'normal', // 소비형 아이템이지만 현재 분류상 normal
-        icon: '🍹'
+        type: 'normal',
+        icon: '🍹',
+        consumable: true,
+        effect: { fishLevel: 10 },
     },
     item006: {
         id: 'item006',
@@ -47,7 +49,9 @@ export const ITEM_DEFINITIONS = {
         description: '달달하면서도 짭짤한, 기분좋은 비린내가 나는 음료. 푸른 병에 담겨서 신도들에게 지급되는 듯 하다.',
         flavorText: '모두 [뻐끔뻐끔]에게 [뻐끔] 하세요! - 전광어 목사',
         type: 'normal',
-        icon: '🍹'
+        icon: '🍹',
+        consumable: true,
+        effect: { fishLevel: 10 },
     },
     item007: {
         id: 'item007',
@@ -55,15 +59,19 @@ export const ITEM_DEFINITIONS = {
         description: '차갑고 달콤한, 기분좋은 푸른 음료. 갈증 해소에 최고인 것 같다.',
         flavorText: '매일 매일 솔피의 눈물을 주다니, 최고잖아? - 청갈치',
         type: 'normal',
-        icon: '🍹'
+        icon: '🍹',
+        consumable: true,
+        effect: { fishLevel: 10 },
     },
     item008: {
         id: 'item008',
         name: '솔피의 눈물',
         description: '정체불명의 푸른 액체. 마시기 힘들 정도로 짠맛과 비린내가 난다...',
         flavorText: '이젠 더이상 [뻐끔]이 들리지 않는다... - 박복어',
-        type: 'normal', // 소비형 아이템이지만 현재 분류상 normal
-        icon: '🧪'
+        type: 'normal',
+        icon: '🧪',
+        consumable: true,
+        effect: { fishLevel: 10 },
     },
     item009: {
         id: 'item009',
@@ -71,7 +79,9 @@ export const ITEM_DEFINITIONS = {
         description: '우미교의 신 <솔피>의 체액. 마실수록 물고기화되어 간다. 이것을 마시고 물고기가 되어간 사람은 도대체 몇 명일까?',
         flavorText: '물고기가 되어도 좋아. 솔피님과 함께한다면...',
         type: 'key_item',
-        icon: '🩸'
+        icon: '🩸',
+        consumable: true,
+        effect: { fishLevel: 10 },
     },
     item010: {
         id: 'item010',
