@@ -82,7 +82,7 @@ const NPC_DATA = {
             faith: 10,
             fishLevel: 10,
         },
-        initialInventory: ['npc_galchi_001', 'npc_galchi_002', 'npc_galchi_003'],
+        initialInventory: ['npc_galchi_001', 'npc_galchi_002'],
         initialPortrait: 'npc_galchi_00.png',
         portraits: {
             default: 'npc_galchi_00.png',
@@ -99,7 +99,7 @@ const NPC_DATA = {
             model: 'gpt-oss:20b-cloud',
         }
     },
-    bingeo: {
+    bingeo: {   // 곽빙어, 짜바리 도둑. 다른 NPC들의 정보를 가지고 있게끔.
         id: 'bingeo',
         name: '곽빙어',
         initialStats: {
@@ -650,6 +650,50 @@ export const FLOOR_DATA = [
                         height: '50%',
                         label: '복도',
                         message: '복도로 나간다.'
+                    },
+                    {
+                        id: 'zone_galchi_cards',
+                        type: 'inspect',
+                        x: '15%',
+                        y: '30%',
+                        width: '18%',
+                        height: '20%',
+                        label: '명함 뭉치',
+                        message: '서로 다른 이름의 명함들과 신분증이 흩어져 있다. 투자 컨설턴트, 해외 무역, 재무설계사... 전부 같은 사람?',
+                        itemId: 'npc_galchi_003'
+                    },
+                    {
+                        id: 'zone_galchi_phones',
+                        type: 'inspect',
+                        x: '40%',
+                        y: '55%',
+                        width: '15%',
+                        height: '18%',
+                        label: '휴대폰들',
+                        message: '침대 밑에 공기계 4대가 숨겨져 있다. 각각 다른 유심, 다른 카카오톡, 다른 삶.',
+                        itemId: 'npc_galchi_004'
+                    },
+                    {
+                        id: 'zone_galchi_receipts',
+                        type: 'inspect',
+                        x: '55%',
+                        y: '15%',
+                        width: '12%',
+                        height: '15%',
+                        label: '영수증 뭉치',
+                        message: '선불폰 영수증이 뭉쳐 있다. 개통과 해지가 반복된 흔적. 추적을 피하려는 습관.',
+                        itemId: 'npc_galchi_005'
+                    },
+                    {
+                        id: 'zone_galchi_ledger',
+                        type: 'inspect',
+                        x: '20%',
+                        y: '65%',
+                        width: '15%',
+                        height: '18%',
+                        label: '장부 사본',
+                        message: '헌금 흐름을 정리한 장부. 과거 투자사기 장부와 포맷이 똑같다. 범죄 기술의 전이.',
+                        itemId: 'npc_galchi_006'
                     }
                 ]
             },

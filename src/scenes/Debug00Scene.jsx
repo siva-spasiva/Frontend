@@ -26,6 +26,7 @@ const Debug00Scene = ({ onBack }) => {
         setPeriod,
         advancePeriod,
         getNpcsForRoom,
+        fetchStats,
     } = useGame();
 
     const [targetNpcId, setTargetNpcId] = useState('npc_a');
@@ -105,6 +106,11 @@ const Debug00Scene = ({ onBack }) => {
                 sender: data.npcId || 'NPC',
                 text: data.response
             }]);
+
+            // Sync NPC stats from AI response back to context
+            if (data.updatedStats) {
+                updateStatsBackend(data.updatedStats, targetNpcId);
+            }
 
         } catch (err) {
             console.error(err);
@@ -293,7 +299,10 @@ const Debug00Scene = ({ onBack }) => {
                             </div>
                             <select
                                 value={targetNpcId}
-                                onChange={(e) => setTargetNpcId(e.target.value)}
+                                onChange={(e) => {
+                                    setTargetNpcId(e.target.value);
+                                    fetchStats();
+                                }}
                                 className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500"
                             >
                                 {npcData && Object.entries(npcData).map(([id, npc]) => (
