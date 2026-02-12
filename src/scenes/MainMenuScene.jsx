@@ -116,7 +116,7 @@ const MainMenu = ({ onAppOpen }) => {
             <h1 className="text-3xl font-bold text-gray-900 mb-10 px-2">Home</h1>
 
             <div className="grid grid-cols-4 gap-4">
-                <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('test04')} />
+                <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('start')} />
                 <AppIcon icon={Save} label="Load" color="bg-green-500" onClick={() => { }} />
 
                 <AppIcon icon={FileText} label="Credits" color="bg-purple-500" onClick={() => { }} />
@@ -141,7 +141,7 @@ import MapApp from '../components/apps/MapApp';
 import RecorderApp from '../components/apps/RecorderApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onDebug00Start, onDebug01Start, onHome, currentPhase }) => {
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onDebug00Start, onDebug01Start, onHome, currentPhase }) => {
     // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
     const [internalPhase, setInternalPhase] = useState('menu');
 
@@ -162,6 +162,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'test04') {
             setInternalPhase('ingame03_home');
+        } else if (currentPhase === 'start') {
+            setInternalPhase('messenger');
         } else if (currentPhase === 'test05') {
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'mainMenu') {
@@ -186,6 +188,8 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             onTest03Start && onTest03Start();
         } else if (appName === 'test04') {
             onTest04Start && onTest04Start();
+        } else if (appName === 'start') {
+            onStartSequence && onStartSequence();
         } else if (appName === 'test05') {
             onTest05Start && onTest05Start(); // New Handler
         } else if (appName === 'debug00') {
@@ -308,7 +312,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <MessengerApp onComplete={onNext} onBack={() => {
+                        <MessengerApp onComplete={onNext} isStartMode={currentPhase === 'start'} onBack={() => {
                             setPhoneScreenOverride(null);
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');

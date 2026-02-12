@@ -17,15 +17,61 @@ import { GameProvider } from './context/GameContext';
 
 import './index.css';
 import MainMenuBg from './assets/map/mainmenu01.png';
+import OutsideBg from './assets/map/1F_outside01.png';
+
+// Start sequence background - transitions from mainmenu to outside view
+const StartBackground = () => {
+  const [showOutside, setShowOutside] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.detail === 'outside') setShowOutside(true);
+    };
+    window.addEventListener('start-bg-transition', handler);
+    return () => window.removeEventListener('start-bg-transition', handler);
+  }, []);
+
+  return (
+    <>
+      <AnimatePresence>
+        {!showOutside && (
+          <motion.img
+            key="mainmenu-bg"
+            src={MainMenuBg}
+            alt="Start Background"
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2 }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showOutside && (
+          <motion.img
+            key="outside-bg"
+            src={OutsideBg}
+            alt="Umi Gallery Outside"
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5 }}
+          />
+        )}
+      </AnimatePresence>
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+    </>
+  );
+};
 
 // Inner Layout Component that has access to Context
 const MainLayout = () => {
-  // phase state: 'teamLogo' -> 'mainMenu' -> 'gameStart'/'mainGame' -> 'crash' -> 'terminal' -> 'test02' -> 'test03'
+  // phase state: 'teamLogo' -> 'mainMenu' -> 'start'/'gameStart'/'mainGame' -> 'crash' -> 'terminal' -> 'test02' -> 'test03'
   const [phase, setPhase] = useState('mainMenu');
   // teamlogoscene 으로 나중에 교체 
 
   // Access Game Context for Layout
-  const { isPhoneCentered, setIsPhoneCentered } = useGame();
+  const { isPhoneCentered, setIsPhoneCentered, appEvent } = useGame();
 
   // Phase transition functions
   const toMainMenu = () => setPhase('mainMenu');
@@ -34,6 +80,7 @@ const MainLayout = () => {
   const toTest02 = () => setPhase('test02');
   const toTest03 = () => setPhase('test03');
   const toTest04 = () => setPhase('test04');
+  const toStart = () => setPhase('start');
   const toTest05 = () => setPhase('test05');
   const toDebug00 = () => setPhase('debug00');
   const toDebug01 = () => setPhase('debug01');
@@ -45,12 +92,32 @@ const MainLayout = () => {
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
 
+  // Contract panel state for start sequence
+  const [showStartContract, setShowStartContract] = useState(false);
+
   // Reset phone state when entering MainGame or Test02/03/04/05
   React.useEffect(() => {
     if (phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') setIsPhoneOpen(true);
+    if (phase === 'start') {
+      setIsPhoneOpen(true);
+      setIsPhoneCentered(true); // Phone centered during start messenger sequence
+      setShowStartContract(false);
+    }
   }, [phase]);
 
-  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05';
+  // Listen for CONTRACT_TRIGGER during start phase
+  React.useEffect(() => {
+    if (phase === 'start' && appEvent?.event === 'CONTRACT_TRIGGER') {
+      // Move phone to left, show contract on right
+      setIsPhoneCentered(false);
+      // Small delay for phone animation to settle before showing contract
+      setTimeout(() => {
+        setShowStartContract(true);
+      }, 300);
+    }
+  }, [appEvent, phase]);
+
+  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start';
 
   return (
     <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
@@ -76,7 +143,7 @@ const MainLayout = () => {
         )}
 
         {/* Unified Split Layout Group */}
-        {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') && (
+        {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start') && (
           <motion.div
             key="split-group"
             className="w-full h-full relative"
@@ -149,7 +216,20 @@ const MainLayout = () => {
                   transition={{ duration: 0.5 }}
                   className="absolute inset-0 z-0"
                 >
-                  <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onComplete={toTest03} />
+                  <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
+                </motion.div>
+              )}
+
+              {phase === 'start' && (
+                <motion.div
+                  key="start-bg"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0 z-0"
+                >
+                  <StartBackground />
                 </motion.div>
               )}
 
@@ -181,7 +261,7 @@ const MainLayout = () => {
                   width: isPhoneCentered
                     ? '100%'
                     : (isSplit
-                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05')
+                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start')
                         ? (isPhoneOpen ? '420px' : '0px')
                         : '50%')
                       : '100%'),
@@ -189,7 +269,7 @@ const MainLayout = () => {
                   // If phone centered, we might want to ensure background is transparent so we see scene behind?
                   // But standard layout has transparent background for phone container anyway.
                   // Check opacity logic
-                  opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
+                  opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start') && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
 
                   // Position Absolute if Centering over content?
                   // If we use Flex row, making it 100% width PUSHES the right content off screen or squeezes it.
@@ -203,10 +283,9 @@ const MainLayout = () => {
                 <div className="pointer-events-auto w-full h-full flex items-center justify-center">
                   <MainMenuScene
                     onNext={() => {
-                      if (phase === 'test04') {
-                        // Special handler for Test04: Signal Messenger Completion
-                        // Using hacky window event until we have a better way, or just assume automatic timer
-                        window.dispatchEvent(new CustomEvent('test04-messenger-complete'));
+                      if (phase === 'start') {
+                        // Start sequence: messenger complete → contract
+                        toGameStart();
                       } else {
                         toGameStart();
                       }
@@ -216,6 +295,7 @@ const MainLayout = () => {
                     onTest03Start={toTest03}
                     onTest04Start={toTest04}
                     onTest05Start={toTest05}
+                    onStartSequence={toStart}
                     onDebug00Start={toDebug00}
                     onDebug01Start={toDebug01}
                     onHome={toMainMenu}
@@ -235,6 +315,22 @@ const MainLayout = () => {
                     className="flex-1 h-full flex items-center justify-center p-8 pointer-events-auto"
                   >
                     <GameStartSequence onSign={toMainGame} />
+                  </motion.div>
+                )}
+
+                {phase === 'start' && showStartContract && (
+                  <motion.div
+                    key="startContract-panel"
+                    initial={{ x: '100%', opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: '100%', opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="flex-1 h-full flex items-center justify-center p-8 pointer-events-auto"
+                  >
+                    <GameStartSequence onSign={() => {
+                      setIsPhoneCentered(false);
+                      toTest04();
+                    }} />
                   </motion.div>
                 )}
               </AnimatePresence>

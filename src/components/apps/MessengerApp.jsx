@@ -151,11 +151,139 @@ const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplet
     );
 };
 
-const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDisconnected, setIsDisconnected }) => {
+const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDisconnected, setIsDisconnected, isStartMode }) => {
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    // isDisconnected is now a prop
     const bottomRef = useRef(null);
+
+    // --- START MODE: Scripted dialogue state ---
+    const [scriptStep, setScriptStep] = useState(0); // 0 = waiting for choice 1, 1 = waiting for choice 2, 2 = done
+    const [isTyping, setIsTyping] = useState(false);
+
+    // Scripted dialogue data
+    const SCRIPTED_CHOICES = [
+        {
+            choices: [
+                { text: '알겠어. 조심할게.', id: 'a' },
+                { text: '형, 이번엔 뭔가 다르다. 직감이 그래.', id: 'b' },
+                { text: '본부가 뭘 알겠어. 우리가 직접 까는 거지.', id: 'c' },
+            ],
+            responses: {
+                a: [
+                    { sender: '강 형사', text: '그래, 그 말이 듣고 싶었다. 괜히 영웅 놀이 하지 말고.', time: 'Now' },
+                    { sender: '강 형사', text: '형사 10년 차에 비공식 잠입이라... 미친 짓이야 진짜.', time: 'Now' },
+                ],
+                b: [
+                    { sender: '강 형사', text: '직감? 야, 직감으로 수사하면 반장님이 좋아하시겠다.', time: 'Now' },
+                    { sender: '강 형사', text: '...근데 네 직감이 틀린 적은 없었지. 조심해라.', time: 'Now' },
+                ],
+                c: [
+                    { sender: '강 형사', text: '이 개고생을 누가 알아주냐고. 진짜 미친놈이야 너는.', time: 'Now' },
+                    { sender: '강 형사', text: '...그래도 네가 이렇게까지 하는 건 이유가 있겠지.', time: 'Now' },
+                ],
+            },
+        },
+        {
+            choices: [
+                { text: '여기 분위기가 좀 이상해. 사람들이 좀...', id: 'a' },
+                { text: '벌써 건물이 보여. 꽤 큰데?', id: 'b' },
+                { text: '솔직히 좀 쫄린다.', id: 'c' },
+            ],
+            responses: {
+                a: [
+                    { sender: '강 형사', text: '이상해? 어떻게?', time: 'Now' },
+                    { sender: '강 형사', text: '...자세한 건 나중에 듣자. 일단 들어가봐.', time: 'Now' },
+                ],
+                b: [
+                    { sender: '강 형사', text: '리조트니까 당연히 크겠지. 거기 돈이 얼마가 들어갔는데.', time: 'Now' },
+                    { sender: '강 형사', text: '내부 구조 잘 파악해둬. 탈출 경로도.', time: 'Now' },
+                ],
+                c: [
+                    { sender: '강 형사', text: '쫄리면 돌아와. 아무도 뭐라 안 해.', time: 'Now' },
+                    { sender: '강 형사', text: '...농담이야. 네가 돌아올 놈이면 처음부터 안 갔겠지.', time: 'Now' },
+                ],
+            },
+        },
+    ];
+
+    const FINAL_SEQUENCE = [
+        { sender: '강 형사', text: '야 잠깐, 신호가 좀 이상한데? 거기 전파 방해 같은 거 있나?', time: 'Now' },
+        { sender: '강 형사', text: '...치직... 뭐? 계약서? 뻐끔?', time: 'Now' },
+        { sender: '강 형사', text: '야, 목소리가 끊겨. 계약서에 뭐라고 적혀있다고? 당장 찢고 나와!', time: 'Now' },
+    ];
+
+    const handleScriptedChoice = async (choiceId) => {
+        if (isTyping || scriptStep >= SCRIPTED_CHOICES.length) return;
+
+        const currentScript = SCRIPTED_CHOICES[scriptStep];
+        const chosenOption = currentScript.choices.find(c => c.id === choiceId);
+        const responses = currentScript.responses[choiceId];
+
+        // Add user message
+        setMessages(prev => [...prev, {
+            id: Date.now(),
+            sender: 'Me',
+            text: chosenOption.text,
+            type: 'text',
+            time: 'Now'
+        }]);
+
+        setIsTyping(true);
+
+        // Add response messages with delays
+        for (let i = 0; i < responses.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+            setMessages(prev => [...prev, {
+                id: Date.now() + i + 1,
+                sender: responses[i].sender,
+                text: responses[i].text,
+                type: 'text',
+                time: responses[i].time
+            }]);
+        }
+
+        const nextStep = scriptStep + 1;
+        setScriptStep(nextStep);
+
+        // After first choice: signal background transition to outside view
+        if (nextStep === 1) {
+            window.dispatchEvent(new CustomEvent('start-bg-transition', { detail: 'outside' }));
+        }
+
+        // If all choices done, trigger final sequence
+        if (nextStep >= SCRIPTED_CHOICES.length) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            for (let i = 0; i < FINAL_SEQUENCE.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 100 + i,
+                    sender: FINAL_SEQUENCE[i].sender,
+                    text: FINAL_SEQUENCE[i].text,
+                    type: 'text',
+                    time: FINAL_SEQUENCE[i].time
+                }]);
+            }
+
+            // Trigger contract
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            onTriggerContract();
+
+            // Connection lost
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            setMessages(prev => [...prev, {
+                id: Date.now() + 200,
+                sender: 'System',
+                text: '통신 상태가 불안정합니다. 연결이 종료됩니다.',
+                type: 'system',
+                time: 'Now'
+            }]);
+            setIsDisconnected(true);
+        }
+
+        setIsTyping(false);
+    };
+    // --- END START MODE ---
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -190,21 +318,18 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
             setMessages(prev => [...prev, aiMsg]);
 
             // Check trigger condition
-            // IF we haven't triggered yet
-            const isContractPhase = messages.length >= 2; // Trigger faster for testing
+            const isContractPhase = messages.length >= 2;
 
             if (isContractPhase) {
                 setTimeout(() => {
-                    onTriggerContract(); // Fires global event, Scene shows contract
+                    onTriggerContract();
 
-                    // Start Special Contract Dialogue Sequence
                     setTimeout(() => {
                         setMessages(prev => [...prev, { id: Date.now() + 2, sender: '강 형사', text: '잠깐, 그 계약서 뭐야? 뻐끔뻐끔? 그게 무슨 소리야?', type: 'text', time: 'Now' }]);
 
-                        // Signal Loss Effect
                         setTimeout(() => {
                             setMessages(prev => [...prev, { id: Date.now() + 3, sender: 'System', text: '통신 상태가 불안정합니다. 연결이 종료됩니다.', type: 'system', time: 'Now' }]);
-                            setIsDisconnected(true); // Set Disconnected State
+                            setIsDisconnected(true);
                         }, 2000);
                     }, 2000);
                 }, 1000);
@@ -218,6 +343,11 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
             setIsLoading(false);
         }
     };
+
+    // Determine current choices for start mode
+    const currentChoices = isStartMode && scriptStep < SCRIPTED_CHOICES.length && !isDisconnected
+        ? SCRIPTED_CHOICES[scriptStep].choices
+        : null;
 
     return (
         <div className="flex flex-col h-full bg-white text-gray-900">
@@ -280,7 +410,7 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
                         )}
                     </motion.div>
                 ))}
-                {isLoading && (
+                {(isLoading || isTyping) && (
                     <motion.div className="flex justify-start">
                         <div className="w-8 h-8 rounded-full bg-gray-200 mr-2 flex-shrink-0 self-end mb-1 overflow-hidden">
                             <User className="w-full h-full text-gray-500 p-1" />
@@ -297,25 +427,45 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
                 <div ref={bottomRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-3 border-t bg-white flex items-center space-x-2">
-                <input
-                    type="text"
-                    className="flex-1 h-10 bg-gray-100 rounded-full px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    placeholder="메시지 보내기..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    disabled={isLoading}
-                />
-                <button
-                    onClick={handleSend}
-                    className={`p-2 rounded-full transition-colors ${inputValue.trim() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}
-                    disabled={!inputValue.trim() || isLoading}
-                >
-                    <Send className="w-5 h-5" />
-                </button>
-            </div>
+            {/* Input Area - Changes based on mode */}
+            {isStartMode && currentChoices ? (
+                /* Start Mode: Choice buttons */
+                <div className="p-3 border-t bg-gray-50 space-y-2">
+                    <p className="text-xs text-gray-400 text-center mb-1">응답을 선택하세요</p>
+                    {currentChoices.map((choice) => (
+                        <motion.button
+                            key={choice.id}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleScriptedChoice(choice.id)}
+                            disabled={isTyping}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-left hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {choice.text}
+                        </motion.button>
+                    ))}
+                </div>
+            ) : (
+                /* Normal Mode: Text input */
+                <div className="p-3 border-t bg-white flex items-center space-x-2">
+                    <input
+                        type="text"
+                        className="flex-1 h-10 bg-gray-100 rounded-full px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        placeholder={isDisconnected ? '연결이 끊겼습니다...' : '메시지 보내기...'}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                        disabled={isLoading || (isStartMode && !currentChoices)}
+                    />
+                    <button
+                        onClick={handleSend}
+                        className={`p-2 rounded-full transition-colors ${inputValue.trim() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+                        disabled={!inputValue.trim() || isLoading}
+                    >
+                        <Send className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
@@ -522,7 +672,7 @@ const ContractPhase = ({ onComplete }) => {
     );
 };
 
-const MessengerApp = ({ onComplete, onBack, initialMessages }) => {
+const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
     // phase: 'loading' | 'list' | 'chat'
     // NOTE: 'contract' phase is now handled globally by Test04Scene (Split Screen). 
     // The Messenger stays in 'chat' mode.
@@ -639,6 +789,7 @@ const MessengerApp = ({ onComplete, onBack, initialMessages }) => {
                             onTriggerContract={handleTriggerContract}
                             isDisconnected={isDisconnected}
                             setIsDisconnected={setIsDisconnected}
+                            isStartMode={isStartMode}
                         />
                     </motion.div>
                 )}

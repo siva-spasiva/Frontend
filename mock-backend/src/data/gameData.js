@@ -186,7 +186,7 @@ export const FLOOR_DATA = [
                 highlightText: 'OPEN',
                 highlightColor: 'text-blue-200',
                 description: '테라스. 바닷바람이 시원하게 불어온다.',
-                overlayColor: 'bg-black/10',
+                overlayColor: 'bg-black/0',
                 background: '2F_terrace01.png',
                 activeZones: [
                     {
@@ -231,8 +231,51 @@ export const FLOOR_DATA = [
         id: '1F',
         name: '우미 갤러리 & 카페',
         description: '아름다운 해안 절벽 위에 세워진 목조 건물.',
-        mapImage: '1F_outside.png',
+        mapImage: '1F_outside01.png',
         rooms: [
+            {
+                id: 'outside01',
+                name: '갤러리 외부',
+                namePrefix: '우미 갤러리',
+                highlightText: 'OUTSIDE',
+                highlightColor: 'text-cyan-300',
+                description: '해안 절벽 위에 세워진 아름다운 목조 건물. 잔잔한 파도 소리가 들린다.',
+                background: '1F_outside01.png',
+                overlayColor: 'bg-black/0',
+                activeZones: [
+                    {
+                        id: 'to_main_hall',
+                        type: 'move',
+                        target: 'main_hall',
+                        x: '60%',
+                        y: '30%',
+                        width: '20%',
+                        height: '50%',
+                        label: '건물 입구',
+                        message: '건물 안으로 들어간다.'
+                    },
+                    {
+                        id: 'info_ocean_view',
+                        type: 'info',
+                        x: '5%',
+                        y: '30%',
+                        width: '25%',
+                        height: '30%',
+                        label: '바닷가 풍경',
+                        message: '끝없이 펼쳐진 푸른 바다. 수평선 너머로 갈매기들이 날고 있다. 평화로운 풍경이지만... 어딘가 불안하다.'
+                    },
+                    {
+                        id: 'info_stone_stairs',
+                        type: 'info',
+                        x: '75%',
+                        y: '60%',
+                        width: '15%',
+                        height: '25%',
+                        label: '돌계단',
+                        message: '절벽을 따라 깎아 만든 낡은 돌계단. 바닷물에 닳아 이끼가 끼어있다. 어디로 이어지는 걸까.'
+                    }
+                ]
+            },
             {
                 id: 'main_hall',
                 name: '메인 홀',
@@ -240,8 +283,32 @@ export const FLOOR_DATA = [
                 highlightText: 'CAFE',
                 highlightColor: 'text-blue-300',
                 description: '잔잔한 재즈 음악이 흐르는, 바닷가가 보이는 깔끔한 인테리어와 곳곳에 놓인 싱그러운 화분들이 돋보인다.',
-                background: null,
+                background: '1F_hall01.png',
                 overlayColor: 'bg-black/5',
+                activeZones: [
+                    {
+                        id: 'to_outside',
+                        type: 'move',
+                        target: 'outside01',
+                        x: '5%',
+                        y: '30%',
+                        width: '10%',
+                        height: '40%',
+                        label: '외부',
+                        message: '건물 밖으로 나간다.'
+                    },
+                    {
+                        id: 'to_umi_class_from_hall',
+                        type: 'move',
+                        target: 'umi_class',
+                        x: '80%',
+                        y: '30%',
+                        width: '15%',
+                        height: '40%',
+                        label: '원데이 클래스',
+                        message: '원데이 클래스 룸으로 향한다.'
+                    }
+                ]
             },
             {
                 id: 'umi_class',
@@ -252,11 +319,35 @@ export const FLOOR_DATA = [
                 description: '아치형 창문으로 바다가 내다보이는 아름다운 강의실. 나무 바닥 위로 햇살이 길게 드리워져 있고, 이젤과 책들이 여기저기 놓여있다.',
                 background: '1F_class02.png',
                 overlayColor: 'bg-black/5',
+                activeZones: [
+                    {
+                        id: 'to_main_hall_from_class',
+                        type: 'move',
+                        target: 'main_hall',
+                        x: '5%',
+                        y: '30%',
+                        width: '10%',
+                        height: '40%',
+                        label: '메인 홀',
+                        message: '메인 홀로 돌아간다.'
+                    },
+                    {
+                        id: 'to_stairs_from_class',
+                        type: 'move',
+                        target: 'stairs_up',
+                        x: '85%',
+                        y: '40%',
+                        width: '12%',
+                        height: '35%',
+                        label: '계단',
+                        message: '계단 쪽으로 향한다.'
+                    }
+                ]
             },
             {
                 id: 'stairs_up',
                 name: '계단',
-                description: '2층으로 이어지는 목조 계단. "관계자 외 출입금지" 팻말이 작게 붙어있다.',
+                description: '2층으로 이어지는 목조 계단.',
                 background: '1F_stair01.png',
                 activeZones: [
                     {
@@ -269,16 +360,6 @@ export const FLOOR_DATA = [
                         height: '20%',
                         label: '2층 창고',
                         message: '2층 자재 창고로 올라간다.'
-                    },
-                    {
-                        id: 'center_door_locked',
-                        type: 'info', // Changed to info to represent locked state
-                        x: '65%',
-                        y: '50%',
-                        width: '15%',
-                        height: '30%',
-                        label: '지하 1층 (잠김)',
-                        message: '문이 굳게 잠겨있다. "관계자 외 출입금지"'
                     },
                     {
                         id: 'to_umi_class',
@@ -340,7 +421,7 @@ export const FLOOR_DATA = [
     {
         id: 'B1',
         name: 'B1: 규율의 공간',
-        description: '신도들이 모여 식사하고 교류하는 곳. 묘한 활기와 감시가 공존한다.',
+        description: '우미교 지하의 가장 위층. 묘한 활기와 감시가 공존한다.',
         rooms: [
             {
                 id: 'cafeteria',
@@ -753,6 +834,7 @@ export const FLOOR_DATA = [
                 id: 'master_room',
                 name: '전광어의 방',
                 description: '전광어의 방. 수조에 물고기가 가득하다.',
+                background: 'B4_master01.png',
             },
             {
                 id: 'solpi_tank',
