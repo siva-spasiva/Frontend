@@ -47,7 +47,7 @@ const Debug03Scene = ({ onBack }) => {
 
     useEffect(() => {
         setLoadingRooms(true);
-        fetch('http://localhost:3001/api/data/static')
+        fetch('http://localhost:3000/api/data/static')
             .then(res => res.json())
             .then(data => {
                 if (data.floorData) setFloorData(data.floorData);

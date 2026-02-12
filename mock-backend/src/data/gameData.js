@@ -2,6 +2,8 @@
 // Import prompts
 import * as PROMPTS from '../utils/prompts.js';
 import { ITEM_DEFINITIONS } from './items.js';
+import { FLOOR_DATA } from './mapdata.js';
+export { FLOOR_DATA };
 
 const PORTRAIT_ROOT = '/src/assets/portrait/';
 const MAP_ROOT = '/src/assets/map/';
@@ -125,10 +127,6 @@ const NPC_DATA = {
         }
     }
 };
-
-// Map/Floor data is now in mapdata.js
-import { FLOOR_DATA } from './mapdata.js';
-export { FLOOR_DATA };
 
 
 // Resolvers
