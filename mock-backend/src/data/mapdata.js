@@ -617,10 +617,10 @@ export const FLOOR_DATA = [
                 namePrefix: '005호',
                 highlightText: '005',
                 highlightColor: 'text-cyan-400',
-                description: '정돈된 듯 어지러운 방. 잡다한 물건들이 전략적으로 배치되어 있다. 거래의 흔적이 곳곳에.',
-                background: null,
+                description: '정돈된 듯 어지러운 방.',
                 overlayColor: 'bg-black/40',
                 npcId: 'galchi',
+                background: 'B2_room05.png',
                 activeZones: [
                     {
                         id: 'zone_door_005',
