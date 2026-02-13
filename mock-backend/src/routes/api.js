@@ -2,6 +2,7 @@ import express from 'express';
 import { handleChat } from '../controllers/chatController.js';
 import { getStats, updateStats, resetStats, transferItem } from '../controllers/statsController.js';
 import { getStaticData, getSchedule } from '../controllers/dataController.js';
+import { getFloors, saveFloorData, getMapImages } from '../controllers/mapEditorController.js';
 
 const router = express.Router();
 
@@ -20,5 +21,10 @@ router.get('/data/static', getStaticData);
 
 // Schedule Route
 router.get('/schedule', getSchedule);
+
+// Map Editor Routes
+router.get('/editor/floors', getFloors);
+router.post('/editor/save', saveFloorData);
+router.get('/editor/maps', getMapImages);
 
 export default router;

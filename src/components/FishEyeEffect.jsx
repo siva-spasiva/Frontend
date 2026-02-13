@@ -41,8 +41,8 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {}, waveFilterId: externalFi
                     <filter id={filterId} x="-10%" y="-10%" width="120%" height="120%">
                         <feTurbulence
                             type="fractalNoise"
-                            baseFrequency={`${0.006 + fishTier * 0.002} ${0.004 + fishTier * 0.0015}`}
-                            numOctaves={fishTier >= 3 ? 3 : 2}
+                            baseFrequency={`${0.004 + fishTier * 0.0015} ${0.003 + fishTier * 0.001}`}
+                            numOctaves={fishTier >= 4 ? 3 : 2}
                             seed="42"
                             result="turbulence"
                         >
@@ -50,7 +50,7 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {}, waveFilterId: externalFi
                                 attributeName="seed"
                                 from="0"
                                 to="100"
-                                dur={`${Math.max(6, 18 - fishTier * 3)}s`}
+                                dur={`${Math.max(10, 24 - fishTier * 2)}s`}
                                 repeatCount="indefinite"
                             />
                         </feTurbulence>
@@ -120,7 +120,7 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {}, waveFilterId: externalFi
             {/* === 떠다니는 미세 파티클 — Tier 3+ === */}
             {fishTier >= 3 && (
                 <div className="absolute inset-0 overflow-hidden">
-                    {Array.from({ length: Math.min(fishTier * 2, 8) }).map((_, i) => (
+                    {Array.from({ length: Math.min(fishTier, 5) }).map((_, i) => (
                         <motion.div
                             key={`particle-${i}`}
                             className="absolute rounded-full"
@@ -130,17 +130,18 @@ const FishEyeEffect = ({ fishTier = 0, mapEffects = {}, waveFilterId: externalFi
                                 background: `rgba(120, 200, 255, ${0.3 + Math.random() * 0.3})`,
                                 left: `${10 + Math.random() * 80}%`,
                                 bottom: '-5%',
+                                willChange: 'transform, opacity'
                             }}
                             animate={{
-                                y: [0, -(window.innerHeight || 800) * (0.5 + Math.random() * 0.5)],
+                                y: [0, -600 - Math.random() * 200],
                                 x: [0, (Math.random() - 0.5) * 60],
                                 opacity: [0.6, 0],
                                 scale: [1, 0.3],
                             }}
                             transition={{
-                                duration: 6 + Math.random() * 6,
+                                duration: 8 + Math.random() * 6,
                                 repeat: Infinity,
-                                delay: Math.random() * 8,
+                                delay: Math.random() * 10,
                                 ease: 'easeOut',
                             }}
                         />

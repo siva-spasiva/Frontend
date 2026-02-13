@@ -37,11 +37,16 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                         <div className="w-full h-full flex items-center justify-center">
                             <motion.div
                                 animate={{
-                                    boxShadow: ['0 0 5px #fbbf24', '0 0 15px #fbbf24', '0 0 5px #fbbf24'],
-                                    scale: [1, 1.2, 1]
+                                    opacity: [0.7, 1, 0.7],
+                                    scale: [1, 1.15, 1]
                                 }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="w-4 h-4 bg-yellow-400 rounded-full"
+                                transition={{
+                                    duration: 3,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                                className="w-4 h-4 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)]"
+                                style={{ willChange: 'transform, opacity' }}
                             />
                         </div>
                     ) : (

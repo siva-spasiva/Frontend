@@ -28,8 +28,8 @@ const useFishVisuals = () => {
             borderRadius: fishTier >= 3 ? `${10 + (fishTier - 2) * 8}%` : '0%',
             // 비네팅 강도 (0~1)
             vignetteOpacity: Math.min(fishTier * 0.15, 0.6),
-            // 수중 물결 (feTurbulence scale)
-            waveIntensity: fishTier >= 2 ? fishTier * 3 : 0,
+            // 수중 물결 (feTurbulence scale) - 성능을 위해 강도 감소
+            waveIntensity: fishTier >= 2 ? fishTier * 2 : 0,
             // 색조 회전 (청록색 방향)
             hueRotate: fishTier * 15, // deg
             // 채도 증가 (수중 느낌)

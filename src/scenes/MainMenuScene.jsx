@@ -22,12 +22,12 @@ const PhoneFrame = ({ children, header, isBroken }) => {
         : '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
 
     return (
-        <div className="w-full h-full flex items-center justify-center font-sans">
+        <div className="w-full h-full flex items-start justify-center font-sans pt-8 pb-8">
             <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -50, opacity: 0 }}
-                className={`w-full max-w-sm h-[95vh] max-h-[800px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative flex flex-col transition-all duration-500 ${borderClass}`}
+                className={`w-full max-w-sm h-[88vh] max-h-[750px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border overflow-hidden relative flex flex-col transition-all duration-500 ${borderClass}`}
                 style={isBroken ? { boxShadow: '0 0 20px rgba(0,0,0,0.8)' } : { boxShadow: fishShadow }}
             >
                 {/* Cracks & Damage Overlays */}

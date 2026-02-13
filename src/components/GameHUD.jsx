@@ -58,7 +58,7 @@ const GameHUD = ({
                     y: viewMode === 'hidden' ? -200 : 0, // Slide up if hidden
                     opacity: viewMode === 'hidden' ? 0 : 1
                 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
             >
                 <div className="flex items-center space-x-2 text-white/90 mb-1 drop-shadow-md">
                     <MapPin className="w-4 h-4" />

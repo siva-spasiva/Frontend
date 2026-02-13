@@ -46,7 +46,7 @@ const SmartphoneMenu = ({
                             right: '40px' // Stretch to right
                         }}
                         exit={{ opacity: 0, y: 100 }}
-                        transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
                         className={`absolute bottom-6 z-20 flex flex-col justify-end pointer-events-none`}
                     >
                         {/* Log History */}
