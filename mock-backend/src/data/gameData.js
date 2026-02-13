@@ -20,7 +20,11 @@ const NPC_DATA = {
             angry: 'npc_A_02.png',
             surprised: 'npc_A_03.png',
         },
-        prompt: PROMPTS.TEST03_NPC_PROMPT,
+        prompts: {
+            friendly: {
+                DEFAULT: PROMPTS.TEST03_NPC_PROMPT,
+            },
+        },
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
         }
@@ -33,7 +37,11 @@ const NPC_DATA = {
             default: 'npc_reporter_00.png',
             talking: 'npc_reporter_01.png',
         },
-        prompt: PROMPTS.REPORTER_PROMPT,
+        prompts: {
+            friendly: {
+                DEFAULT: PROMPTS.REPORTER_PROMPT,
+            },
+        },
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
         }
@@ -41,12 +49,20 @@ const NPC_DATA = {
     detective_kang: {
         id: 'detective_kang',
         name: '강 형사',
-        prompt: PROMPTS.DETECTIVE_KANG_PROMPT
+        prompts: {
+            friendly: {
+                DEFAULT: PROMPTS.DETECTIVE_KANG_PROMPT,
+            },
+        },
     },
     test02: {
         id: 'test02',
         name: 'Test NPC 02',
-        prompt: PROMPTS.TEST02_NPC_PROMPT
+        prompts: {
+            friendly: {
+                DEFAULT: PROMPTS.TEST02_NPC_PROMPT,
+            },
+        },
     },
     bokeo: {
         id: 'bokeo',
@@ -66,11 +82,13 @@ const NPC_DATA = {
             confess: 'npc_bokeo_03.png',
         },
         // 친밀도(Friendly) 구간별 프롬프트 자동 전환
-        promptTiers: {
-            BAD: PROMPTS.BOKEO_PROMPT_BAD,         // 0-19
-            NORMAL: PROMPTS.BOKEO_PROMPT_NORMAL,   // 20-45
-            GOOD: PROMPTS.BOKEO_PROMPT_GOOD,       // 46-75
-            PERFECT: PROMPTS.BOKEO_PROMPT_PERFECT,  // 76-100
+        prompts: {
+            friendly: {
+                BAD: PROMPTS.BOKEO_PROMPT_BAD,         // 0-19
+                NORMAL: PROMPTS.BOKEO_PROMPT_NORMAL,   // 20-45
+                GOOD: PROMPTS.BOKEO_PROMPT_GOOD,       // 46-75
+                PERFECT: PROMPTS.BOKEO_PROMPT_PERFECT,  // 76-100
+            },
         },
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
@@ -91,11 +109,13 @@ const NPC_DATA = {
             smirk: 'npc_galchi_01.png',
             serious: 'npc_galchi_02.png',
         },
-        promptTiers: {
-            BAD: PROMPTS.GALCHI_PROMPT_BAD,         // 0-19
-            NORMAL: PROMPTS.GALCHI_PROMPT_NORMAL,   // 20-45
-            GOOD: PROMPTS.GALCHI_PROMPT_GOOD,       // 46-75
-            PERFECT: PROMPTS.GALCHI_PROMPT_PERFECT,  // 76-100
+        prompts: {
+            friendly: {
+                BAD: PROMPTS.GALCHI_PROMPT_BAD,         // 0-19
+                NORMAL: PROMPTS.GALCHI_PROMPT_NORMAL,   // 20-45
+                GOOD: PROMPTS.GALCHI_PROMPT_GOOD,       // 46-75
+                PERFECT: PROMPTS.GALCHI_PROMPT_PERFECT,  // 76-100
+            },
         },
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
@@ -116,11 +136,13 @@ const NPC_DATA = {
             nervous: 'npc_bingeo_01.png',
             earnest: 'npc_bingeo_02.png',
         },
-        promptTiers: {
-            BAD: PROMPTS.BINGEO_PROMPT_BAD,         // 0-19
-            NORMAL: PROMPTS.BINGEO_PROMPT_NORMAL,   // 20-45
-            GOOD: PROMPTS.BINGEO_PROMPT_GOOD,       // 46-75
-            PERFECT: PROMPTS.BINGEO_PROMPT_PERFECT,  // 76-100
+        prompts: {
+            friendly: {
+                BAD: PROMPTS.BINGEO_PROMPT_BAD,         // 0-19
+                NORMAL: PROMPTS.BINGEO_PROMPT_NORMAL,   // 20-45
+                GOOD: PROMPTS.BINGEO_PROMPT_GOOD,       // 46-75
+                PERFECT: PROMPTS.BINGEO_PROMPT_PERFECT,  // 76-100
+            },
         },
         apiConfig: {
             model: 'gpt-oss:20b-cloud',

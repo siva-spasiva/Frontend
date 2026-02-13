@@ -3,7 +3,7 @@ import { handleChat } from '../controllers/chatController.js';
 import { getStats, updateStats, resetStats, transferItem } from '../controllers/statsController.js';
 import { getStaticData, getSchedule } from '../controllers/dataController.js';
 import { getFloors, saveFloorData, getMapImages } from '../controllers/mapEditorController.js';
-import { getNpcEditorData, saveNpcSchedule, saveNpcPrompt } from '../controllers/npcEditorController.js';
+import { getNpcEditorData, saveNpcSchedule, saveNpcPrompt, updateNpc, createNpc } from '../controllers/npcEditorController.js';
 
 const router = express.Router();
 
@@ -32,5 +32,7 @@ router.get('/editor/maps', getMapImages);
 router.get('/editor/npcs', getNpcEditorData);
 router.post('/editor/npc/schedule', saveNpcSchedule);
 router.post('/editor/npc/prompt', saveNpcPrompt);
+router.post('/editor/npc/update', updateNpc);
+router.post('/editor/npc/create', createNpc);
 
 export default router;

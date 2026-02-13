@@ -11,6 +11,7 @@ import Test04Scene from './scenes/Test04Scene';
 import Test05Scene from './scenes/Test05Scene';
 import Debug00Scene from './scenes/Debug00Scene';
 import Debug01Scene from './scenes/Debug01Scene';
+import Debug02Scene from './scenes/Debug02Scene';
 import Debug03Scene from './scenes/Debug03Scene';
 import CrashScene from './scenes/CrashScene';
 import TerminalScene from './scenes/TerminalScene';
@@ -85,6 +86,7 @@ const MainLayout = () => {
   const toTest05 = () => setPhase('test05');
   const toDebug00 = () => setPhase('debug00');
   const toDebug01 = () => setPhase('debug01');
+  const toDebug02 = () => setPhase('debug02');
   const toDebug03 = () => setPhase('debug03');
   const toCrash = () => setPhase('crash');
   const toTerminal = () => {
@@ -138,6 +140,10 @@ const MainLayout = () => {
 
         {phase === 'debug01' && (
           <Debug01Scene key="debug01" onBack={toMainMenu} />
+        )}
+
+        {phase === 'debug02' && (
+          <Debug02Scene key="debug02" onBack={toMainMenu} />
         )}
 
         {phase === 'debug03' && (
@@ -304,6 +310,7 @@ const MainLayout = () => {
                     onStartSequence={toStart}
                     onDebug00Start={toDebug00}
                     onDebug01Start={toDebug01}
+                    onDebug02Start={toDebug02}
                     onDebug03Start={toDebug03}
                     onHome={toMainMenu}
                     currentPhase={phase}

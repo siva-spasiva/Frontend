@@ -12,15 +12,29 @@ const getFriendlyTier = (friendly) => {
     return 'PERFECT';
 };
 
-// Helper to get prompt by npcId (supports tiered prompts)
+// Helper to get prompt by npcId (supports per-stat tiered prompts)
 const getPromptForNpc = (npcId, npcStats = {}) => {
     const npc = NPC_DATA[npcId];
     if (!npc) return PROMPTS.DETECTIVE_KANG_PROMPT;
 
-    // Tiered prompt system — friendly 구간에 따라 프롬프트 자동 전환
+    // New unified prompts structure: prompts.friendly.{TIER|DEFAULT}
+    if (npc.prompts?.friendly) {
+        const friendlyPrompts = npc.prompts.friendly;
+        // If has tiered prompts (BAD/NORMAL/GOOD/PERFECT)
+        if (friendlyPrompts.BAD || friendlyPrompts.NORMAL || friendlyPrompts.GOOD || friendlyPrompts.PERFECT) {
+            const tier = getFriendlyTier(npcStats.friendly ?? 50);
+            console.log(`[Prompt Tier] NPC: ${npcId}, Friendly: ${npcStats.friendly}, Tier: ${tier}`);
+            return friendlyPrompts[tier] || friendlyPrompts.DEFAULT || PROMPTS.DETECTIVE_KANG_PROMPT;
+        }
+        // Single prompt via DEFAULT
+        if (friendlyPrompts.DEFAULT) {
+            return friendlyPrompts.DEFAULT;
+        }
+    }
+
+    // Legacy fallback: promptTiers / prompt
     if (npc.promptTiers) {
         const tier = getFriendlyTier(npcStats.friendly ?? 50);
-        console.log(`[Prompt Tier] NPC: ${npcId}, Friendly: ${npcStats.friendly}, Tier: ${tier}`);
         return npc.promptTiers[tier] || npc.prompt || PROMPTS.DETECTIVE_KANG_PROMPT;
     }
 

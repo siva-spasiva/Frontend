@@ -59,19 +59,33 @@ export const getNpcEditorData = (req, res) => {
                 const nameMatch = body.match(/name:\s*'([^']*)'/);
                 if (nameMatch) npc.name = nameMatch[1];
 
-                // Extract prompt reference
+                // Extract prompt reference (legacy: prompt: PROMPTS.X)
                 const promptMatch = body.match(/prompt:\s*PROMPTS\.(\w+)/);
                 if (promptMatch) npc.promptKey = promptMatch[1];
 
-                // Extract promptTiers
-                const tierMatches = [...body.matchAll(/(\w+):\s*PROMPTS\.(\w+)/g)];
-                const tiers = {};
-                tierMatches.forEach(tm => {
-                    if (['BAD', 'NORMAL', 'GOOD', 'PERFECT'].includes(tm[1])) {
-                        tiers[tm[1]] = tm[2];
+                // Extract new unified prompts structure: prompts.friendly.{TIER|DEFAULT}
+                const allPromptRefs = [...body.matchAll(/(\w+):\s*PROMPTS\.(\w+)/g)];
+                const friendlyTiers = {};
+                allPromptRefs.forEach(tm => {
+                    if (['BAD', 'NORMAL', 'GOOD', 'PERFECT', 'DEFAULT'].includes(tm[1])) {
+                        friendlyTiers[tm[1]] = tm[2];
                     }
                 });
-                if (Object.keys(tiers).length > 0) npc.promptTiers = tiers;
+                if (Object.keys(friendlyTiers).length > 0) {
+                    npc.prompts = { friendly: friendlyTiers };
+                }
+
+                // Legacy fallback: Extract promptTiers (old format)
+                if (!npc.prompts) {
+                    const tierMatches = [...body.matchAll(/(\w+):\s*PROMPTS\.(\w+)/g)];
+                    const tiers = {};
+                    tierMatches.forEach(tm => {
+                        if (['BAD', 'NORMAL', 'GOOD', 'PERFECT'].includes(tm[1])) {
+                            tiers[tm[1]] = tm[2];
+                        }
+                    });
+                    if (Object.keys(tiers).length > 0) npc.promptTiers = tiers;
+                }
 
                 // Extract initialStats
                 const statsMatch = body.match(/initialStats:\s*\{([^}]+)\}/);
@@ -204,6 +218,137 @@ export const saveNpcPrompt = (req, res) => {
             res.status(404).json({ error: `Prompt '${promptKey}' not found` });
         }
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// POST /api/editor/npc/update - NPC 이름, 인벤토리 등 수정
+export const updateNpc = (req, res) => {
+    try {
+        const { npcId, updates } = req.body;
+        if (!npcId || !updates) {
+            return res.status(400).json({ error: 'Missing npcId or updates' });
+        }
+
+        let content = fs.readFileSync(GAMEDATA_PATH, 'utf-8');
+
+        // Update name
+        if (updates.name !== undefined) {
+            // Match: npcId: { ... name: 'xxx' ... }
+            const nameRegex = new RegExp(`(${npcId}:\\s*\\{[^}]*?)name:\\s*'[^']*'`);
+            if (nameRegex.test(content)) {
+                content = content.replace(nameRegex, `$1name: '${updates.name}'`);
+            }
+        }
+
+        // Update initialInventory
+        if (updates.initialInventory !== undefined) {
+            const items = updates.initialInventory;
+            const itemsStr = items.map(i => `'${i}'`).join(', ');
+
+            // Try to replace existing initialInventory
+            const invRegex = new RegExp(`(${npcId}:\\s*\\{[\\s\\S]*?)initialInventory:\\s*\\[[^\\]]*\\]`);
+            if (invRegex.test(content)) {
+                content = content.replace(invRegex, `$1initialInventory: [${itemsStr}]`);
+            } else if (items.length > 0) {
+                // Add initialInventory before apiConfig or closing brace
+                const addInvRegex = new RegExp(`(${npcId}:\\s*\\{[\\s\\S]*?)(\\s*apiConfig:|\\s*\\},)`);
+                if (addInvRegex.test(content)) {
+                    content = content.replace(addInvRegex, `$1\n        initialInventory: [${itemsStr}],$2`);
+                }
+            }
+        }
+
+        fs.writeFileSync(GAMEDATA_PATH, content, 'utf-8');
+        console.log(`[NPC Editor] NPC '${npcId}' updated:`, Object.keys(updates));
+        res.json({ success: true });
+    } catch (err) {
+        console.error('NPC update error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// POST /api/editor/npc/create - 새 NPC 추가
+export const createNpc = (req, res) => {
+    try {
+        const { npcId, name, promptType } = req.body;
+        if (!npcId || !name) {
+            return res.status(400).json({ error: 'Missing npcId or name' });
+        }
+
+        // Validate npcId format (lowercase, alphanumeric + underscore)
+        if (!/^[a-z][a-z0-9_]*$/.test(npcId)) {
+            return res.status(400).json({ error: 'npcId는 소문자 영문으로 시작하며, 소문자/숫자/밑줄만 사용 가능합니다.' });
+        }
+
+        let content = fs.readFileSync(GAMEDATA_PATH, 'utf-8');
+
+        // Check if NPC already exists
+        const existsRegex = new RegExp(`\\b${npcId}:\\s*\\{`);
+        if (existsRegex.test(content)) {
+            return res.status(409).json({ error: `NPC '${npcId}'이(가) 이미 존재합니다.` });
+        }
+
+        // Generate prompt key(s)
+        const upperNpcId = npcId.toUpperCase();
+        let promptBlock;
+        let newPrompts = '';
+
+        if (promptType === 'tiered') {
+            // Create 4-tier prompts
+            const tiers = ['BAD', 'NORMAL', 'GOOD', 'PERFECT'];
+            const promptKeys = tiers.map(t => `${upperNpcId}_PROMPT_${t}`);
+
+            promptBlock = `prompts: {
+            friendly: {
+                BAD: PROMPTS.${promptKeys[0]},         // 0-19
+                NORMAL: PROMPTS.${promptKeys[1]},   // 20-45
+                GOOD: PROMPTS.${promptKeys[2]},       // 46-75
+                PERFECT: PROMPTS.${promptKeys[3]},  // 76-100
+            },
+        },`;
+
+            // Create prompt exports
+            newPrompts = tiers.map(t =>
+                `\nexport const ${upperNpcId}_PROMPT_${t} = \`\n[${name} - ${t} Tier Prompt]\n여기에 프롬프트를 작성하세요.\n\`;`
+            ).join('\n');
+        } else {
+            // Single DEFAULT prompt
+            const promptKey = `${upperNpcId}_PROMPT`;
+            promptBlock = `prompts: {
+            friendly: {
+                DEFAULT: PROMPTS.${promptKey},
+            },
+        },`;
+            newPrompts = `\nexport const ${promptKey} = \`\n[${name} Prompt]\n여기에 프롬프트를 작성하세요.\n\`;`;
+        }
+
+        // Build NPC block
+        const npcBlock = `\n    ${npcId}: {
+        id: '${npcId}',
+        name: '${name}',
+        ${promptBlock}
+    },`;
+
+        // Insert before closing }; of NPC_DATA
+        // Find the last NPC entry and insert after it
+        const insertPos = content.lastIndexOf('\n};');
+        if (insertPos === -1) {
+            return res.status(500).json({ error: 'Cannot find NPC_DATA closing bracket' });
+        }
+        content = content.substring(0, insertPos) + npcBlock + content.substring(insertPos);
+
+        fs.writeFileSync(GAMEDATA_PATH, content, 'utf-8');
+
+        // Add prompts to prompts.js
+        let promptsContent = fs.readFileSync(PROMPTS_PATH, 'utf-8');
+        promptsContent += newPrompts + '\n';
+        fs.writeFileSync(PROMPTS_PATH, promptsContent, 'utf-8');
+
+        console.log(`[NPC Editor] NPC '${npcId}' created (${promptType || 'single'})`);
+        res.json({ success: true, npcId });
+    } catch (err) {
+        console.error('NPC create error:', err);
         res.status(500).json({ error: err.message });
     }
 };
