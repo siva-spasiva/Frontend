@@ -358,8 +358,8 @@ export const FLOOR_DATA = [
     },
     {
         "id": "B1",
-        "name": "B1: 규율의 공간",
-        "description": "우미교 지하의 가장 위층. 묘한 활기와 감시가 공존한다.",
+        "name": "B1: 식장 / 조리실",
+        "description": "우미교 지하의 식당과 조리실.",
         "rooms": [
             {
                 "id": "cafeteria",
@@ -370,33 +370,157 @@ export const FLOOR_DATA = [
                 "description": "조금 소란스러운 식당. 신도들이 식사를 하고 있다.",
                 "mapImage": "B1_restaurant01.png",
                 "overlayColor": "bg-black/20",
-                "background": "B1_restaurant01.png"
-            },
-            {
-                "id": "lounge",
-                "name": "휴게실 (자판기 구역)",
-                "description": "솔피의 눈물이 들어있는 자판기가 있다.",
-                "background": "B1_machine01.png"
+                "background": "B1_restaurant01.png",
+                "activeZones": [
+                    {
+                        "id": "to_1f",
+                        "type": "move",
+                        "target": "stairs_down",
+                        "label": "1층 계단",
+                        "message": "1층으로 올라간다."
+                    },
+                    {
+                        "id": "to_kitchen",
+                        "type": "move",
+                        "target": "kitchen",
+                        "label": "조리실",
+                        "message": "조리실로 들어간다."
+                    },
+                    {
+                        "id": "to_b2",
+                        "type": "move",
+                        "target": "hallway", // Was laundry_hall, now back to hallways
+                        "label": "B2: 거주층",
+                        "message": "지하 2층으로 내려간다."
+                    }
+                ]
             },
             {
                 "id": "kitchen",
                 "name": "조리실",
                 "description": "칼과 불이 있는 위험한 곳. B4로 직행하는 식재료용 덤웨이터(소형 승강기)가 있다.",
-                "background": "B1_kitchen01.png"
-            },
-            {
-                "id": "master_room",
-                "name": "관리실 (구 교주의 방)",
-                "description": "CCTV로 B2 복도를 감시하는 곳. 주교는 더 깊은 곳에 있다. 여기엔 장부만 있다."
+                "background": "B1_kitchen01.png",
+                "activeZones": [
+                    {
+                        "id": "to_cafeteria",
+                        "type": "move",
+                        "target": "cafeteria",
+                        "label": "식당",
+                        "message": "식당으로 나간다."
+                    }
+                ]
             }
         ]
     },
     {
         "id": "B2",
-        "name": "거주층",
-        "description": "신도들의 숙소. 기묘한 소리가 벽 너머로 들린다.",
+        "name": "거주층 & 세탁실",
+        "description": "신도들의 숙소와 세탁실이 있는 곳. 기묘한 소리와 습한 냄새가 섞여 있다.",
         "rooms": [
-            {
+           {
+                "id": "hallway",
+                "name": "복도",
+                "namePrefix": "B2 복도",
+                "highlightText": "HALL",
+                "highlightColor": "text-gray-600",
+                "description": "묘한 비린내와 곰팡이 냄새가 진동하는 복도.",
+                "overlayColor": "bg-black/20",
+                "background": "B2_hallway02.png",
+                "activeZones": [
+                    {
+                        "id": "door_001",
+                        "type": "move",
+                        "target": "room001",
+                        "x": 5.3998667915147465,
+                        "y": 25.067674675328895,
+                        "width": 15.059880112363274,
+                        "height": 60.84461244588816,
+                        "label": "001호",
+                        "message": "001호 문을 연다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "door_002",
+                        "type": "move",
+                        "target": "room002",
+                        "x": 48.545352342945506,
+                        "y": 40.43962119049319,
+                        "width": 5.880239775273445,
+                        "height": 24.86412225105301,
+                        "label": "002호",
+                        "message": "002호 문을 연다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "door_laundry",
+                        "type": "move",
+                        "target": "laundry_room",
+                        "x": 31.739853470666226,
+                        "y": 31.486729264078846,
+                        "width": 8.073408818141644,
+                        "height": 42.76990610388178,
+                        "label": "세탁실",
+                        "message": "세탁실에 들어간다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "door_003",
+                        "type": "move",
+                        "target": "room003",
+                        "x": 58.379240711634054,
+                        "y": 42.80453603898003,
+                        "width": 3.0470174490111717,
+                        "height": 18.445067662303074,
+                        "label": "003호",
+                        "message": "003호 문을 연다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "door_004",
+                        "type": "move",
+                        "target": "room004",
+                        "x": 78.99933395757375,
+                        "y": 40.4396211904932,
+                        "width": 2.707030769859685,
+                        "height": 25.708734696941164,
+                        "label": "004호",
+                        "message": "004호 문을 연다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "door_005",
+                        "type": "move",
+                        "target": "room005",
+                        "x": 87.55954709115014,
+                        "y": 25.91228712121704,
+                        "width": 6.333555347475425,
+                        "height": 65.91228712121703,
+                        "label": "005호",
+                        "message": "005호 문을 연다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "stair_down",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "x": 71.94588517688653,
+                        "y": 42.263667034638075,
+                        "width": 4.486804315434753,
+                        "height": 14.121286017302815,
+                        "label": "지하 3층으로",
+                        "message": "지하 3층으로 내려간다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "stair_up",
+                        "type": "move",
+                        "target": "cafeteria",
+                        "label": "지하 1층으로",
+                        "message": "지하 1층으로 올라간다."
+                    }
+                ]
+            },
+           {
                 "id": "room001",
                 "name": "001호",
                 "namePrefix": "001호",
@@ -469,114 +593,6 @@ export const FLOOR_DATA = [
                 ]
             },
             {
-                "id": "hallway",
-                "name": "복도",
-                "namePrefix": "B2 복도",
-                "highlightText": "HALL",
-                "highlightColor": "text-gray-600",
-                "description": "묘한 비린내와 곰팡이 냄새가 진동하는 복도.",
-                "overlayColor": "bg-black/20",
-                "background": "B2_hallway02.png",
-                "activeZones": [
-                    {
-                        "id": "door_001",
-                        "type": "move",
-                        "target": "room001",
-                        "x": 5.3998667915147465,
-                        "y": 25.067674675328895,
-                        "width": 15.059880112363274,
-                        "height": 60.84461244588816,
-                        "label": "001호",
-                        "message": "001호 문을 연다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "door_002",
-                        "type": "move",
-                        "target": "room002",
-                        "x": 48.545352342945506,
-                        "y": 40.43962119049319,
-                        "width": 5.880239775273445,
-                        "height": 24.86412225105301,
-                        "label": "002호",
-                        "message": "002호 문을 연다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "door_shower",
-                        "type": "move",
-                        "target": "shower_room",
-                        "x": 31.739853470666226,
-                        "y": 31.486729264078846,
-                        "width": 8.073408818141644,
-                        "height": 42.76990610388178,
-                        "label": "샤워실",
-                        "message": "샤워실에 들어간다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "door_003",
-                        "type": "move",
-                        "target": "room003",
-                        "x": 58.379240711634054,
-                        "y": 42.80453603898003,
-                        "width": 3.0470174490111717,
-                        "height": 18.445067662303074,
-                        "label": "003호",
-                        "message": "003호 문을 연다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "stair_002",
-                        "type": "move",
-                        "target": "B3",
-                        "x": 71.94588517688653,
-                        "y": 42.263667034638075,
-                        "width": 4.486804315434753,
-                        "height": 14.121286017302815,
-                        "label": "지하 3층으로",
-                        "message": "지하 3층으로 내려간다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "door_004",
-                        "type": "move",
-                        "target": "room004",
-                        "x": 78.99933395757375,
-                        "y": 40.4396211904932,
-                        "width": 2.707030769859685,
-                        "height": 25.708734696941164,
-                        "label": "004호",
-                        "message": "004호 문을 연다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "door_005",
-                        "type": "move",
-                        "target": "room005",
-                        "x": 87.55954709115014,
-                        "y": 25.91228712121704,
-                        "width": 6.333555347475425,
-                        "height": 65.91228712121703,
-                        "label": "005호",
-                        "message": "005호 문을 연다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "stair_002",
-                        "type": "move",
-                        "target": "B3",
-                        "x": 65.93998667915145,
-                        "y": 53.67293012986844,
-                        "width": 3.9,
-                        "height": 7.4,
-                        "label": "지하 3층으로",
-                        "message": "지하 3층으로 내려간다.",
-                        "itemId": ""
-                    }
-                ]
-            },
-            {
                 "id": "room002",
                 "name": "002호",
                 "namePrefix": "002호",
@@ -636,6 +652,18 @@ export const FLOOR_DATA = [
                 "npcId": "bingeo",
                 "activeZones": [
                     {
+                        "id": "zone_door_003",
+                        "type": "move",
+                        "target": "hallway",
+                        "x": 70,
+                        "y": 25,
+                        "width": 10,
+                        "height": 50,
+                        "label": "복도",
+                        "message": "복도로 나간다.",
+                        "itemId": ""
+                    },
+                     {
                         "id": "zone_notebook_003",
                         "type": "info",
                         "target": "",
@@ -681,18 +709,6 @@ export const FLOOR_DATA = [
                         "height": 12,
                         "label": "시설 로고 머그컵",
                         "message": "\"새 삶을 축하합니다\"라고 적혀 있다. 안에 싸구려 볼편 두세개가 꼽혀 있다.",
-                        "itemId": ""
-                    },
-                    {
-                        "id": "zone_door_003",
-                        "type": "move",
-                        "target": "hallway",
-                        "x": 70,
-                        "y": 25,
-                        "width": 10,
-                        "height": 50,
-                        "label": "복도",
-                        "message": "복도로 나간다.",
                         "itemId": ""
                     }
                 ]
@@ -796,66 +812,313 @@ export const FLOOR_DATA = [
                 ]
             },
             {
-                "id": "shower_room",
-                "name": "공용 샤워실",
-                "namePrefix": "B2 샤워실",
-                "highlightText": "SHOWER",
-                "highlightColor": "text-blue-200",
-                "description": "물때와 곰팡이로 얼룩진 샤워실. 비린내가 난다.",
+                "id": "laundry_room",
+                "name": "세탁실",
+                "description": "신도들의 옷을 세탁하는 곳. 세탁기 돌아가는 소리가 요란하다.",
                 "background": null,
-                "overlayColor": "bg-black/30"
+                "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "hallway",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
             }
         ]
     },
     {
         "id": "B3",
-        "name": "B3: 심해의 예배당",
+        "name": "B3: 예배당 / 진리 학습실",
         "description": "습도가 매우 높다. 바닥이 항상 축축하며, 벽화 속 솔피의 눈이 움직이는 것 같다.",
         "mapImage": "B3_hall.png",
         "rooms": [
             {
+                "id": "b3_hall",
+                "name": "B3 복도",
+                "namePrefix": "B3 복도",
+                "highlightText": "HALL",
+                "highlightColor": "text-gray-600",
+                "description": "묘한 비린내와 곰팡이 냄새가 진동하는 복도. 예배당으로 이어진다.",
+                "background": "B2_hallway02.png",
+                "activeZones": [
+                    {
+                        "id": "to_b2",
+                        "type": "move",
+                        "target": "hallway",
+                        "label": "B2: 거주층",
+                        "message": "지하 2층으로 올라간다."
+                    },
+                    {
+                        "id": "to_chapel",
+                        "type": "move",
+                        "target": "chapel",
+                        "label": "예배당",
+                        "message": "예배당으로 들어간다."
+                    },
+                    {
+                        "id": "to_truth001",
+                        "type": "move",
+                        "target": "truth_room001",
+                        "label": "학습실 1",
+                        "message": "진리 학습실 001로 들어간다."
+                    },
+                    {
+                        "id": "to_truth002",
+                        "type": "move",
+                        "target": "truth_room002",
+                        "label": "학습실 2",
+                        "message": "진리 학습실 002로 들어간다."
+                    },
+                    {
+                        "id": "to_truth003",
+                        "type": "move",
+                        "target": "truth_room003",
+                        "label": "학습실 3",
+                        "message": "진리 학습실 003로 들어간다."
+                    },
+                    {
+                        "id": "to_truth004",
+                        "type": "move",
+                        "target": "truth_room004",
+                        "label": "학습실 4",
+                        "message": "진리 학습실 004로 들어간다."
+                    },
+                    {
+                        "id": "to_truth005",
+                        "type": "move",
+                        "target": "truth_room005",
+                        "label": "학습실 5",
+                        "message": "진리 학습실 005로 들어간다."
+                    },
+                    {
+                        "id": "to_b4",
+                        "type": "move",
+                        "target": "b4_entrance",
+                        "label": "B4: 교주의 방",
+                        "message": "지하 4층으로 내려간다."
+                    }
+                ]
+            },
+            {
                 "id": "chapel",
                 "name": "대예배당",
                 "description": "거대한 솔피상이 있는 곳. 새벽 기도(04:00)가 강제 진행된다.",
-                "background": "B3_hall01.png"
+                "background": "B3_hall01.png",
+                "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
             },
             {
-                "id": "confession_room",
-                "name": "정화의 방 (독방)",
-                "description": "평판(Reputation)이 바닥난 NPC가 갇히는 곳. 그들은 여기서 강제 변이를 당한다."
+                "id": "truth_room001",
+                "name": "진리 학습실 001",
+                "description": "신도들이 교리를 학습하는 방.",
+                "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
             },
             {
-                "id": "secret_passage",
-                "name": "성물 안치소",
-                "description": "단상 뒤편의 비밀 공간. B4로 내려가는 나선형 계단이 숨겨져 있다."
+                "id": "truth_room002",
+                "name": "진리 학습실 002",
+                "description": "신도들이 교리를 학습하는 방.",
+                 "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
+            },
+            {
+                "id": "truth_room003",
+                "name": "진리 학습실 003",
+                "description": "신도들이 교리를 학습하는 방.",
+                 "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
+            },
+            {
+                "id": "truth_room004",
+                "name": "진리 학습실 004",
+                "description": "신도들이 교리를 학습하는 방.",
+                 "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
+            },
+            {
+                "id": "truth_room005",
+                "name": "진리 학습실 005",
+                "description": "신도들이 교리를 학습하는 방.",
+                 "activeZones": [
+                    {
+                        "id": "to_hall",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "복도",
+                        "message": "복도로 나간다."
+                    }
+                ]
             }
         ]
     },
     {
         "id": "B4",
-        "name": "B4: 어머니의 품",
-        "description": "건물최하층, 해저 동굴을 개조한 공간. 파도 소리가 귀를 때린다.",
+        "name": "B4: 진짜 교주의 방",
+        "description": "건물최하층, 해저 동굴을 개조한 공간.",
         "mapImage": "B4_water01.png",
         "rooms": [
             {
-                "id": "ocean_gate",
-                "name": "배수구 (탈출구)",
-                "namePrefix": "B4 배수구",
-                "highlightText": "EXIT",
-                "highlightColor": "text-blue-800",
-                "description": "바다로 연결되는 거대한 배수구.",
-                "overlayColor": "bg-blue-900/40"
+                "id": "b4_entrance",
+                "name": "B4 입구",
+                "description": "B4 입구.",
+                "activeZones": [
+                    {
+                        "id": "to_b3",
+                        "type": "move",
+                        "target": "b3_hall",
+                        "label": "B3: 예배당",
+                        "message": "지하 3층으로 올라간다."
+                    },
+                    {
+                        "id": "to_leader",
+                        "type": "move",
+                        "target": "real_leader_room",
+                        "label": "교주의 방",
+                        "message": "교주의 방으로 들어간다."
+                    },
+                    {
+                        "id": "to_b5",
+                        "type": "move",
+                        "target": "b5_entrance",
+                        "label": "B5: 심해",
+                        "message": "더 깊은 심해 선착장으로 내려간다."
+                    }
+                ]
             },
             {
-                "id": "jeonkwangeo_room",
-                "name": "전광어의 방",
-                "description": "전광어의 방. 수조에 물고기가 가득하다.",
-                "background": "B4_master01.png"
+                "id": "real_leader_room",
+                "name": "진짜 교주의 방",
+                "description": "이곳에 진짜 교주가 있다.",
+                "activeZones": [
+                    {
+                        "id": "to_entrance",
+                        "type": "move",
+                        "target": "b4_entrance",
+                        "label": "입구",
+                        "message": "입구로 나간다."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "B5",
+        "name": "B5: 심해",
+        "description": "솔피, 냉동창고, 선착장이 있는 곳.",
+        "rooms": [
+            {
+                "id": "b5_entrance",
+                "name": "B5 입구",
+                "description": "차가운 공기가 감도는 B5 입구.",
+                "activeZones": [
+                    {
+                        "id": "to_b4",
+                        "type": "move",
+                        "target": "b4_entrance",
+                        "label": "B4: 교주의 방",
+                        "message": "위로 올라간다."
+                    },
+                    {
+                        "id": "to_solphi",
+                        "type": "move",
+                        "target": "solphi_room",
+                        "label": "솔피의 방",
+                        "message": "솔피의 방으로 들어간다."
+                    },
+                     {
+                        "id": "to_freezer",
+                        "type": "move",
+                        "target": "freezer",
+                        "label": "냉동창고",
+                        "message": "냉동창고로 들어간다."
+                    },
+                     {
+                        "id": "to_dock",
+                        "type": "move",
+                        "target": "dock",
+                        "label": "선착장",
+                        "message": "선착장으로 나간다."
+                    }
+                ]
             },
             {
-                "id": "solpi_tank",
-                "name": "솔피의 수조",
-                "description": "집채만한 범고래 솔피가 갇혀있는 거대 수조."
+                "id": "solphi_room",
+                "name": "솔피의 방",
+                "description": "솔피가 머무르는 방.",
+                "activeZones": [
+                    {
+                        "id": "to_entrance",
+                        "type": "move",
+                        "target": "b5_entrance",
+                        "label": "입구",
+                        "message": "입구로 나간다."
+                    }
+                ]
+            },
+            {
+                "id": "freezer",
+                "name": "냉동창고",
+                "description": "식자재와 알 수 없는 것들이 얼어있는 창고.",
+                "activeZones": [
+                    {
+                        "id": "to_entrance",
+                        "type": "move",
+                        "target": "b5_entrance",
+                        "label": "입구",
+                        "message": "입구로 나간다."
+                    }
+                ]
+            },
+            {
+                "id": "dock",
+                "name": "선착장",
+                "description": "외부 바다로 통하는 선착장. 습하고 짠 냄새가 난다.",
+                "activeZones": [
+                    {
+                        "id": "to_entrance",
+                        "type": "move",
+                        "target": "b5_entrance",
+                        "label": "입구",
+                        "message": "입구로 나간다."
+                    }
+                ]
             }
         ]
     },
