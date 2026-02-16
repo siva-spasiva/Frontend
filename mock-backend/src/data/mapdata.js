@@ -381,7 +381,8 @@ export const FLOOR_DATA = [
             {
                 "id": "kitchen",
                 "name": "조리실",
-                "description": "칼과 불이 있는 위험한 곳. B4로 직행하는 식재료용 덤웨이터(소형 승강기)가 있다."
+                "description": "칼과 불이 있는 위험한 곳. B4로 직행하는 식재료용 덤웨이터(소형 승강기)가 있다.",
+                "background": "B1_kitchen01.png"
             },
             {
                 "id": "master_room",
@@ -815,7 +816,8 @@ export const FLOOR_DATA = [
             {
                 "id": "chapel",
                 "name": "대예배당",
-                "description": "거대한 솔피상이 있는 곳. 새벽 기도(04:00)가 강제 진행된다."
+                "description": "거대한 솔피상이 있는 곳. 새벽 기도(04:00)가 강제 진행된다.",
+                "background": "B3_hall01.png"
             },
             {
                 "id": "confession_room",
@@ -870,7 +872,8 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-yellow-500",
                 "description": "정체불명의 공간. 비릿한 냄새가 난다.",
                 "background": null,
-                "overlayColor": "bg-black/40"
+                "overlayColor": "bg-black/40",
+                "activeZones": []
             }
         ]
     }
