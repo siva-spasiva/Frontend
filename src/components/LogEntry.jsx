@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FishText } from '../utils/fishTalk';
 
 const LogEntry = ({ log }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -42,7 +43,7 @@ const LogEntry = ({ log }) => {
                     </span>
                     {!isExpanded && (
                         <span className="text-gray-300 truncate flex-1 opacity-80 h-5 leading-5 items-center flex">
-                            {log.text.substring(0, 50)}{log.text.length > 50 ? '...' : ''}
+                            <FishText text={log.text.substring(0, 50) + (log.text.length > 50 ? '...' : '')} />
                         </span>
                     )}
                 </div>
@@ -54,7 +55,7 @@ const LogEntry = ({ log }) => {
                             exit={{ opacity: 0, height: 0, marginTop: 0 }}
                             className="text-gray-100 whitespace-pre-line pl-1 leading-relaxed border-t border-white/10 pt-2 font-medium"
                         >
-                            {log.text}
+                            <FishText text={log.text} />
                         </motion.div>
                     )}
                 </AnimatePresence>

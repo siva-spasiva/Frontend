@@ -1,4 +1,5 @@
 import React from 'react';
+import { FishText } from '../utils/fishTalk';
 
 const ChatBubble = ({
     dialogContent,
@@ -37,7 +38,7 @@ const ChatBubble = ({
                 {isThinking ? (
                     <span className="animate-pulse opacity-50">...</span>
                 ) : (
-                    dialogContent?.text
+                    <FishText text={dialogContent?.text} />
                 )}
             </p>
 
