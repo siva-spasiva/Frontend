@@ -15,6 +15,13 @@ import Debug02Scene from './scenes/Debug02Scene';
 import Debug03Scene from './scenes/Debug03Scene';
 import CrashScene from './scenes/CrashScene';
 import TerminalScene from './scenes/TerminalScene';
+
+// New Scenes
+import IntroSequence from './scenes/IntroSequence';
+import IslandOutsideScene from './scenes/IslandOutsideScene';
+import ClassroomScene from './scenes/ClassroomScene';
+import Room001Scene from './scenes/Room001Scene';
+
 import { GameProvider } from './context/GameContext';
 
 import './index.css';
@@ -68,60 +75,68 @@ const StartBackground = () => {
 
 // Inner Layout Component that has access to Context
 const MainLayout = () => {
-  // phase state: 'teamLogo' -> 'mainMenu' -> 'start'/'gameStart'/'mainGame' -> 'crash' -> 'terminal' -> 'test02' -> 'test03'
+  // phase state: 'teamLogo' -> 'mainMenu' -> 'intro' -> 'outside' -> 'classroom' -> 'room001' ...
   const [phase, setPhase] = useState('mainMenu');
-  // teamlogoscene 으로 나중에 교체 
 
   // Access Game Context for Layout
   const { isPhoneCentered, setIsPhoneCentered, appEvent } = useGame();
 
   // Phase transition functions
   const toMainMenu = () => setPhase('mainMenu');
+  const toIntro = () => setPhase('intro');
+  const toOutside = () => setPhase('outside');
+  const toClassroom = () => setPhase('classroom');
+  const toRoom001 = () => setPhase('room001');
+
+  // Legacy / Test phase transitions
   const toGameStart = () => setPhase('gameStart');
   const toMainGame = () => setPhase('mainGame');
   const toTest02 = () => setPhase('test02');
   const toTest03 = () => setPhase('test03');
   const toTest04 = () => setPhase('test04');
-  const toStart = () => setPhase('start');
+  const toStart = () => setPhase('start'); // Legacy start
   const toTest05 = () => setPhase('test05');
   const toDebug00 = () => setPhase('debug00');
   const toDebug01 = () => setPhase('debug01');
   const toDebug02 = () => setPhase('debug02');
   const toDebug03 = () => setPhase('debug03');
   const toCrash = () => setPhase('crash');
-  const toTerminal = () => {
-    setPhase('terminal');
-  };
+  const toTerminal = () => setPhase('terminal');
 
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
 
-  // Contract panel state for start sequence
+  // Contract panel state for legacy start sequence
   const [showStartContract, setShowStartContract] = useState(false);
 
-  // Reset phone state when entering MainGame or Test02/03/04/05
+  // Reset phone state when entering new phases
   React.useEffect(() => {
-    if (phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05') setIsPhoneOpen(true);
+    // Phases where phone should be open and side-by-side
+    const splitPhases = ['outside', 'classroom', 'room001', 'mainGame', 'test02', 'test03', 'test04', 'test05'];
+    if (splitPhases.includes(phase)) {
+        setIsPhoneOpen(true);
+        setIsPhoneCentered(false); // Default to split view
+    }
+    
+    // Legacy Start
     if (phase === 'start') {
       setIsPhoneOpen(true);
-      setIsPhoneCentered(true); // Phone centered during start messenger sequence
+      setIsPhoneCentered(true);
       setShowStartContract(false);
     }
-  }, [phase]);
+  }, [phase, setIsPhoneCentered]);
 
-  // Listen for CONTRACT_TRIGGER during start phase
+  // Listen for CONTRACT_TRIGGER during legacy start phase
   React.useEffect(() => {
     if (phase === 'start' && appEvent?.event === 'CONTRACT_TRIGGER') {
-      // Move phone to left, show contract on right
       setIsPhoneCentered(false);
-      // Small delay for phone animation to settle before showing contract
       setTimeout(() => {
         setShowStartContract(true);
       }, 300);
     }
-  }, [appEvent, phase]);
+  }, [appEvent, phase, setIsPhoneCentered]);
 
-  const isSplit = phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start';
+  const isSplit = ['outside', 'classroom', 'room001', 'gameStart', 'mainGame', 'test02', 'test03', 'test04', 'test05', 'start'].includes(phase);
 
   return (
     <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
@@ -130,32 +145,22 @@ const MainLayout = () => {
           <TeamLogoScene key="teamLogo" onComplete={toMainMenu} />
         )}
 
+        {phase === 'intro' && (
+            <IntroSequence key="intro" onComplete={toOutside} />
+        )}
+
         {phase === 'crash' && (
           <CrashScene key="crash" onMount={toTerminal} />
         )}
 
-        {phase === 'debug00' && (
-          <Debug00Scene key="debug00" onBack={toMainMenu} />
-        )}
-
-        {phase === 'debug01' && (
-          <Debug01Scene key="debug01" onBack={toMainMenu} />
-        )}
-
-        {phase === 'debug02' && (
-          <Debug02Scene key="debug02" onBack={toMainMenu} />
-        )}
-
-        {phase === 'debug03' && (
-          <Debug03Scene key="debug03" onBack={toMainMenu} />
-        )}
-
-        {phase === 'terminal' && (
-          <TerminalScene key="terminal" />
-        )}
+        {phase === 'debug00' && <Debug00Scene key="debug00" onBack={toMainMenu} />}
+        {phase === 'debug01' && <Debug01Scene key="debug01" onBack={toMainMenu} />}
+        {phase === 'debug02' && <Debug02Scene key="debug02" onBack={toMainMenu} />}
+        {phase === 'debug03' && <Debug03Scene key="debug03" onBack={toMainMenu} />}
+        {phase === 'terminal' && <TerminalScene key="terminal" />}
 
         {/* Unified Split Layout Group */}
-        {(phase === 'mainMenu' || phase === 'gameStart' || phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start') && (
+        {(phase === 'mainMenu' || isSplit) && (
           <motion.div
             key="split-group"
             className="w-full h-full relative"
@@ -165,6 +170,7 @@ const MainLayout = () => {
           >
             {/* Background Types */}
             <AnimatePresence>
+                {/* --- Main Menu Background --- */}
               {phase === 'mainMenu' && (
                 <motion.div
                   key="mainMenu-bg"
@@ -175,88 +181,79 @@ const MainLayout = () => {
                   className="absolute inset-0 z-0"
                 >
                   <img src={MainMenuBg} alt="Main Menu Background" className="w-full h-full object-cover" />
-                  {/* Overlay for better text/phone visibility */}
                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
                 </motion.div>
               )}
 
-              {phase === 'mainGame' && (
+              {/* --- NEW SCENES --- */}
+              {phase === 'outside' && (
                 <motion.div
-                  key="mainGame-bg"
+                  key="outside-bg"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
                   className="absolute inset-0 z-0"
                 >
+                  <IslandOutsideScene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onEnterClassroom={toClassroom} />
+                </motion.div>
+              )}
+
+              {phase === 'classroom' && (
+                <motion.div
+                  key="classroom-bg"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-0"
+                >
+                  <ClassroomScene onComplete={toRoom001} />
+                </motion.div>
+              )}
+
+              {phase === 'room001' && (
+                <motion.div
+                  key="room001-bg"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-0"
+                >
+                  <Room001Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
+                </motion.div>
+              )}
+
+
+              {/* --- LEGACY SCENES --- */}
+              {phase === 'mainGame' && (
+                <motion.div key="mainGame-bg" className="absolute inset-0 z-0">
                   <Test01Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                 </motion.div>
               )}
-
               {phase === 'test02' && (
-                <motion.div
-                  key="test02-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-0"
-                >
+                <motion.div key="test02-bg" className="absolute inset-0 z-0">
                   <Test02Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                 </motion.div>
               )}
-
               {phase === 'test03' && (
-                <motion.div
-                  key="test03-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-0"
-                >
+                <motion.div key="test03-bg" className="absolute inset-0 z-0">
                   <Test03Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                 </motion.div>
               )}
-
               {phase === 'test04' && (
-                <motion.div
-                  key="test04-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-0"
-                >
+                <motion.div key="test04-bg" className="absolute inset-0 z-0">
                   <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                 </motion.div>
               )}
-
               {phase === 'start' && (
-                <motion.div
-                  key="start-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-0"
-                >
+                <motion.div key="start-bg" className="absolute inset-0 z-0">
                   <StartBackground />
                 </motion.div>
               )}
-
               {phase === 'test05' && (
-                <motion.div
-                  key="test05-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-0"
-                >
-                  <Test05Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
-                </motion.div>
-              )}
+                 <motion.div key="test05-bg" className="absolute inset-0 z-0">
+                   <Test05Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
+                 </motion.div>
+               )}
             </AnimatePresence>
 
             {/* Foreground UI (Split Layout) */}
@@ -266,26 +263,12 @@ const MainLayout = () => {
                 className="flex-shrink-0 flex items-center justify-center overflow-hidden"
                 initial={{ width: '100%' }}
                 animate={{
-                  // If isPhoneCentered is true, we want Full Screen (100%) and Z-Index 50 (handled via separate class or style?)
-                  // layout prop handles smooth width transition.
-                  // We need to ensure when centered, it's truly centered.
-                  // If isPhoneCentered, width is 100%. If split, 50% or 420px. 
                   width: isPhoneCentered
                     ? '100%'
                     : (isSplit
-                      ? ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start')
-                        ? (isPhoneOpen ? '420px' : '0px')
-                        : '50%')
+                      ? (isPhoneOpen ? '420px' : '0px')
                       : '100%'),
-
-                  // If phone centered, we might want to ensure background is transparent so we see scene behind?
-                  // But standard layout has transparent background for phone container anyway.
-                  // Check opacity logic
-                  opacity: ((phase === 'mainGame' || phase === 'test02' || phase === 'test03' || phase === 'test04' || phase === 'test05' || phase === 'start') && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
-
-                  // Position Absolute if Centering over content?
-                  // If we use Flex row, making it 100% width PUSHES the right content off screen or squeezes it.
-                  // We want to OVERLAY.
+                  opacity: (['outside', 'classroom', 'room001', 'mainGame', 'test02', 'test03', 'test04', 'test05', 'start'].includes(phase) && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
                   position: isPhoneCentered ? 'absolute' : 'relative',
                   left: 0,
                   zIndex: 50
@@ -295,19 +278,23 @@ const MainLayout = () => {
                 <div className="pointer-events-auto w-full h-full flex items-center justify-center">
                   <MainMenuScene
                     onNext={() => {
-                      if (phase === 'start') {
-                        // Start sequence: messenger complete → contract
+                       // Main "Start" button routed to Intro
+                       if (phase === 'mainMenu') {
+                           toIntro();
+                       } else if (phase === 'start') {
+                        // Legacy handling
                         toGameStart();
-                      } else {
+                       } else {
+                        // Default fallback
                         toGameStart();
-                      }
+                       }
                     }}
                     onTestStart={toMainGame}
                     onTest02Start={toTest02}
                     onTest03Start={toTest03}
                     onTest04Start={toTest04}
                     onTest05Start={toTest05}
-                    onStartSequence={toStart}
+                    onStartSequence={toIntro}
                     onDebug00Start={toDebug00}
                     onDebug01Start={toDebug01}
                     onDebug02Start={toDebug02}
@@ -352,16 +339,14 @@ const MainLayout = () => {
           </motion.div>
         )}
 
-        {phase === 'crash' && (
-          <CrashScene key="crash" onMount={toTerminal} />
-        )}
-        {phase === 'terminal' && (
-          <TerminalScene key="terminal" />
-        )}
+
+
       </AnimatePresence>
     </div>
   );
 };
+
+
 
 import FishLevelWarning from './components/FishLevelWarning';
 

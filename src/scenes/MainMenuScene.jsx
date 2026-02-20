@@ -166,6 +166,12 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'start') {
             setInternalPhase('messenger');
+        } else if (currentPhase === 'outside') {
+            setInternalPhase('messenger');
+        } else if (currentPhase === 'classroom') {
+            setInternalPhase('ingame03_home');
+        } else if (currentPhase === 'room001') {
+            setInternalPhase('ingame03_home');
         } else if (currentPhase === 'test05') {
             setInternalPhase('ingame03_home');
         } else if (currentPhase === 'mainMenu') {
@@ -318,7 +324,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <MessengerApp onComplete={onNext} isStartMode={currentPhase === 'start'} onBack={() => {
+                        <MessengerApp onComplete={onNext} isStartMode={currentPhase === 'start' || currentPhase === 'outside'} onBack={() => {
                             setPhoneScreenOverride(null);
                             if (currentPhase === 'test02') setInternalPhase('ingame02_home');
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');

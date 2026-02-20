@@ -161,55 +161,46 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
     const [isTyping, setIsTyping] = useState(false);
 
     // Scripted dialogue data
+    // Scripted conversation for the opening sequence (Outside/Arrival)
     const SCRIPTED_CHOICES = [
         {
             choices: [
-                { text: '알겠어. 조심할게.', id: 'a' },
-                { text: '형, 이번엔 뭔가 다르다. 직감이 그래.', id: 'b' },
-                { text: '본부가 뭘 알겠어. 우리가 직접 까는 거지.', id: 'c' },
+                { text: '섬에 도착했어. 분위기가 좀 묘한데.', id: 'a' },
+                { text: '선착장 도착. 겉보기엔 평범한 리조트야.', id: 'b' },
             ],
             responses: {
                 a: [
-                    { sender: '강 형사', text: '그래, 그 말이 듣고 싶었다. 괜히 영웅 놀이 하지 말고.', time: 'Now' },
-                    { sender: '강 형사', text: '형사 10년 차에 비공식 잠입이라... 미친 짓이야 진짜.', time: 'Now' },
+                    { sender: '강 형사', text: '묘하다고? 기분 탓이겠지. 너무 예민하게 굴지 마.', time: 'Now' },
+                    { sender: '강 형사', text: '그냥 휴가 왔다고 생각하고 편하게 있어. 놈들은 내가 파악할 테니까.', time: 'Now' },
                 ],
                 b: [
-                    { sender: '강 형사', text: '직감? 야, 직감으로 수사하면 반장님이 좋아하시겠다.', time: 'Now' },
-                    { sender: '강 형사', text: '...근데 네 직감이 틀린 적은 없었지. 조심해라.', time: 'Now' },
-                ],
-                c: [
-                    { sender: '강 형사', text: '이 개고생을 누가 알아주냐고. 진짜 미친놈이야 너는.', time: 'Now' },
-                    { sender: '강 형사', text: '...그래도 네가 이렇게까지 하는 건 이유가 있겠지.', time: 'Now' },
+                    { sender: '강 형사', text: '다행이네. 너무 긴장하지 말고 자연스럽게 행동해.', time: 'Now' },
+                    { sender: '강 형사', text: '이번엔 그냥 휴가라 생각하고 푹 쉬다 와. 알겠지?', time: 'Now' },
                 ],
             },
         },
         {
             choices: [
-                { text: '여기 분위기가 좀 이상해. 사람들이 좀...', id: 'a' },
-                { text: '벌써 건물이 보여. 꽤 큰데?', id: 'b' },
-                { text: '솔직히 좀 쫄린다.', id: 'c' },
+                { text: '알겠어. 무슨 일 생기면 바로 연락할게.', id: 'a' },
+                { text: '휴가는 무슨... 증거 찾으면 바로 복귀한다.', id: 'b' },
             ],
             responses: {
                 a: [
-                    { sender: '강 형사', text: '이상해? 어떻게?', time: 'Now' },
-                    { sender: '강 형사', text: '...자세한 건 나중에 듣자. 일단 들어가봐.', time: 'Now' },
+                    { sender: '강 형사', text: '그래, 무리는 하지 말고.', time: 'Now' },
+                    { sender: '강 형사', text: '혹시라도 위험해 보이면 바로...', time: 'Now' },
                 ],
                 b: [
-                    { sender: '강 형사', text: '리조트니까 당연히 크겠지. 거기 돈이 얼마가 들어갔는데.', time: 'Now' },
-                    { sender: '강 형사', text: '내부 구조 잘 파악해둬. 탈출 경로도.', time: 'Now' },
-                ],
-                c: [
-                    { sender: '강 형사', text: '쫄리면 돌아와. 아무도 뭐라 안 해.', time: 'Now' },
-                    { sender: '강 형사', text: '...농담이야. 네가 돌아올 놈이면 처음부터 안 갔겠지.', time: 'Now' },
+                    { sender: '강 형사', text: '짜식, 하여간 워커홀릭이라니까.', time: 'Now' },
+                    { sender: '강 형사', text: '아무튼 조심해라. 위험하면 바로...', time: 'Now' },
                 ],
             },
         },
     ];
 
     const FINAL_SEQUENCE = [
-        { sender: '강 형사', text: '야 잠깐, 신호가 좀 이상한데? 거기 전파 방해 같은 거 있나?', time: 'Now' },
-        { sender: '강 형사', text: '...치직... 뭐? 계약서? 뻐끔?', time: 'Now' },
-        { sender: '강 형사', text: '야, 목소리가 끊겨. 계약서에 뭐라고 적혀있다고? 당장 찢고 나와!', time: 'Now' },
+        { sender: '강 형사', text: '...치직... 야, 듣고 있어?', time: 'Now' },
+        { sender: '강 형사', text: '신호가 왜 이래... 야! 강... ...', time: 'Now' },
+        { sender: 'System', text: '네트워크 연결이 불안정합니다.', type: 'system', time: 'Now' },
     ];
 
     const handleScriptedChoice = async (choiceId) => {
@@ -279,6 +270,9 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
                 time: 'Now'
             }]);
             setIsDisconnected(true);
+            
+            // Trigger guidance in scene
+            window.dispatchEvent(new CustomEvent('guidance-trigger', { detail: 'messenger-disconnected' }));
         }
 
         setIsTyping(false);
@@ -704,7 +698,7 @@ const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
             // New Game Start (Tutorial not done yet)
             // Or if we just started fresh
             const initialMsgs = [
-                { id: 1, sender: '강 형사', text: '지금 도착했냐? 위치 추적기 켜둬라.', type: 'text', time: '오후 2:01' },
+                { id: 1, sender: '강 형사', text: '배 도착했냐? 위치 추적기 켜둬라.', type: 'text', time: '오후 2:01' },
                 { id: 2, sender: '강 형사', text: '본부에서는 전광어 그 놈 그냥 뜬소문이라고 생각한다고.', type: 'text', time: '오후 2:01' },
                 { id: 3, sender: '강 형사', text: '무리하지 말고 그냥 동태나 살피다 와. 알겠지?', type: 'text', time: '오후 2:02' },
             ];
