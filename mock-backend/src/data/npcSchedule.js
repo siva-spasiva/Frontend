@@ -3,7 +3,7 @@
  * 
  * 구조: { npcId: { day: { period: roomId } } }
  * - day: 0(튜토리얼) ~ 7(최종일)
- * - period: 'morning' | 'afternoon' | 'evening'
+ * - period: 'morning' | 'afternoon' | 'evening' | 'dawn'
  * - roomId: gameData.js FLOOR_DATA의 room.id와 매칭
  * 
  * 'default' 키: 특정 일차에 일정이 없으면 default 일정 사용
@@ -17,21 +17,25 @@ const NPC_SCHEDULE = {
             morning: 'umi_class',      // 원데이 클래스 (포교 활동)
             afternoon: 'chapel',       // 대예배당 (예배)
             evening: 'cafeteria',      // 중앙 식당 (식사)
+            dawn: null,                // 새벽: 부재
         },
         0: { // 튜토리얼
             morning: null,
             afternoon: null,
             evening: 'hallway',        // 복도에서 배회
+            dawn: null,
         },
         1: {
             morning: 'umi_class',
             afternoon: 'chapel',
             evening: 'cafeteria',
+            dawn: null,
         },
         2: {
             morning: 'hallway',        // 복도에서 플레이어 방 앞 서성
             afternoon: 'chapel',
             evening: 'lounge',         // 휴게실
+            dawn: null,
         },
     },
 
@@ -41,21 +45,25 @@ const NPC_SCHEDULE = {
             morning: 'room004',        // 004호 (자기 방에 은거)
             afternoon: 'room004',
             evening: 'room004',
+            dawn: null,
         },
         0: { // 튜토리얼에는 등장 안 함
             morning: null,
             afternoon: null,
             evening: null,
+            dawn: null,
         },
         1: {
             morning: 'room004',
             afternoon: 'room004',
             evening: 'hallway',        // 저녁에만 복도로 나옴
+            dawn: null,
         },
         3: {
             morning: 'room004',
             afternoon: 'cafeteria',    // 3일차부터 식당에 나타남
             evening: 'room004',
+            dawn: null,
         },
     },
 
@@ -65,16 +73,19 @@ const NPC_SCHEDULE = {
             morning: null,             // 기본적으로 등장 안 함
             afternoon: null,
             evening: null,
+            dawn: null,
         },
         2: { // 2일차부터 등장
             morning: 'umi_class',
             afternoon: 'terrace',
             evening: null,
+            dawn: null,
         },
         3: {
             morning: 'main_hall',
             afternoon: 'terrace',
             evening: 'lounge',
+            dawn: null,
         },
     },
 
@@ -84,21 +95,25 @@ const NPC_SCHEDULE = {
             morning: 'cafeteria',      // 중앙 식당 (정보 수집)
             afternoon: 'lounge',       // 휴게실 (사람들과 어울림)
             evening: 'room005',        // 005호 (자기 방)
+            dawn: null,
         },
         0: { // 튜토리얼에는 등장 안 함
             morning: null,
             afternoon: null,
             evening: null,
+            dawn: null,
         },
         1: {
             morning: 'cafeteria',
             afternoon: 'hallway',
             evening: 'room005',
+            dawn: null,
         },
         2: {
             morning: 'lounge',
             afternoon: 'cafeteria',
             evening: 'room005',
+            dawn: null,
         },
     },
 
@@ -108,26 +123,31 @@ const NPC_SCHEDULE = {
             morning: 'hallway',        // 복도 (심부름/청소)
             afternoon: 'cafeteria',    // 식당 (관찰)
             evening: 'room003',        // 003호 (자기 방 — 기록 정리)
+            dawn: null,
         },
         0: { // 튜토리얼에는 등장 안 함
             morning: null,
             afternoon: null,
             evening: null,
+            dawn: null,
         },
         1: {
             morning: 'hallway',
             afternoon: 'cafeteria',
             evening: 'room003',
+            dawn: null,
         },
         2: {
             morning: 'cafeteria',      // 2일차부터 아침 식당에서 목격
             afternoon: 'lounge',
             evening: 'room003',
+            dawn: null,
         },
         3: {
             morning: 'hallway',
             afternoon: 'chapel',       // 3일차 대예배당 심부름
             evening: 'room003',
+            dawn: null,
         },
     },
 
@@ -137,6 +157,7 @@ const NPC_SCHEDULE = {
             morning: null,
             afternoon: null,
             evening: null,
+            dawn: null,
         },
     },
 };

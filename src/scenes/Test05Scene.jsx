@@ -10,6 +10,8 @@ import { useInteraction } from '../hooks/useInteraction';
 import NavigationConfirmation from '../components/NavigationConfirmation';
 import ItemPickupModal from '../components/ItemPickupModal';
 import FishEyeEffect from '../components/FishEyeEffect';
+import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
+import HpWarningModal from '../components/HpWarningModal';
 import useFishVisuals from '../hooks/useFishVisuals';
 
 const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
@@ -20,7 +22,7 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod } = useGame();
+    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -49,12 +51,20 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
         pendingItem,
         resolveItem,
         setDialogContent,
-        setLogs
+        setLogs,
+        pendingHpWarning,
+        confirmHpWarning,
+        cancelHpWarning,
     } = useInteraction({
         viewMode,
         setViewMode,
         onMove: handleMove,
-        inventory: currentInventory // Pass current inventory to check for existing items
+        inventory: currentInventory, // Pass current inventory to check for existing items
+        spendHp,
+        rest,
+        ACTION_COSTS,
+        getHpCostPreview,
+        PERIOD_LABELS,
     });
 
     // Active NPC State - Driven by schedule
@@ -148,6 +158,17 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 targetLabel={pendingMove?.label}
                 onConfirm={confirmMove}
                 onCancel={cancelMove}
+            />
+
+            {/* Section Transition Overlay */}
+            <SectionTransitionOverlay />
+
+            {/* HP Boundary Warning Modal */}
+            <HpWarningModal
+                isOpen={!!pendingHpWarning}
+                warning={pendingHpWarning}
+                onConfirm={confirmHpWarning}
+                onCancel={cancelHpWarning}
             />
 
             {/* Item Pickup Modal */}

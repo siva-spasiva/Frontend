@@ -1,13 +1,60 @@
 import { useState, useCallback } from 'react';
 
-export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [] } = {}) => {
+export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS } = {}) => {
     const [logs, setLogs] = useState([]);
     const [dialogContent, setDialogContent] = useState(null);
     const [pendingMove, setPendingMove] = useState(null);
     const [pendingItem, setPendingItem] = useState(null); // New state for item pickup
+    const [pendingHpWarning, setPendingHpWarning] = useState(null); // { zone, cost, preview }
 
     const handleInteraction = useCallback((zone) => {
         console.log("System Interaction with zone:", zone);
+
+        // === Rest zone: skip to next section ===
+        if (zone.type === 'rest') {
+            if (rest) {
+                rest();
+                setDialogContent({
+                    speaker: 'System',
+                    text: zone.message || '잠시 쉬어간다...',
+                    type: 'system'
+                });
+            }
+            return;
+        }
+
+        // === HP cost check for interact / move ===
+        const costKey = zone.type === 'move' ? 'move' : 'interact';
+        const cost = ACTION_COSTS?.[costKey] ?? 0;
+
+        // Check if this cost would cross a section boundary
+        if (cost > 0 && getHpCostPreview) {
+            const preview = getHpCostPreview(cost);
+            if (!preview) {
+                // Can't afford
+                setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+                return;
+            }
+            if (preview.willTransition) {
+                // Show warning before proceeding
+                setPendingHpWarning({ zone, cost, preview });
+                return;
+            }
+        }
+
+        // No boundary cross — proceed normally
+        executeInteraction(zone, cost);
+    }, [dialogContent, viewMode, setViewMode, onMove, spendHp, rest, ACTION_COSTS, getHpCostPreview]);
+
+    // Execute the actual interaction (after warning confirmation or if no warning needed)
+    const executeInteraction = useCallback((zone, cost) => {
+        if (cost > 0 && spendHp) {
+            const ok = spendHp(cost);
+            if (!ok) {
+                setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+                return;
+            }
+        }
 
         const timestamp = Date.now();
 
@@ -93,10 +140,23 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [] }
             setViewMode('mini');
         }
 
-    }, [dialogContent, viewMode, setViewMode, onMove]);
+    }, [dialogContent, viewMode, setViewMode, onMove, spendHp, rest, ACTION_COSTS, getHpCostPreview]);
 
     const addLog = useCallback((logItem) => {
         setLogs(prev => [...prev, logItem]);
+    }, []);
+
+    // HP warning confirmation — proceed with the original interaction
+    const confirmHpWarning = useCallback(() => {
+        if (!pendingHpWarning) return;
+        const { zone, cost } = pendingHpWarning;
+        setPendingHpWarning(null);
+        executeInteraction(zone, cost);
+    }, [pendingHpWarning, executeInteraction]);
+
+    const cancelHpWarning = useCallback(() => {
+        setPendingHpWarning(null);
+        setDialogContent({ speaker: 'System', text: '행동을 취소했습니다.', type: 'system' });
     }, []);
 
     const confirmMove = useCallback(() => {
@@ -149,6 +209,9 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [] }
         confirmMove,
         cancelMove,
         pendingItem,
-        resolveItem
+        resolveItem,
+        pendingHpWarning,
+        confirmHpWarning,
+        cancelHpWarning,
     };
 };

@@ -622,6 +622,18 @@ export const FLOOR_DATA = [
                         "label": "침대 아래",
                         "message": "곽빙어의 작은 박스.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_rest",
+                        "type": "rest",
+                        "target": "",
+                        "x": 23.08589206005681,
+                        "y": 55.0,
+                        "width": 28.48505342891925,
+                        "height": 18.0,
+                        "label": "침대에서 휴식",
+                        "message": "잠시 눈을 붙인다... 다음 시간대로 넘어간다.",
+                        "itemId": ""
                     }
                 ]
             },
@@ -989,20 +1001,6 @@ export const FLOOR_DATA = [
                         "id": "to_hall",
                         "type": "move",
                         "target": "b3_hall",
-                        "label": "복도",
-                        "message": "복도로 나간다."
-                    }
-                ]
-            },
-            {
-                "id": "truth_room001",
-                "name": "진리 학습실 001",
-                "description": "신도들이 교리를 학습하는 방.",
-                "activeZones": [
-                    {
-                        "id": "to_hall",
-                        "type": "move",
-                        "target": "b3_hall",
                         "x": 0,
                         "y": 0,
                         "width": 10,
@@ -1014,50 +1012,8 @@ export const FLOOR_DATA = [
                 ]
             },
             {
-                "id": "truth_room002",
-                "name": "진리 학습실 002",
-                "description": "신도들이 교리를 학습하는 방.",
-                "activeZones": [
-                    {
-                        "id": "to_hall",
-                        "type": "move",
-                        "target": "b3_hall",
-                        "label": "복도",
-                        "message": "복도로 나간다."
-                    }
-                ]
-            },
-            {
-                "id": "truth_room003",
-                "name": "진리 학습실 003",
-                "description": "신도들이 교리를 학습하는 방.",
-                "activeZones": [
-                    {
-                        "id": "to_hall",
-                        "type": "move",
-                        "target": "b3_hall",
-                        "label": "복도",
-                        "message": "복도로 나간다."
-                    }
-                ]
-            },
-            {
-                "id": "truth_room004",
-                "name": "진리 학습실 004",
-                "description": "신도들이 교리를 학습하는 방.",
-                "activeZones": [
-                    {
-                        "id": "to_hall",
-                        "type": "move",
-                        "target": "b3_hall",
-                        "label": "복도",
-                        "message": "복도로 나간다."
-                    }
-                ]
-            },
-            {
-                "id": "truth_room005",
-                "name": "진리 학습실 005",
+                "id": "truth_room001",
+                "name": "진리 학습실",
                 "description": "신도들이 교리를 학습하는 방.",
                 "activeZones": [
                     {
@@ -1124,27 +1080,40 @@ export const FLOOR_DATA = [
                         "itemId": ""
                     }
                 ],
-                "background": "B4_stair01.png"
+                "background": "B4_hallway01.png"
             },
             {
                 "id": "real_leader_room",
-                "name": "진짜 교주의 방",
-                "description": "이곳에 진짜 교주가 있다.",
+                "name": "교주의 방",
+                "description": "어둡고 침침한 방.",
                 "activeZones": [
                     {
                         "id": "to_entrance",
                         "type": "move",
                         "target": "b4_entrance",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 7.932811606948517,
+                        "y": 32.78541747697876,
+                        "width": 11.44232938308155,
+                        "height": 28.990460396501348,
                         "label": "입구",
                         "message": "입구로 나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "info",
+                        "target": "",
+                        "x": 47.70291172885192,
+                        "y": 26.320844713240554,
+                        "width": 39.07786473217525,
+                        "height": 15.729291845646078,
+                        "label": "거대한 어항",
+                        "message": "벽 전체를 감싼 어항. 기괴하게 생긴 물고기들이 돌아다닌다. 뭔가... 말을 하는 것 같다. [뻐끔].",
+                        "itemId": ""
                     }
                 ],
-                "background": "B4_master01.png"
+                "background": "B4_master01.png",
+                "namePrefix": "B4"
             }
         ]
     },
@@ -1156,14 +1125,14 @@ export const FLOOR_DATA = [
             {
                 "id": "b5_entrance",
                 "name": "B5 입구",
-                "description": "차가운 공기가 감도는 B5 입구.",
+                "description": "차가운 공기가 감도는 깊은 계단.",
                 "activeZones": [
                     {
                         "id": "to_b4",
                         "type": "move",
                         "target": "b4_entrance",
-                        "x": 0,
-                        "y": 0,
+                        "x": 23.798434820845554,
+                        "y": 30.078349790711396,
                         "width": 10,
                         "height": 10,
                         "label": "B4: 교주의 방",
@@ -1174,8 +1143,8 @@ export const FLOOR_DATA = [
                         "id": "to_solphi",
                         "type": "move",
                         "target": "solphi_room",
-                        "x": 0,
-                        "y": 0,
+                        "x": 50.12094606208381,
+                        "y": 67.09785722543312,
                         "width": 10,
                         "height": 10,
                         "label": "솔피의 방",
@@ -1186,8 +1155,8 @@ export const FLOOR_DATA = [
                         "id": "to_freezer",
                         "type": "move",
                         "target": "freezer",
-                        "x": 0,
-                        "y": 0,
+                        "x": 25.240764203927107,
+                        "y": 58.68433280845092,
                         "width": 10,
                         "height": 10,
                         "label": "냉동창고",
@@ -1198,8 +1167,8 @@ export const FLOOR_DATA = [
                         "id": "to_dock",
                         "type": "move",
                         "target": "dock",
-                        "x": 0,
-                        "y": 0,
+                        "x": 64.1836575471289,
+                        "y": 42.908974526609256,
                         "width": 10,
                         "height": 10,
                         "label": "선착장",
@@ -1207,7 +1176,7 @@ export const FLOOR_DATA = [
                         "itemId": ""
                     }
                 ],
-                "background": "B5_hallway01.png"
+                "background": "B5_stair01.png"
             },
             {
                 "id": "solphi_room",
@@ -1236,16 +1205,17 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_entrance",
                         "type": "move",
-                        "target": "b5_entrance",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
-                        "label": "입구",
-                        "message": "입구로 나간다.",
+                        "target": "B5_hallway",
+                        "x": 61.05861055045224,
+                        "y": 32.06879632994096,
+                        "width": 11.081747037311175,
+                        "height": 40.27724346234652,
+                        "label": "문",
+                        "message": "나간다.",
                         "itemId": ""
                     }
-                ]
+                ],
+                "background": "B5_iceroom01.png"
             },
             {
                 "id": "dock",
@@ -1255,17 +1225,25 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_entrance",
                         "type": "move",
-                        "target": "b5_entrance",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
-                        "label": "입구",
-                        "message": "입구로 나간다.",
+                        "target": "B5_hallway",
+                        "x": 7.932811606948516,
+                        "y": 14.783763925995345,
+                        "width": 6.874953003323311,
+                        "height": 30.19245804526193,
+                        "label": "갈림길",
+                        "message": "교단으로 돌아간다.",
                         "itemId": ""
                     }
                 ],
                 "background": "B5_water01.png"
+            },
+            {
+                "id": "B5_hallway",
+                "name": "최심부 갈림길",
+                "background": "B5_hallway02.png",
+                "activeZones": [],
+                "description": "바닷가 냄새가 강하게 난다.",
+                "namePrefix": "B5"
             }
         ]
     },

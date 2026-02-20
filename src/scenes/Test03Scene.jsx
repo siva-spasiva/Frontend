@@ -5,6 +5,7 @@ import { generateAIResponse } from '../utils/aiService';
 import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
 import FishEyeEffect from '../components/FishEyeEffect';
+import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import useFishVisuals from '../hooks/useFishVisuals';
 
 const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
@@ -21,7 +22,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const [isThinking, setIsThinking] = useState(false);
 
     // Access Global Stats and Data
-    const { syncStats, npcData, mapData, isLoading } = useGame();
+    const { syncStats, npcData, mapData, isLoading, spendHp, ACTION_COSTS } = useGame();
 
     // Item Presentation
     const { presentedItem, clearPresentation, setActiveNpcInField } = useGame();
@@ -69,6 +70,19 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
+
+        // HP cost for NPC chat
+        if (spendHp && ACTION_COSTS) {
+            const ok = spendHp(ACTION_COSTS.npcChat);
+            if (!ok) {
+                setDialogContent({
+                    speaker: 'System',
+                    text: '체력이 부족하여 말을 걸 수 없다...',
+                    type: 'system'
+                });
+                return;
+            }
+        }
 
         const userMsg = inputText;
         setInputText(''); // Clear input
@@ -177,6 +191,9 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
         >
             {/* Fish Eye Effect Overlay */}
             <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
+
+            {/* Section Transition Overlay */}
+            <SectionTransitionOverlay />
 
             <GameHUD
                 mapInfo={mapInfo}

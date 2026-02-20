@@ -256,11 +256,12 @@ ${presentedItem.type === 'transcript' && presentedItem.transcriptSummary ? `ë…¹ì
         say = applyFishMasking(say, currentNpcFishLevel, playerFishLevel);
 
         // ... existing res.json ...
+        const latestGlobal = getState(userId).global;
         res.json({
             response: say,
             thought: thought,
             updatedStats: newNpcStats || npcStats,
-            currentStats: { ...globalState, npc: npcStats }, // Debug info
+            currentStats: { ...latestGlobal, npc: npcStats }, // Debug info
             debug: { // Add extra debug to response
                 rawAI: rawResponse,
                 npcFishOriginal: npcStats.fishLevel,

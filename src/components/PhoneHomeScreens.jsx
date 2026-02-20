@@ -208,7 +208,7 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
 };
 // Corrupted Home Screen for Test02
 export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
-    const { hp, maxHp, currentDay, currentPeriod, PERIOD_LABELS, PERIOD_CLOCK } = useGame();
+    const { hp, maxHp, plusHp, currentDay, currentPeriod, PERIOD_LABELS, PERIOD_CLOCK } = useGame();
     const dayLabel = currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`;
     const periodLabel = PERIOD_LABELS?.[currentPeriod] || '아침';
     const clockDisplay = PERIOD_CLOCK?.[currentPeriod] || '08:00';
@@ -280,17 +280,28 @@ export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
                         <div className="flex flex-col items-center w-full">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Fish className="w-5 h-5 text-blue-300 fill-current animate-bounce" />
-                                <span className="text-sm font-bold tracking-wider text-blue-100">HP (Action Points)</span>
+                                <span className="text-sm font-bold tracking-wider text-blue-100">HP</span>
+                                {(plusHp ?? 0) > 0 && (
+                                    <span className="text-xs text-emerald-400 font-mono ml-1">+{plusHp}</span>
+                                )}
                             </div>
-                            <div className="w-64 h-3 bg-gray-800/80 rounded-full overflow-hidden border border-white/10 shadow-inner">
+                            <div className="w-64 h-3 bg-gray-800/80 rounded-full overflow-hidden border border-white/10 shadow-inner relative">
                                 <div
-                                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full relative"
+                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400"
                                     style={{ width: `${(hp / maxHp) * 100}%` }}
                                 >
                                     <div className="absolute inset-0 bg-white/20" />
                                 </div>
+                                {(plusHp ?? 0) > 0 && (
+                                    <div
+                                        className="absolute inset-y-0 bg-gradient-to-r from-emerald-500 to-emerald-400"
+                                        style={{ left: `${(hp / maxHp) * 100}%`, width: `${((plusHp ?? 0) / maxHp) * 100}%` }}
+                                    />
+                                )}
                             </div>
-                            <span className="text-xs mt-1.5 font-mono text-gray-300 font-medium">{hp} / {maxHp}</span>
+                            <span className="text-xs mt-1.5 font-mono text-gray-300 font-medium">
+                                {(plusHp ?? 0) > 0 ? `${hp}+${plusHp} / ${maxHp}` : `${hp} / ${maxHp}`}
+                            </span>
                         </div>
                     </div>
                 </div>

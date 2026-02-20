@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, DoorOpen, Package } from 'lucide-react';
+import { MapPin, Search, DoorOpen, Package, BedDouble } from 'lucide-react';
 
 const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
     const [hoveredZone, setHoveredZone] = useState(null);
@@ -12,6 +12,7 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
             case 'move': return <DoorOpen className="w-6 h-6 text-white" />;
             case 'item': return <Package className="w-6 h-6 text-yellow-400" />;
             case 'npc': return <MapPin className="w-6 h-6 text-blue-400" />;
+            case 'rest': return <BedDouble className="w-6 h-6 text-emerald-400" />;
             default: return <Search className="w-6 h-6 text-gray-200" />;
         }
     };
@@ -23,10 +24,10 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                     key={zone.id}
                     className="absolute cursor-pointer pointer-events-auto group"
                     style={{
-                        left: zone.x,
-                        top: zone.y,
-                        width: zone.width,
-                        height: zone.height,
+                        left: `${zone.x}%`,
+                        top: `${zone.y}%`,
+                        width: `${zone.width}%`,
+                        height: `${zone.height}%`,
                     }}
                     onMouseEnter={() => setHoveredZone(zone.id)}
                     onMouseLeave={() => setHoveredZone(null)}

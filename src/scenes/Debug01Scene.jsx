@@ -1,11 +1,12 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { ChevronRight, MapPin, Clock, User, Calendar } from 'lucide-react';
+import { ChevronRight, MapPin, Clock, User, Calendar, Heart, Zap, BedDouble } from 'lucide-react';
 
 const PERIOD_COLORS = {
     morning: 'bg-amber-500',
     afternoon: 'bg-orange-500',
     evening: 'bg-indigo-600',
+    dawn: 'bg-gray-600',
 };
 
 const Debug01Scene = ({ onBack }) => {
@@ -22,6 +23,13 @@ const Debug01Scene = ({ onBack }) => {
         advancePeriod,
         getNpcsForRoom,
         floorData,
+        hp,
+        maxHp,
+        plusHp,
+        spendHp,
+        rest,
+        ACTION_COSTS,
+        sectionTransition,
     } = useGame();
 
     // Build flat room list from floorData
@@ -122,6 +130,54 @@ const Debug01Scene = ({ onBack }) => {
                             <span>다음</span>
                             <ChevronRight className="w-3 h-3" />
                         </button>
+
+                        {/* HP Display with visual bar */}
+                        <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-white/10">
+                            <Heart className="w-4 h-4 text-red-500" />
+                            <div className="flex flex-col">
+                                <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden flex">
+                                    <div className="h-full bg-red-500 transition-all" style={{ width: `${(hp / maxHp) * 100}%` }} />
+                                    {(plusHp ?? 0) > 0 && (
+                                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${((plusHp ?? 0) / maxHp) * 100}%` }} />
+                                    )}
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-mono">
+                                    {(plusHp ?? 0) > 0 ? `${hp}+${plusHp} / ${maxHp}` : `${hp}/${maxHp}`}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Quick HP Actions */}
+                        <div className="flex items-center space-x-1 ml-2">
+                            <button
+                                onClick={() => spendHp && spendHp(ACTION_COSTS?.move ?? 1)}
+                                className="px-2 h-7 bg-red-800/60 hover:bg-red-700 text-red-200 text-[10px] font-bold rounded transition-all"
+                                title={`Spend ${ACTION_COSTS?.move ?? 1} HP (move)`}
+                            >
+                                -Move
+                            </button>
+                            <button
+                                onClick={() => spendHp && spendHp(ACTION_COSTS?.npcChat ?? 10)}
+                                className="px-2 h-7 bg-red-800/60 hover:bg-red-700 text-red-200 text-[10px] font-bold rounded transition-all"
+                                title={`Spend ${ACTION_COSTS?.npcChat ?? 10} HP (chat)`}
+                            >
+                                -Chat
+                            </button>
+                            <button
+                                onClick={() => rest && rest()}
+                                className="px-2 h-7 bg-emerald-800/60 hover:bg-emerald-700 text-emerald-200 text-[10px] font-bold rounded transition-all flex items-center space-x-0.5"
+                            >
+                                <BedDouble className="w-3 h-3" />
+                                <span>Rest</span>
+                            </button>
+                        </div>
+
+                        {/* Section Transition Indicator */}
+                        {sectionTransition && (
+                            <span className="text-[10px] text-yellow-400 bg-yellow-500/20 px-2 py-1 rounded ml-2 animate-pulse">
+                                TRANSITION
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -196,7 +252,7 @@ const Debug01Scene = ({ onBack }) => {
                                                         : 'text-gray-600'
                                                         }`}
                                                 >
-                                                    {p === 'morning' ? '朝' : p === 'afternoon' ? '午' : '夕'}
+                                                    {p === 'morning' ? '朝' : p === 'afternoon' ? '午' : p === 'evening' ? '夕' : '夜'}
                                                 </th>
                                             ))
                                         ))}

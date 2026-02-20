@@ -457,23 +457,34 @@ const Debug02Scene = ({ onBack }) => {
 
 // ─── NPC Prompt Overview (with name editing & inventory management) ───
 const NpcPromptOverview = ({ npc, npcId, prompts, items, getNpcPromptKeys, onEditPrompt, onUpdateNpc, saving }) => {
-    const promptKeys = getNpcPromptKeys(npc);
+    const promptKeys = npc ? getNpcPromptKeys(npc) : [];
     const hasTiers = promptKeys.some(p => p.tier !== 'DEFAULT');
 
     const [editName, setEditName] = useState(false);
-    const [nameValue, setNameValue] = useState(npc.name || '');
+    const [nameValue, setNameValue] = useState(npc?.name || '');
     const [editInventory, setEditInventory] = useState(false);
-    const [inventoryItems, setInventoryItems] = useState(npc.initialInventory || []);
+    const [inventoryItems, setInventoryItems] = useState(npc?.initialInventory || []);
     const [newItemId, setNewItemId] = useState('');
 
     // Reset when NPC changes
     useEffect(() => {
         setEditName(false);
-        setNameValue(npc.name || '');
+        setNameValue(npc?.name || '');
         setEditInventory(false);
-        setInventoryItems(npc.initialInventory || []);
+        setInventoryItems(npc?.initialInventory || []);
         setNewItemId('');
-    }, [npcId, npc.name, npc.initialInventory]);
+    }, [npcId, npc?.name, npc?.initialInventory]);
+
+    if (!npc) {
+        return (
+            <div className="flex-1 flex items-center justify-center text-gray-600 text-sm p-8">
+                <div className="text-center space-y-2">
+                    <User className="w-10 h-10 mx-auto text-gray-700" />
+                    <p>왼쪽 목록에서 NPC를 선택하세요.</p>
+                </div>
+            </div>
+        );
+    }
 
     const saveName = () => {
         if (nameValue.trim() && nameValue !== npc.name) {
@@ -502,7 +513,7 @@ const NpcPromptOverview = ({ npc, npcId, prompts, items, getNpcPromptKeys, onEdi
     const allItemIds = Object.keys(items);
 
     return (
-        <div className="space-y-4 max-w-3xl">
+        <div className="space-y-4 max-w-3xl overflow-y-auto h-full p-4">
             {/* NPC Header — with editable name */}
             <div className="bg-gradient-to-r from-emerald-900/30 to-gray-900/30 rounded-xl border border-emerald-500/20 p-4">
                 <div className="flex items-center gap-3">
