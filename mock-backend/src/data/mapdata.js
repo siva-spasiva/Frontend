@@ -1357,11 +1357,11 @@ export const FLOOR_DATA = [
                         "type": "move",
                         "target": "real_leader_room",
                         "x": 59.021996561888564,
-                        "y": 34.868126955744295,
+                        "y": 34.71246979065042,
                         "width": 12.879121783506761,
                         "height": 32.17255252570406,
-                        "label": "교주의 방",
-                        "message": "교주의 방으로 들어간다.",
+                        "label": "녹이 슨 철문.",
+                        "message": "들어간다.",
                         "itemId": ""
                     },
                     {
