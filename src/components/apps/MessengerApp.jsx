@@ -715,73 +715,52 @@ const ContractPhase = ({ onComplete }) => {
 const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
     // phase: 'loading' | 'list' | 'chat' | 'failed'
     const [phase, setPhase] = useState('loading');
-    const { triggerAppEvent, inventoryItems } = useGame();
+    const { triggerAppEvent, isTutorialCompleted } = useGame();
 
     // --- LIFTED STATE ---
     const [messages, setMessages] = useState([]);
     const [isDisconnected, setIsDisconnected] = useState(false); // Lifted state
     const [isListAnimated, setIsListAnimated] = useState(false); // Track if initial animation is done
 
-    // Check for "Suspicious Contract" or "Enlightenment Contract" (item004 or item020)
-    // If user has these, it means they completed the intro sequence.
-    const hasContract = inventoryItems.some(item => item.id === 'item004' || item.id === 'item020');
-
-    // Make it instantly fail if they already have the contract and are not in tutorial
+    // Phase transition based on isStartMode
     useEffect(() => {
-        if (hasContract && !isStartMode) {
+        if (!isStartMode) {
             const timer = setTimeout(() => {
                 setPhase('failed');
             }, 1000);
             return () => clearTimeout(timer);
-        } else if (phase === 'loading') { // For start mode or before contract
+        } else if (phase === 'loading') {
             const timer = setTimeout(() => {
                 setPhase('list');
             }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [hasContract, isStartMode, phase]);
+    }, [isStartMode, phase]);
 
     // Initialize messages
     useEffect(() => {
-        if (initialMessages) {
-            setMessages(initialMessages);
-            setIsListAnimated(true);
-        } else if (messages.length === 0) {
-            // New Game Start (Tutorial not done yet)
-            // Or if we just started fresh
+        if (isStartMode) {
+            // New Game Start (Tutorial)
+            // Always freshly initialize front-end script
             const initialMsgs = [
                 { id: 1, sender: '강 형사', text: '배 도착했냐? 위치 추적기 켜둬라.', type: 'text', time: '오후 2:01' },
                 { id: 2, sender: '강 형사', text: '본부에서는 전광어 그 놈 그냥 뜬소문이라고 생각한다고.', type: 'text', time: '오후 2:01' },
                 { id: 3, sender: '강 형사', text: '무리하지 말고 그냥 동태나 살피다 와. 알겠지?', type: 'text', time: '오후 2:02' },
             ];
             setMessages(initialMsgs);
-        }
-    }, [initialMessages]); // Run when initialMessages prop changes or on mount
-
-    // Check Disconnect State based on Inventory
-    useEffect(() => {
-        if (hasContract) {
+            setIsDisconnected(false);
+        } else {
+            // Ingame (Post-tutorial)
+            setMessages([{
+                id: Date.now(),
+                sender: 'security_bot',
+                text: '상대방과의 연결이 종료되었습니다.',
+                type: 'system',
+                time: ''
+            }]);
             setIsDisconnected(true);
-
-            // Append explicit "Connection Lost" message if not already there
-            setMessages(prev => {
-                const hasSystemMsg = prev.some(m => m.text === '상대방과의 연결이 종료되었습니다.');
-                if (!hasSystemMsg) {
-                    return [
-                        ...prev,
-                        {
-                            id: Date.now(),
-                            sender: 'security_bot',
-                            text: '상대방과의 연결이 종료되었습니다.',
-                            type: 'system',
-                            time: ''
-                        }
-                    ];
-                }
-                return prev;
-            });
         }
-    }, [hasContract]);
+    }, [isStartMode]);
 
     // This is called when the ChatScreen decides it's time (after X messages)
     const handleTriggerContract = () => {

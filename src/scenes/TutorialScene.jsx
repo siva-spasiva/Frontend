@@ -9,7 +9,7 @@ import MessengerApp from '../components/apps/MessengerApp';
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_npc' -> 'contract' -> 'drink' -> 'fadeout'
     const [step, setStep] = useState('intro');
-    const { addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo } = useGame();
+    const { addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, completeTutorial } = useGame();
 
     // UI 로직 State
     const [showMessenger, setShowMessenger] = useState(false);
@@ -131,10 +131,12 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     // 7. 물약 마시고 페이드아웃 -> 다음날 내 방(B2_room01)에서 기상
-    const handleDrinkItem = () => {
+    const handleDrinkItem = async () => {
         addItem('item003'); // 우선 인벤토리에 넣고 쓰는 연출
         setPendingItem(null);
         setStep('fadeout');
+        
+        await completeTutorial();
 
         setTimeout(() => {
             setDay(1); // 1일차로 시작

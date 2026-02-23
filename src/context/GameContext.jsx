@@ -609,7 +609,7 @@ export const GameProvider = ({ children }) => {
         return npcInv.map(id => gameData.itemData?.[id]).filter(Boolean);
     };
 
-    const completePresentation = () => {
+    const clearPresentation = () => {
         setPresentedItem(null);
     };
 
