@@ -6,7 +6,7 @@ const PERIOD_COLORS = {
     morning: 'bg-amber-500',
     afternoon: 'bg-orange-500',
     evening: 'bg-indigo-600',
-    dawn: 'bg-gray-600',
+    night: 'bg-gray-600',
 };
 
 const Debug01Scene = ({ onBack }) => {
@@ -88,7 +88,7 @@ const Debug01Scene = ({ onBack }) => {
                         <div className="flex items-center space-x-2">
                             <span className="text-xs text-gray-500 font-bold w-8">DAY</span>
                             <div className="flex gap-1">
-                                {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
+                                {[0, 1, 2, 3, 4, 5].map(d => (
                                     <button
                                         key={d}
                                         onClick={() => setDay(d)}
@@ -235,15 +235,15 @@ const Debug01Scene = ({ onBack }) => {
                                 <thead>
                                     <tr className="border-b border-white/10">
                                         <th className="text-left py-2 px-3 text-gray-500 font-bold w-28">NPC</th>
-                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
-                                            <th key={d} colSpan={3} className={`text-center py-2 px-1 font-bold ${currentDay === d ? 'text-yellow-400 bg-yellow-500/10' : 'text-gray-500'}`}>
+                                        {[0, 1, 2, 3, 4, 5].map(d => (
+                                            <th key={d} colSpan={4} className={`text-center py-2 px-1 font-bold ${currentDay === d ? 'text-yellow-400 bg-yellow-500/10' : 'text-gray-500'}`}>
                                                 {d === 0 ? 'Tut' : `D${d}`}
                                             </th>
                                         ))}
                                     </tr>
                                     <tr className="border-b border-white/10">
                                         <th className="py-1 px-3"></th>
-                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
+                                        {[0, 1, 2, 3, 4, 5].map(d => (
                                             PERIOD_ORDER.map(p => (
                                                 <th
                                                     key={`${d}-${p}`}
@@ -262,7 +262,7 @@ const Debug01Scene = ({ onBack }) => {
                                     {npcEntries.map(([npcId, npc]) => (
                                         <tr key={npcId} className="border-b border-white/5 hover:bg-white/5">
                                             <td className="py-2 px-3 font-bold text-gray-300 whitespace-nowrap">{npc.name}</td>
-                                            {[0, 1, 2, 3, 4, 5, 6, 7].map(d =>
+                                            {[0, 1, 2, 3, 4, 5].map(d =>
                                                 PERIOD_ORDER.map(p => {
                                                     const loc = getNpcLocationFromSchedule(npcId, d, p);
                                                     const isCurrent = currentDay === d && currentPeriod === p;
