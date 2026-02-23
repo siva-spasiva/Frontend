@@ -52,8 +52,12 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
             return;
         }
 
-        // === HP cost check for interact / move ===
-        const costKey = zone.type === 'move' ? 'move' : 'interact';
+        // === HP cost check for interact / move / item / eavesdrop ===
+        let costKey = 'interact';
+        if (zone.type === 'move') costKey = 'move';
+        else if (zone.type === 'item') costKey = 'item';
+        else if (zone.type === 'eavesdrop') costKey = 'eavesdrop';
+        
         const cost = ACTION_COSTS?.[costKey] ?? 0;
 
         // Check if this cost would cross a section boundary
