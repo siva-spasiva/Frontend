@@ -139,7 +139,7 @@ const TutorialScene = ({ onComplete }) => {
         setTimeout(() => {
             setDay(1); // 1일차로 시작
             setPeriod('morning');
-            setCurrentLocationInfo({ floorId: 'B2', roomId: 'room01' }); // 내 방에서 눈을 뜸
+            setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' }); // 내 방에서 눈을 뜸
             onComplete(); // App.jsx로 넘겨서 MainGame 진입
         }, 3000);
     };
