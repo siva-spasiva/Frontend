@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Clock } from 'lucide-react';
 
-const PERIOD_LABELS = { morning: '아침', afternoon: '오후', evening: '저녁', dawn: '새벽' };
+const PERIOD_LABELS = { morning: '아침', afternoon: '오후', evening: '저녁', night: '심야' };
 
 const HpWarningModal = ({ isOpen, warning, onConfirm, onCancel }) => {
     if (!isOpen || !warning) return null;
