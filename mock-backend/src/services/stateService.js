@@ -12,7 +12,8 @@ export const INITIAL_STATS = {
     trust: 10,
     currentDay: 0,       // 0=Tutorial, 1~7=본편
     currentPeriod: 'morning', // 'morning' | 'afternoon' | 'evening' | 'dawn'
-    inventory: ['item001', 'item002', 'item003']
+    inventory: ['item001', 'item002', 'item003'],
+    isTutorialCompleted: false
 };
 
 export const INITIAL_NPC_STATS = {
