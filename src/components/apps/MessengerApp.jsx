@@ -211,42 +211,42 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
     const SCRIPTED_CHOICES = [
         {
             choices: [
-                { text: '섬에 도착했어. 분위기가 좀 묘한데.', id: 'a' },
-                { text: '선착장 도착. 겉보기엔 평범한 리조트야.', id: 'b' },
+                { text: '섬에 도착했어. 분위기가 좀 묘해. 역시 뭔가 있어.', id: 'a' },
+                { text: '선착장 도착. 겉보기엔 평범한 섬인데. 저쪽에 우미 클래스 보인다.', id: 'b' },
             ],
             responses: {
                 a: [
                     { sender: '강 형사', text: '묘하다고? 기분 탓이겠지. 너무 예민하게 굴지 마.', time: 'Now' },
-                    { sender: '강 형사', text: '그냥 휴가 왔다고 생각하고 편하게 있어. 놈들은 내가 파악할 테니까.', time: 'Now' },
+                    { sender: '강 형사', text: '그냥 휴가라고 생각하고 편하게 있다 와.', time: 'Now' },
                 ],
                 b: [
-                    { sender: '강 형사', text: '다행이네. 너무 긴장하지 말고 자연스럽게 행동해.', time: 'Now' },
-                    { sender: '강 형사', text: '이번엔 그냥 휴가라 생각하고 푹 쉬다 와. 알겠지?', time: 'Now' },
+                    { sender: '강 형사', text: '갑자기 그놈 잡겠다고 뛰쳐나가서 놀랐잖아.', time: 'Now' },
+                    { sender: '강 형사', text: '알겠지? 괜히 이상한 생각하지 말고.', time: 'Now' },
                 ],
             },
         },
         {
             choices: [
-                { text: '알겠어. 무슨 일 생기면 바로 연락할게.', id: 'a' },
-                { text: '휴가는 무슨... 증거 찾으면 바로 복귀한다.', id: 'b' },
+                { text: '이번엔 확실해. 증명할게. 이놈 잡아 넣을거야.', id: 'a' },
+                { text: '쉴 생각 없어. 증거 찾으면 바로 현행범으로 넣을거야.', id: 'b' },
             ],
             responses: {
                 a: [
-                    { sender: '강 형사', text: '그래, 무리는 하지 말고.', time: 'Now' },
-                    { sender: '강 형사', text: '혹시라도 위험해 보이면 바로...', time: 'Now' },
+                    { sender: '강 형사', text: '뭘 증명한다고 임마.', time: 'Now' },
+                    { sender: '강 형사', text: '아무튼 조심해라.', time: 'Now' },
                 ],
                 b: [
                     { sender: '강 형사', text: '짜식, 하여간 워커홀릭이라니까.', time: 'Now' },
-                    { sender: '강 형사', text: '아무튼 조심해라. 위험하면 바로...', time: 'Now' },
+                    { sender: '강 형사', text: '열정넘치는건 알겠는데, 위험 감수할 필요 없어.', time: 'Now' },
                 ],
             },
         },
     ];
 
     const FINAL_SEQUENCE = [
-        { sender: '강 형사', text: '...치직... 야, 듣고 있어?', time: 'Now' },
-        { sender: '강 형사', text: '신호가 왜 이래... 야! 강... ...', time: 'Now' },
-        { sender: 'System', text: '네트워크 연결이 불안정합니다.', type: 'system', time: 'Now' },
+        { sender: '강 형사', text: '위에선 증거 없다고 컷됐어도 다들 너 걱정해.', time: 'Now' },
+        { sender: '강 형사', text: '전광...어 수...상한거 다 알잖아....', time: 'Now' },
+        { sender: 'System', text: '왜... 메세...지... 끊...', type: 'system', time: 'Now' },
     ];
 
     const handleScriptedChoice = async (choiceId) => {
