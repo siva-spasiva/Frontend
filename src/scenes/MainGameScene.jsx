@@ -9,6 +9,7 @@ import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import { useInteraction } from '../hooks/useInteraction';
 import NavigationConfirmation from '../components/NavigationConfirmation';
 import ItemPickupModal from '../components/ItemPickupModal';
+import RequirementModal from '../components/RequirementModal';
 import FishEyeEffect from '../components/FishEyeEffect';
 import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import HpWarningModal from '../components/HpWarningModal';
@@ -22,7 +23,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS } = useGame();
+    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -50,6 +51,8 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
         cancelMove,
         pendingItem,
         resolveItem,
+        pendingRequirement,
+        resolveRequirement,
         setDialogContent,
         setLogs,
         pendingHpWarning,
@@ -60,6 +63,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
         setViewMode,
         onMove: handleMove,
         inventory: currentInventory, // Pass current inventory to check for existing items
+        stats: { fishLevel, umiLevel, hp }, // Pass stats for interaction checks
         spendHp,
         rest,
         ACTION_COSTS,
@@ -189,6 +193,13 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                         resolveItem();
                     }
                 }}
+            />
+
+            {/* Locked Requirement Check Modal */}
+            <RequirementModal
+                isOpen={!!pendingRequirement}
+                requirement={pendingRequirement}
+                onClose={resolveRequirement}
             />
         </motion.div>
     );

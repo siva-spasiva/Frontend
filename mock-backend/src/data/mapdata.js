@@ -635,8 +635,13 @@ export const FLOOR_DATA = [
                         "width": 5.880239775273445,
                         "height": 24.86412225105301,
                         "label": "002호",
-                        "message": "002호 문을 연다.",
-                        "itemId": ""
+                        "message": "002호 문을 연다. (굳게 닫혀있다)",
+                        "itemId": "",
+                        "locked": {
+                            "type": "item",
+                            "targetId": "item010",
+                            "message": "굳게 잠겨있다. 무언가 검은 열쇠가 필요해 보인다."
+                        }
                     },
                     {
                         "id": "door_laundry",

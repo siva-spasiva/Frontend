@@ -1,14 +1,43 @@
 import { useState, useCallback } from 'react';
 
-export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS } = {}) => {
+export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], stats = {}, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS } = {}) => {
     const [logs, setLogs] = useState([]);
     const [dialogContent, setDialogContent] = useState(null);
     const [pendingMove, setPendingMove] = useState(null);
     const [pendingItem, setPendingItem] = useState(null); // New state for item pickup
     const [pendingHpWarning, setPendingHpWarning] = useState(null); // { zone, cost, preview }
+    const [pendingRequirement, setPendingRequirement] = useState(null); // New state for locked requirements
 
     const handleInteraction = useCallback((zone) => {
         console.log("System Interaction with zone:", zone);
+
+        // === Check Locked Requirement ===
+        if (zone.locked) {
+            const req = zone.locked;
+            if (req.type === 'item') {
+                if (!inventory.includes(req.targetId)) {
+                    setPendingRequirement({
+                        type: 'item',
+                        targetId: req.targetId,
+                        message: req.message || '굳게 잠겨있다. 무언가 필요한 것 같다.'
+                    });
+                    setDialogContent({ speaker: 'System', text: req.message || '굳게 닫혀있다...', type: 'system' });
+                    return;
+                }
+            } else if (req.type === 'stat') {
+                const statValue = stats[req.targetId] || 0;
+                if (statValue < req.targetValue) {
+                    setPendingRequirement({
+                        type: 'stat',
+                        targetId: req.targetId,
+                        targetValue: req.targetValue,
+                        message: req.message || '굳게 잠겨있다. 현재 상태로는 접근할 수 없다.'
+                    });
+                    setDialogContent({ speaker: 'System', text: req.message || '다다갈 수 없다...', type: 'system' });
+                    return;
+                }
+            }
+        }
 
         // === Rest zone: skip to next section ===
         if (zone.type === 'rest') {
@@ -44,7 +73,7 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
 
         // No boundary cross — proceed normally
         executeInteraction(zone, cost);
-    }, [dialogContent, viewMode, setViewMode, onMove, spendHp, rest, ACTION_COSTS, getHpCostPreview]);
+    }, [dialogContent, viewMode, setViewMode, onMove, inventory, stats, spendHp, rest, ACTION_COSTS, getHpCostPreview]);
 
     // Execute the actual interaction (after warning confirmation or if no warning needed)
     const executeInteraction = useCallback((zone, cost) => {
@@ -194,6 +223,10 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
         setPendingItem(null);
     }, []);
 
+    const resolveRequirement = useCallback(() => {
+        setPendingRequirement(null);
+    }, []);
+
     const setDialog = useCallback((content) => {
         setDialogContent(content);
     }, []);
@@ -210,6 +243,8 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
         cancelMove,
         pendingItem,
         resolveItem,
+        pendingRequirement,
+        resolveRequirement,
         pendingHpWarning,
         confirmHpWarning,
         cancelHpWarning,
