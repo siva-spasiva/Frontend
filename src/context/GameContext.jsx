@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, fetchStaticGameData, transferItem } from '../api/stats';
+import { fetchGameStats, updateGameStats, fetchStaticGameData, transferItem, fetchTutorialStatus, completeTutorialAPI } from '../api/stats';
 
 // Fish Level Tier 유틸리티
 const getFishTier = (fishLevel) => {
@@ -33,8 +33,10 @@ export const GameProvider = ({ children }) => {
         currentDay: 0,
         currentPeriod: 'morning',
         npcStats: {},
-        inventory: ['smartphone', 'id_card', 'police_badge']
+        inventory: ['smartphone', 'id_card', 'police_badge'],
     });
+
+    const [isTutorialCompleted, setIsTutorialCompleted] = useState(false);
 
     // Static Data State
     const [gameData, setGameData] = useState({
@@ -79,7 +81,14 @@ export const GameProvider = ({ children }) => {
     // Fetch Initial Stats and Data
     useEffect(() => {
         const initGame = async () => {
-            await Promise.all([fetchStats(), fetchStaticData()]);
+            const [statsRes, dataRes, tutorialRes] = await Promise.all([
+                fetchStats(), 
+                fetchStaticData(),
+                fetchTutorialStatus().catch(() => ({ isCompleted: false }))
+            ]);
+            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
+                setIsTutorialCompleted(tutorialRes.isCompleted);
+            }
             setIsLoading(false);
         };
         initGame();
@@ -600,13 +609,25 @@ export const GameProvider = ({ children }) => {
         return npcInv.map(id => gameData.itemData?.[id]).filter(Boolean);
     };
 
-    const clearPresentation = () => {
+    const completePresentation = () => {
         setPresentedItem(null);
+    };
+
+    const completeTutorial = async () => {
+        try {
+            await completeTutorialAPI();
+            setIsTutorialCompleted(true);
+        } catch (error) {
+            console.error("Failed to complete tutorial:", error);
+        }
     };
 
     const value = {
         // Expose all stats directly
         ...stats,
+
+        isTutorialCompleted,
+        completeTutorial,
 
         // Expose Game Data
         npcData: gameData.npcData,

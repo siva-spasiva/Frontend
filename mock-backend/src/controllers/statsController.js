@@ -67,3 +67,15 @@ export const transferItem = (req, res) => {
         npcStats: state.npcStats
     });
 };
+
+export const getTutorialStatus = (req, res) => {
+    const { userId = 'default_user' } = req.query;
+    const state = getState(userId);
+    res.json({ isCompleted: !!state.global.isTutorialCompleted });
+};
+
+export const completeTutorial = (req, res) => {
+    const { userId = 'default_user' } = req.body;
+    updateGlobalState(userId, { isTutorialCompleted: true });
+    res.json({ success: true });
+};

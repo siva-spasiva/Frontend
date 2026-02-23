@@ -44,3 +44,20 @@ export const transferItem = async (npcId, itemId, direction = 'fromNpc', userId 
         body: JSON.stringify({ npcId, itemId, direction, userId }),
     });
 };
+
+/**
+ * 튜토리얼 완료 상태를 가져옵니다.
+ */
+export const fetchTutorialStatus = async (userId = 'user_dev_session') => {
+    return apiClient(`/api/tutorial/status?userId=${userId}`);
+};
+
+/**
+ * 튜토리얼을 완료 처리합니다.
+ */
+export const completeTutorialAPI = async (userId = 'user_dev_session') => {
+    return apiClient('/api/tutorial/complete', {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+    });
+};

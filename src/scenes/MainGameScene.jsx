@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
+import { generateAIResponse } from '../utils/aiService';
 import GameHUD from '../components/GameHUD';
 
 import PortraitDisplay from '../components/PortraitDisplay';
@@ -23,7 +24,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp } = useGame();
+    const { syncStats, npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField, setChatLogs } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -76,6 +77,21 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // All NPCs in current room (for future multi-NPC support)
     const [npcsInRoom, setNpcsInRoom] = useState([]);
 
+    const [isThinking, setIsThinking] = useState(false);
+    
+    // NPC Session State -> Free chat count logic
+    const [freeChatCount, setFreeChatCount] = useState(0);
+
+    // Sync state to GameContext for RecorderApp
+    useEffect(() => {
+        // Include active dialog (response) in the synced logs so transcripts catch the latest message
+        if (dialogContent && dialogContent.type?.includes('npc')) {
+            setChatLogs([...logs, { ...dialogContent, id: 'active_last' }]);
+        } else {
+            setChatLogs(logs);
+        }
+    }, [logs, dialogContent, setChatLogs]);
+
     // Map Info (Dynamic based on currentRoomId)
     const mapInfo = mapData?.[currentRoomId] || {};
 
@@ -92,9 +108,138 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
         } else {
             setActiveNpc(null);
         }
+        
+        // Reset chat session on move
+        setFreeChatCount(0);
     }, [currentRoomId, currentDay, currentPeriod, npcData]);
 
-    const [isThinking, setIsThinking] = useState(false);
+    // Sync activeNpc to GameContext for InventoryApp presentation awareness
+    useEffect(() => {
+        setActiveNpcInField(activeNpc);
+        return () => setActiveNpcInField(null); // Clear on unmount
+    }, [activeNpc, setActiveNpcInField]);
+
+
+    const handleSend = async () => {
+        if (!inputText.trim()) return;
+
+        // Check HP Cost
+        if (freeChatCount === 0) {
+            if (spendHp && ACTION_COSTS) {
+                const ok = spendHp(ACTION_COSTS.npcChat);
+                if (!ok) {
+                    setDialogContent({
+                        speaker: 'System',
+                        text: '체력이 부족하여 말을 걸 수 없다...',
+                        type: 'system'
+                    });
+                    return;
+                }
+                // Paid! Give 10 free chats for the ensuing conversation
+                setFreeChatCount(10);
+            }
+        } else {
+            // Use one free chat
+            setFreeChatCount(prev => prev - 1);
+        }
+
+        const userMsg = inputText;
+        setInputText(''); // Clear input
+
+        setIsThinking(true);
+
+        // 1. Archive current dialog if exists
+        const newLogs = [...logs];
+        if (dialogContent) {
+            newLogs.push({
+                ...dialogContent,
+                id: Date.now() + '_prev_npc',
+                type: dialogContent.type || 'npc'
+            });
+        }
+
+        // 2. Add User Message
+        newLogs.push({
+            id: Date.now() + '_user',
+            speaker: 'You',
+            text: userMsg,
+            type: 'user'
+        });
+
+        // 2.5. If presenting an item, add presentation log
+        if (presentedItem) {
+            newLogs.push({
+                id: Date.now() + '_presentation',
+                speaker: 'System',
+                text: `${presentedItem.name}을(를) 제시했습니다.`,
+                itemName: presentedItem.name,
+                icon: presentedItem.icon,
+                type: 'item_presentation'
+            });
+        }
+
+        setLogs(newLogs);
+
+        // 3. Temporary clear dialog to show thinking state in the main box
+        setDialogContent(null);
+
+        // If hidden, auto-show to mini to see response
+        if (viewMode === 'hidden') setViewMode('mini');
+
+        try {
+            // Default to NPC A if no active NPC, or use active NPC
+            const targetNpc = activeNpc || npcData?.npc_a;
+            
+            if (!targetNpc) {
+                 setDialogContent({ speaker: 'System', text: '대화할 상대가 없습니다.', type: 'system' });
+                 setIsThinking(false);
+                 return;
+            }
+
+            const data = await generateAIResponse(userMsg, {
+                npcId: targetNpc.id,
+                presentedItem: presentedItem || undefined,
+            });
+
+            setDialogContent({
+                speaker: targetNpc.name,
+                text: data.response,
+                type: 'active_npc'
+            });
+
+            // Update Stats locally since backend already processed it
+            if (data.updatedStats) {
+                syncStats(data.updatedStats);
+            }
+
+            // Clear presented item after it's been sent with the message
+            if (presentedItem) {
+                clearPresentation();
+            }
+
+        } catch (error) {
+            console.error(error);
+            setDialogContent({
+                speaker: 'System',
+                text: '...(시스템 오류: 응답 불가)...',
+                type: 'system'
+            });
+            // Refund the free chat count if it failed? (Optional)
+        } finally {
+            setIsThinking(false);
+        }
+    };
+
+    const toggleNpc = () => {
+        if (!npcsInRoom || npcsInRoom.length === 0) return;
+        
+        const currentIndex = npcsInRoom.findIndex(id => npcData[id]?.id === activeNpc?.id);
+        const nextIndex = (currentIndex + 1) % npcsInRoom.length;
+        setActiveNpc(npcData[npcsInRoom[nextIndex]]);
+        
+        // Reset free chat session when manually switching NPC target
+        setFreeChatCount(0);
+    };
 
     // Fish Visual Effects
     const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
@@ -136,6 +281,12 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                     <span className="text-xs text-gray-300">
                         현재 방에 {npcsInRoom.length}명: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
                     </span>
+                    <button 
+                        onClick={toggleNpc}
+                        className="ml-2 px-2 py-0.5 bg-blue-600 hover:bg-blue-500 rounded text-xs"
+                    >
+                        대상 변경
+                    </button>
                 </div>
             )}
 
@@ -145,7 +296,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 logs={logs}
                 dialogContent={dialogContent}
                 isThinking={isThinking}
-                onSend={() => { }} // Disabled Chat
+                onSend={handleSend}
                 inputText={inputText}
                 setInputText={setInputText}
                 viewMode={viewMode}
@@ -154,6 +305,9 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 isPhoneOpen={isPhoneOpen}
                 onTogglePhone={onTogglePhone}
                 theme="corrupted"
+                onToggleNpc={npcsInRoom.length > 1 ? toggleNpc : undefined}
+                presentedItem={presentedItem}
+                onClearPresentation={clearPresentation}
             />
 
             {/* Navigation Confirmation Popup */}
@@ -183,7 +337,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 onCollect={() => {
                     if (pendingItem) {
                         addItem(pendingItem);
-                        // Optional: Add log for item pickup
+                        // Add log for item pickup
                         setLogs(prev => [...prev, {
                             id: Date.now() + '_item_pickup',
                             speaker: 'System',
@@ -206,3 +360,4 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
 };
 
 export default MainGameScene;
+
