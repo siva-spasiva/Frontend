@@ -50,16 +50,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const mapInfo = mapData?.umi_class || {}; // Safe access
 
     // Sync state to GameContext for RecorderApp
-    const { setChatLogs, setCurrentLocationInfo } = useGame();
-
-    React.useEffect(() => {
-        // Include active dialog (response) in the synced logs so transcripts catch the latest message
-        if (dialogContent) {
-            setChatLogs([...logs, { ...dialogContent, id: 'active_last', type: 'npc' }]);
-        } else {
-            setChatLogs(logs);
-        }
-    }, [logs, dialogContent, setChatLogs]);
+    const { setCurrentLocationInfo } = useGame();
 
     React.useEffect(() => {
         if (mapInfo && mapInfo.namePrefix) {

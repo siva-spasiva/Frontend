@@ -24,7 +24,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { syncStats, npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField, setChatLogs } = useGame();
+    const { syncStats, npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -82,15 +82,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // NPC Session State -> Free chat count logic
     const [freeChatCount, setFreeChatCount] = useState(0);
 
-    // Sync state to GameContext for RecorderApp
-    useEffect(() => {
-        // Include active dialog (response) in the synced logs so transcripts catch the latest message
-        if (dialogContent && dialogContent.type?.includes('npc')) {
-            setChatLogs([...logs, { ...dialogContent, id: 'active_last' }]);
-        } else {
-            setChatLogs(logs);
-        }
-    }, [logs, dialogContent, setChatLogs]);
+
 
     // Map Info (Dynamic based on currentRoomId)
     const mapInfo = mapData?.[currentRoomId] || {};
