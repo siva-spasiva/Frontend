@@ -237,31 +237,31 @@ export const FLOOR_DATA = [
                 "highlightText": "우미",
                 "highlightColor": "text-blue-400",
                 "description": "아치형 창문으로 바다가 내다보이는 아름다운 강의실. 나무 바닥 위로 햇살이 길게 드리워져 있고, 이젤과 책들이 여기저기 놓여있다.",
-                "background": "1F_class01.png",
+                "background": "1F_class02.png",
                 "overlayColor": "bg-black/5",
                 "activeZones": [
                     {
                         "id": "to_main_hall_from_class",
                         "type": "move",
                         "target": "main_hall",
-                        "x": 68.65155494857088,
-                        "y": 29.10501143359882,
-                        "width": 10,
-                        "height": 40,
+                        "x": 44.538910011701745,
+                        "y": 87.08286627276888,
+                        "width": 16.597987420536327,
+                        "height": 12.91713372723111,
                         "label": "메인 홀",
                         "message": "메인 홀로 돌아간다.",
                         "itemId": ""
                     },
                     {
-                        "id": "to_stairs_from_class",
-                        "type": "move",
-                        "target": "stairs_up",
-                        "x": 85.40000998560085,
-                        "y": 51.62018545203198,
-                        "width": 12,
-                        "height": 35,
-                        "label": "계단",
-                        "message": "계단 쪽으로 향한다.",
+                        "id": "zone_3",
+                        "type": "info",
+                        "target": "",
+                        "x": 21.1,
+                        "y": 32.3,
+                        "width": 11,
+                        "height": 44.4,
+                        "label": "바깥 풍경",
+                        "message": "넓게 펼쳐진 바닷가 풍경. 정말 아름답다.",
                         "itemId": ""
                     }
                 ]
@@ -371,16 +371,16 @@ export const FLOOR_DATA = [
                 "description": "조금 소란스러운 식당. 신도들이 식사를 하고 있다.",
                 "mapImage": "B1_restaurant01.png",
                 "overlayColor": "bg-black/20",
-                "background": "B1_restaurant01.png",
+                "background": "B1_hall01.png",
                 "activeZones": [
                     {
                         "id": "to_1f",
                         "type": "move",
-                        "target": "stairs_down",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "target": "stairs_revealed",
+                        "x": 8.037548312289703,
+                        "y": 38.085631748095494,
+                        "width": 4.721610063570942,
+                        "height": 18.225301743406348,
                         "label": "1층 계단",
                         "message": "1층으로 올라간다.",
                         "itemId": ""
@@ -389,10 +389,10 @@ export const FLOOR_DATA = [
                         "id": "to_kitchen",
                         "type": "move",
                         "target": "kitchen",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 67.29947168947052,
+                        "y": 37.54880674143047,
+                        "width": 5.80128073238599,
+                        "height": 23.947250782297715,
                         "label": "조리실",
                         "message": "조리실로 들어간다.",
                         "itemId": ""
@@ -401,12 +401,24 @@ export const FLOOR_DATA = [
                         "id": "to_b2",
                         "type": "move",
                         "target": "hallway",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 15.475279586348854,
+                        "y": 38.50245864997763,
+                        "width": 3.0421223565253293,
+                        "height": 19.834599910594548,
                         "label": "B2: 거주층",
                         "message": "지하 2층으로 내려간다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_4",
+                        "type": "info",
+                        "target": "",
+                        "x": 80.05110805800597,
+                        "y": 46.20777827447474,
+                        "width": 13.319597484107277,
+                        "height": 15.888109074653554,
+                        "label": "난로",
+                        "message": "불을 때는 난로. 꺼져있다.",
                         "itemId": ""
                     }
                 ]
@@ -414,22 +426,59 @@ export const FLOOR_DATA = [
             {
                 "id": "kitchen",
                 "name": "조리실",
-                "description": "칼과 불이 있는 위험한 곳. B4로 직행하는 식재료용 덤웨이터(소형 승강기)가 있다.",
-                "background": "B1_kitchen01.png",
+                "description": "식당에 나갈 요리가 준비되는 조리실.",
+                "background": "B1_kitchen02.png",
                 "activeZones": [
                     {
                         "id": "to_cafeteria",
                         "type": "move",
                         "target": "cafeteria",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 86.13372668991056,
+                        "y": 20.310370990129798,
+                        "width": 4.4816832482787134,
+                        "height": 35.2123379526151,
                         "label": "식당",
                         "message": "식당으로 나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "info",
+                        "target": "",
+                        "x": 55.378024012890215,
+                        "y": 61.1144836835047,
+                        "width": 9.25970726116893,
+                        "height": 9.430487259722852,
+                        "label": "냄비",
+                        "message": "뭔가 끓이고 있다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_3",
+                        "type": "info",
+                        "target": "",
+                        "x": 33.8,
+                        "y": 45.4,
+                        "width": 5.8,
+                        "height": 5.2,
+                        "label": "화로",
+                        "message": "불이 뜨겁다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_4",
+                        "type": "info",
+                        "target": "",
+                        "x": 22.4,
+                        "y": 70,
+                        "width": 5.9,
+                        "height": 7.7,
+                        "label": "고기",
+                        "message": "썰린 고기. 신선해보이지는 않는다...",
+                        "itemId": ""
                     }
-                ]
+                ],
+                "namePrefix": "B1"
             },
             {
                 "id": "B1_machineroom",
@@ -610,15 +659,15 @@ export const FLOOR_DATA = [
                 "highlightText": "001",
                 "highlightColor": "text-yellow-500",
                 "description": "어둡고 조용한 방. 왠지 모르게 춥다.",
-                "background": "B2_room02.png",
+                "background": "B2_room04.png",
                 "overlayColor": "bg-black/40",
                 "activeZones": [
                     {
                         "id": "zone_bed",
                         "type": "info",
                         "target": "",
-                        "x": 22.9659286524107,
-                        "y": 62.43712280833046,
+                        "x": 23.20585546770293,
+                        "y": 58.47833050093975,
                         "width": 28.48505342891925,
                         "height": 10.644972496708213,
                         "label": "곽빙어의 침대",
@@ -629,8 +678,8 @@ export const FLOOR_DATA = [
                         "id": "zone_table",
                         "type": "info",
                         "target": "",
-                        "x": 54.20669774864656,
-                        "y": 56.520302402598666,
+                        "x": 54.80651478687714,
+                        "y": 57.95986324164983,
                         "width": 8.52672439034361,
                         "height": 11.114782748914521,
                         "label": "작은 테이블",
@@ -641,8 +690,8 @@ export const FLOOR_DATA = [
                         "id": "zone_box",
                         "type": "item",
                         "target": "",
-                        "x": 86.67287598420063,
-                        "y": 75.54086900434196,
+                        "x": 85.95309553832392,
+                        "y": 74.64114347993498,
                         "width": 7.066977486465589,
                         "height": 12.736332965361925,
                         "label": "옷장 서랍",
@@ -665,8 +714,8 @@ export const FLOOR_DATA = [
                         "id": "zone_5",
                         "type": "item",
                         "target": "",
-                        "x": 27.691789530637088,
-                        "y": 80.76467888214809,
+                        "x": 28.05167975357543,
+                        "y": 77.16577678452018,
                         "width": 3.5,
                         "height": 5.3,
                         "label": "침대 아래",
@@ -1070,6 +1119,18 @@ export const FLOOR_DATA = [
                         "label": "복도",
                         "message": "복도로 나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "info",
+                        "target": "",
+                        "x": 57.5,
+                        "y": 11.9,
+                        "width": 2.9,
+                        "height": 9.8,
+                        "label": "십자가",
+                        "message": "왜인지 십자가가 걸려있다. 다른 심볼이 생각나지 않은 모양이다.",
+                        "itemId": ""
                     }
                 ]
             },
@@ -1082,15 +1143,52 @@ export const FLOOR_DATA = [
                         "id": "to_hall",
                         "type": "move",
                         "target": "b3_hall",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 90.4524093651707,
+                        "y": 27.891491256616277,
+                        "width": 4.481683248278699,
+                        "height": 34.832424473632564,
                         "label": "복도",
                         "message": "복도로 나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "info",
+                        "target": "",
+                        "x": 46.581134362970445,
+                        "y": 26.260713636541865,
+                        "width": 35.394694108686664,
+                        "height": 16.739011887865125,
+                        "label": "칠판",
+                        "message": "정체모를 교리들이 적혀 있다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_3",
+                        "type": "info",
+                        "target": "",
+                        "x": 62.880036592353875,
+                        "y": 76.4799451048814,
+                        "width": 10.9,
+                        "height": 6.8,
+                        "label": "교리 책",
+                        "message": "누군가 공부하다 잠든 모양이다. 침이 흘러 있다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_4",
+                        "type": "info",
+                        "target": "",
+                        "x": 33.01996340764612,
+                        "y": 89.8,
+                        "width": 6.6,
+                        "height": 6.1,
+                        "label": "두루마리",
+                        "message": "뭔가가 적힌 두루마리.",
+                        "itemId": ""
                     }
-                ]
+                ],
+                "background": "B1_studyroom01.png"
             }
         ]
     },
@@ -1113,7 +1211,7 @@ export const FLOOR_DATA = [
                         "y": 33.2588287885561,
                         "width": 6.401097770616552,
                         "height": 32.17255252570406,
-                        "label": "B3: 예배당",
+                        "label": "지하 3층",
                         "message": "지하 3층으로 올라간다.",
                         "itemId": ""
                     },
@@ -1133,8 +1231,8 @@ export const FLOOR_DATA = [
                         "id": "to_b5",
                         "type": "move",
                         "target": "b5_entrance",
-                        "x": 36.46887592441896,
-                        "y": 92.36477397838554,
+                        "x": 38.02840022381845,
+                        "y": 90.39785399626663,
                         "width": 11.079670668815034,
                         "height": 7.635226021614457,
                         "label": "B5: 심해",
@@ -1207,21 +1305,47 @@ export const FLOOR_DATA = [
             {
                 "id": "solphi_room",
                 "name": "솔피의 방",
-                "description": "솔피가 머무르는 방.",
+                "description": "어둡고 침침한 바닷물이 들어오는 대공동.",
                 "activeZones": [
                     {
                         "id": "to_entrance",
-                        "type": "move",
+                        "type": "info",
                         "target": "b5_entrance",
-                        "x": 0,
-                        "y": 0,
-                        "width": 10,
-                        "height": 10,
+                        "x": 0.599817038230575,
+                        "y": 60.46155524014884,
+                        "width": 8.440475700600505,
+                        "height": 29.4340713271907,
                         "label": "입구",
                         "message": "입구로 나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "info",
+                        "target": "",
+                        "x": 59.05970726116892,
+                        "y": 64.0752790198,
+                        "width": 14.320878216493238,
+                        "height": 12.423348602234881,
+                        "label": "어두운 공동",
+                        "message": "끝이 보이지 않는 깊은 바닷물.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_3",
+                        "type": "item",
+                        "target": "",
+                        "x": 19.8,
+                        "y": 72.3,
+                        "width": 5.2,
+                        "height": 4.1,
+                        "label": "한쪽 신발",
+                        "message": "누군가의 한쪽 신발.",
+                        "itemId": "item012"
                     }
-                ]
+                ],
+                "background": "B5_solphi00.png",
+                "namePrefix": "B5"
             },
             {
                 "id": "freezer",
@@ -1239,6 +1363,90 @@ export const FLOOR_DATA = [
                         "label": "문",
                         "message": "나간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "frozen_fish_01",
+                        "type": "info",
+                        "target": "",
+                        "x": 30.520146369415542,
+                        "y": 43.7092981671882,
+                        "width": 3.5,
+                        "height": 12.9,
+                        "label": "냉동 생선",
+                        "message": "신선하게 냉동된 생선.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_3",
+                        "type": "info",
+                        "target": "",
+                        "x": 45.7,
+                        "y": 45.2,
+                        "width": 2.5,
+                        "height": 14.7,
+                        "label": "냉동 생선",
+                        "message": "신선하게 냉동된 생선.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_4",
+                        "type": "item",
+                        "target": "",
+                        "x": 49.4397438535228,
+                        "y": 32.87881090746536,
+                        "width": 2.4802195541233205,
+                        "height": 13.069512740277155,
+                        "label": "막 얼린 생선",
+                        "message": "뭔가 작은 종이가 붙어 있다.",
+                        "itemId": "item013"
+                    },
+                    {
+                        "id": "zone_5",
+                        "type": "info",
+                        "target": "",
+                        "x": 14.499451114691723,
+                        "y": 71.79114886008045,
+                        "width": 9.8,
+                        "height": 11.4,
+                        "label": "얼린 솔피의 눈물",
+                        "message": "단단히 얼린 솔피의 눈물이 페트병에 담겨 있다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_6",
+                        "type": "item",
+                        "target": "",
+                        "x": 92.1,
+                        "y": 46.4,
+                        "width": 5.4,
+                        "height": 16.1,
+                        "label": "얼음 덩어리",
+                        "message": "얼음 덩어리.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_7",
+                        "type": "info",
+                        "target": "",
+                        "x": 40.2,
+                        "y": 27.3,
+                        "width": 3.1,
+                        "height": 13.8,
+                        "label": "맛있는 생선",
+                        "message": "먹음직스럽게 냉동된 생선.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_8",
+                        "type": "item",
+                        "target": "",
+                        "x": 12.440292738831081,
+                        "y": 46.821189092534645,
+                        "width": 8.2,
+                        "height": 12.2,
+                        "label": "냉동 식재료",
+                        "message": "냉동된 채소들. 너무 단단히 얼려서 손대기만해도 부서진다.",
+                        "itemId": "item016"
                     }
                 ],
                 "background": "B5_iceroom01.png"
@@ -1252,23 +1460,93 @@ export const FLOOR_DATA = [
                         "id": "to_entrance",
                         "type": "move",
                         "target": "B5_hallway",
-                        "x": 7.932811606948516,
-                        "y": 14.783763925995345,
-                        "width": 6.874953003323311,
-                        "height": 30.19245804526193,
+                        "x": 0.7197804458766912,
+                        "y": 68.40740518065117,
+                        "width": 7.83466026449223,
+                        "height": 22.454818535361923,
                         "label": "갈림길",
                         "message": "교단으로 돌아간다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "final_boat",
+                        "type": "trigger",
+                        "target": "",
+                        "x": 65.9353527710566,
+                        "y": 42.11895699274652,
+                        "width": 8.3,
+                        "height": 10.1,
+                        "label": "보트",
+                        "message": "어업용 보트.",
+                        "itemId": "boat"
                     }
                 ],
-                "background": "B5_water01.png"
+                "background": "B5_water02.png"
             },
             {
                 "id": "B5_hallway",
                 "name": "최심부 갈림길",
                 "background": "B5_hallway02.png",
-                "activeZones": [],
+                "activeZones": [
+                    {
+                        "id": "zone_1",
+                        "type": "move",
+                        "target": "freezer",
+                        "x": 45.6,
+                        "y": 36.8,
+                        "width": 6.1,
+                        "height": 28.4,
+                        "label": "B5 냉동창고",
+                        "message": "냉기가 흐르는 철문.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "move",
+                        "target": "solphi_room",
+                        "x": 78.13992681529224,
+                        "y": 36.6,
+                        "width": 7.6,
+                        "height": 24.7,
+                        "label": "B5 수조 복도",
+                        "message": "수조가 보이는 복도.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_3",
+                        "type": "move",
+                        "target": "dock",
+                        "x": 23.780219554123313,
+                        "y": 37.853509164059005,
+                        "width": 8,
+                        "height": 21.3,
+                        "label": "선착장",
+                        "message": "파도 소리가 들린다.",
+                        "itemId": ""
+                    }
+                ],
                 "description": "바닷가 냄새가 강하게 난다.",
+                "namePrefix": "B5"
+            },
+            {
+                "id": "room_mlytzlxl",
+                "name": "수조로 가는 길",
+                "background": "B5_hallway_02.png",
+                "activeZones": [
+                    {
+                        "id": "zone_1",
+                        "type": "move",
+                        "target": "solphi_room",
+                        "x": 39.420329331184966,
+                        "y": 48.420054895118604,
+                        "width": 3.7,
+                        "height": 7.7,
+                        "label": "깊은 방",
+                        "message": "...",
+                        "itemId": ""
+                    }
+                ],
+                "description": "어딘가로 이어지는 길.",
                 "namePrefix": "B5"
             }
         ]
