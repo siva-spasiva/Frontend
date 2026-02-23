@@ -157,7 +157,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
         }
 
         if (currentPhase === 'mainGame') {
-            setInternalPhase('ingame_home');
+            setInternalPhase('ingame03_home');
         } else if (currentPhase === 'test02') {
             setInternalPhase('ingame02_home');
         } else if (currentPhase === 'test03') {
@@ -310,6 +310,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                                 else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                                 else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
                                 else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
+                                else if (currentPhase === 'mainGame') setInternalPhase('ingame03_home');
                                 else setInternalPhase('ingame_home');
                             }}
                         />
@@ -330,7 +331,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
-                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame03_home');
                             else setInternalPhase('menu');
                         }} />
                     </motion.div>
@@ -353,7 +354,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                                 onTest03Start && onTest03Start();
                             }
                             else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
-                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame03_home');
                             else setInternalPhase('menu');
                         }} />
                     </motion.div>
@@ -374,7 +375,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             else if (currentPhase === 'test03') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test04') setInternalPhase('ingame03_home');
                             else if (currentPhase === 'test05') setInternalPhase('ingame03_home');
-                            else if (currentPhase === 'mainGame') setInternalPhase('ingame_home');
+                            else if (currentPhase === 'mainGame') setInternalPhase('ingame03_home');
                             else setInternalPhase('menu');
                         }} />
                     </motion.div>
