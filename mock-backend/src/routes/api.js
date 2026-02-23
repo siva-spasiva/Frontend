@@ -1,6 +1,6 @@
 import express from 'express';
 import { handleChat } from '../controllers/chatController.js';
-import { getStats, updateStats, resetStats, transferItem } from '../controllers/statsController.js';
+import { getStats, updateStats, resetStats, transferItem, getTutorialStatus, completeTutorial } from '../controllers/statsController.js';
 import { getStaticData, getSchedule } from '../controllers/dataController.js';
 import { getFloors, saveFloorData, getMapImages } from '../controllers/mapEditorController.js';
 import { getNpcEditorData, saveNpcSchedule, saveNpcPrompt, updateNpc, createNpc } from '../controllers/npcEditorController.js';
@@ -16,6 +16,10 @@ router.post('/stats/reset', resetStats);
 
 // Item Transfer (NPC ↔ Player)
 router.post('/stats/transfer-item', transferItem);
+
+// Tutorial Routes
+router.get('/tutorial/status', getTutorialStatus);
+router.post('/tutorial/complete', completeTutorial);
 
 // Data Routes
 router.get('/data/static', getStaticData);
