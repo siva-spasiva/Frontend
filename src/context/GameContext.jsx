@@ -32,7 +32,6 @@ export const GameProvider = ({ children }) => {
         trust: 10,
         currentDay: 0,
         currentPeriod: 'morning',
-        tutorialCompleted: false,
         npcStats: {},
         inventory: ['smartphone', 'id_card', 'police_badge']
     });
@@ -48,9 +47,6 @@ export const GameProvider = ({ children }) => {
 
     // Custom Items (Dynamic, e.g. Transcripts)
     const [customItems, setCustomItems] = useState({});
-
-    // Current Chat Logs (Synced from active scene)
-    const [chatLogs, setChatLogs] = useState([]);
 
     // Current Location Info (Synced from active scene)
     const [currentLocationInfo, setCurrentLocationInfo] = useState(null);
@@ -203,7 +199,6 @@ export const GameProvider = ({ children }) => {
     const setUmiLevel = (val) => updateStatsBackend({ umiLevel: typeof val === 'function' ? val(stats.umiLevel) : val });
     const setHp = (val) => updateStatsBackend({ hp: typeof val === 'function' ? val(stats.hp) : val });
     const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
-    const setTutorialCompleted = (val) => updateStatsBackend({ tutorialCompleted: val });
 
     // === Day / Period System ===
     const PERIOD_ORDER = ['morning', 'afternoon', 'evening', 'dawn'];
@@ -220,10 +215,10 @@ export const GameProvider = ({ children }) => {
     };
 
     const SECTION_TRANSITIONS = {
-        morning:   { next: 'afternoon', message: '점심 시간입니다. 식당으로 이동해 오후 일정을 시작합니다.', targetRoom: 'cafeteria' },
-        afternoon: { next: 'evening',   message: '저녁 시간입니다. 진리 학습실로 이동합니다.', targetRoom: 'b3_hall' },
-        evening:   { next: 'dawn',      message: '새벽 기도 시간입니다. 대예배당으로 이동합니다.', targetRoom: 'chapel' },
-        dawn:      { next: null,        message: '더 이상 행동할 수 없다.', targetRoom: 'room001' },
+        morning: { next: 'afternoon', message: '점심 시간입니다. 식당으로 이동해 오후 일정을 시작합니다.', targetRoom: 'cafeteria' },
+        afternoon: { next: 'evening', message: '저녁 시간입니다. 진리 학습실로 이동합니다.', targetRoom: 'b3_hall' },
+        evening: { next: 'dawn', message: '새벽 기도 시간입니다. 대예배당으로 이동합니다.', targetRoom: 'chapel' },
+        dawn: { next: null, message: '더 이상 행동할 수 없다.', targetRoom: 'room001' },
     };
 
     const getPeriodFromHp = (hp) => {
@@ -646,7 +641,6 @@ export const GameProvider = ({ children }) => {
         setUmiLevel,
         setHp,
         setTrust,
-        setTutorialCompleted,
 
         // Expose updaters
         updateHp,
@@ -670,9 +664,6 @@ export const GameProvider = ({ children }) => {
         FISH_TIER_LABELS,
         getFishTier,
 
-        // Chat Logs
-        chatLogs,
-        setChatLogs,
         currentLocationInfo,
         setCurrentLocationInfo,
         ITEMS: gameData.itemData || {},

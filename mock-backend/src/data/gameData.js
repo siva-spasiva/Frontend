@@ -147,6 +147,78 @@ const NPC_DATA = {
         apiConfig: {
             model: 'gpt-oss:20b-cloud',
         }
+    },
+    // === 추가된 LLM NPC ===
+    mineeo: {
+        id: 'mineeo',
+        name: '이민어',
+        initialStats: { friendly: 10, faith: 50, fishLevel: 10 },
+        initialInventory: [],
+        initialPortrait: 'npc_mineeo_00.png',
+        portraits: { default: 'npc_mineeo_00.png', alt: 'npc_mineeo_01.png' },
+        prompts: {
+            friendly: {
+                BAD: PROMPTS.MINEEO_PROMPT_BAD,
+                NORMAL: PROMPTS.MINEEO_PROMPT_NORMAL,
+                GOOD: PROMPTS.MINEEO_PROMPT_GOOD,
+                PERFECT: PROMPTS.MINEEO_PROMPT_PERFECT,
+            }
+        },
+        apiConfig: { model: 'gpt-oss:20b-cloud' }
+    },
+    gwangeo: {
+        id: 'gwangeo',
+        name: '전광어',
+        initialStats: { friendly: 0, faith: 100, fishLevel: 100 },
+        initialInventory: [],
+        initialPortrait: 'npc_gwangeo_00.png',
+        portraits: { default: 'npc_gwangeo_00.png', alt: 'npc_gwangeo_01.png' },
+        prompts: {
+            friendly: {
+                BAD: PROMPTS.GWANGEO_PROMPT_DEFAULT,
+                NORMAL: PROMPTS.GWANGEO_PROMPT_DEFAULT,
+                GOOD: PROMPTS.GWANGEO_PROMPT_DEFAULT,
+                PERFECT: PROMPTS.GWANGEO_PROMPT_DEFAULT,
+            }
+        },
+        apiConfig: { model: 'gpt-oss:20b-cloud' }
+    },
+    // === 하드코딩된 일반 물고기 인간 NPC ===
+    godeungeo: {
+        id: 'godeungeo',
+        name: '고등어',
+        isHardcoded: true,
+        dialogues: [
+            "1",
+            "2",
+            "3"
+        ],
+        initialPortrait: 'npc_godeungeo_00.png',
+        portraits: { default: 'npc_godeungeo_00.png', alt: 'npc_godeungeo_01.png' }
+    },
+    gubokchi: {
+        id: 'gubokchi',
+        name: '구복치',
+        isHardcoded: true,
+        dialogues: [
+            "1",
+            "2",
+            "3"
+        ],
+        initialPortrait: 'npc_gubokchi_00.png',
+        portraits: { default: 'npc_gubokchi_00.png', alt: 'npc_gubokchi_01.png' }
+    },
+    songsari: {
+        id: 'songsari',
+        name: '송사리',
+        isHardcoded: true,
+        dialogues: [
+            "1",
+            "2",
+            "3"
+        ],
+        initialPortrait: 'npc_songsari_00.png',
+        portraits: { default: 'npc_songsari_00.png', alt: 'npc_songsari_01.png' }
     }
 };
 

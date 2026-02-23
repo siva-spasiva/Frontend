@@ -13,7 +13,6 @@ const Debug00Scene = ({ onBack }) => {
 
         trust,
         hp, fishLevel, umiLevel,
-        tutorialCompleted,
         inventory,
         ITEMS,
 
@@ -138,7 +137,6 @@ const Debug00Scene = ({ onBack }) => {
                     EXIT SEQ
                 </button>
                 <MessengerApp
-                    initialMessages={!tutorialCompleted ? [] : undefined}
                     onBack={() => setViewMode('debug')}
                     onComplete={() => {
                         alert("Sequence Completed!");
@@ -223,16 +221,6 @@ const Debug00Scene = ({ onBack }) => {
                                 <StatSlider label="Trust (신뢰)" value={trust} color="text-emerald-300" accent="accent-emerald-500" onChange={(v) => handleGlobalStatChange('trust', v)} />
                                 <StatSlider label="FishLevel (이해)" value={fishLevel} color="text-cyan-300" accent="accent-cyan-500" onChange={(v) => handleGlobalStatChange('fishLevel', v)} />
                                 <StatSlider label="UmiLevel (권한)" value={umiLevel} color="text-indigo-300" accent="accent-indigo-500" onChange={(v) => handleGlobalStatChange('umiLevel', v)} />
-
-                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
-                                    <span className="text-xs text-gray-300">Tutorial Completed</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={tutorialCompleted || false}
-                                        onChange={(e) => handleGlobalStatChange('tutorialCompleted', e.target.checked)}
-                                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                                    />
-                                </div>
                             </div>
                         </div>
 
@@ -246,15 +234,14 @@ const Debug00Scene = ({ onBack }) => {
                             <div className="mb-3">
                                 <span className="text-xs text-gray-400 mb-1 block">Day ({currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`})</span>
                                 <div className="flex flex-wrap gap-1">
-                                    {[0,1,2,3,4,5,6,7].map(d => (
+                                    {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
                                         <button
                                             key={d}
                                             onClick={() => setDay(d)}
-                                            className={`px-2 py-1 text-xs rounded font-mono transition-all ${
-                                                currentDay === d
-                                                    ? 'bg-yellow-500 text-black font-bold'
-                                                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                                            }`}
+                                            className={`px-2 py-1 text-xs rounded font-mono transition-all ${currentDay === d
+                                                ? 'bg-yellow-500 text-black font-bold'
+                                                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                                }`}
                                         >
                                             {d === 0 ? 'T' : d}
                                         </button>
@@ -270,11 +257,10 @@ const Debug00Scene = ({ onBack }) => {
                                         <button
                                             key={p}
                                             onClick={() => setPeriod(p)}
-                                            className={`flex-1 px-2 py-1.5 text-xs rounded transition-all ${
-                                                currentPeriod === p
-                                                    ? 'bg-yellow-500 text-black font-bold'
-                                                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                                            }`}
+                                            className={`flex-1 px-2 py-1.5 text-xs rounded transition-all ${currentPeriod === p
+                                                ? 'bg-yellow-500 text-black font-bold'
+                                                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                                }`}
                                         >
                                             {PERIOD_LABELS?.[p] || p}
                                         </button>

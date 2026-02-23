@@ -40,6 +40,52 @@ const MessengerLoading = ({ onLoaded }) => {
     );
 };
 
+const ConnectionFailedScreen = ({ onBack }) => {
+    return (
+        <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center text-white relative">
+            <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-xl border border-red-900/50 relative overflow-hidden"
+            >
+                {/* Glitch effect layer */}
+                <div className="absolute inset-0 bg-red-500/10 mix-blend-overlay animate-pulse"></div>
+                <MessageCircle className="w-12 h-12 text-red-500 opacity-80" />
+                <div className="absolute inset-x-0 h-px bg-red-400/50 shadow-[0_0_10px_rgba(239,68,68,0.8)] top-1/2 -translate-y-1/2 animate-[scan_2s_ease-in-out_infinite]"></div>
+            </motion.div>
+
+            <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-black tracking-wider text-red-500 mb-2 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+            >
+                CONNECTION LOST
+            </motion.h2>
+
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex flex-col items-center space-y-2 mt-4"
+            >
+                <p className="text-gray-400 font-mono text-xs uppercase tracking-widest text-center max-w-[80%] mx-auto">
+                    수신기를 찾을 수 없습니다.<br />
+                    서버 응답 시간 초과.
+                </p>
+                <div className="flex space-x-1 mt-4">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping delay-100"></div>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping delay-200"></div>
+                </div>
+            </motion.div>
+
+            <button onClick={onBack} className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-white/20 hover:bg-white/40 rounded-full z-50 transition-colors"></button>
+        </div>
+    );
+};
+
 const ChatListScreen = ({ onChatSelect, messages, isAnimated, onAnimationComplete, isDisconnected }) => {
     const [notification, setNotification] = useState(null);
 
@@ -270,7 +316,7 @@ const ChatScreen = ({ messages, setMessages, onBack, onTriggerContract, isDiscon
                 time: 'Now'
             }]);
             setIsDisconnected(true);
-            
+
             // Trigger guidance in scene
             window.dispatchEvent(new CustomEvent('guidance-trigger', { detail: 'messenger-disconnected' }));
         }
@@ -667,33 +713,39 @@ const ContractPhase = ({ onComplete }) => {
 };
 
 const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
-    // phase: 'loading' | 'list' | 'chat'
-    // NOTE: 'contract' phase is now handled globally by Test04Scene (Split Screen). 
-    // The Messenger stays in 'chat' mode.
+    // phase: 'loading' | 'list' | 'chat' | 'failed'
     const [phase, setPhase] = useState('loading');
-    const { triggerAppEvent } = useGame();
+    const { triggerAppEvent, inventoryItems } = useGame();
 
     // --- LIFTED STATE ---
     const [messages, setMessages] = useState([]);
     const [isDisconnected, setIsDisconnected] = useState(false); // Lifted state
     const [isListAnimated, setIsListAnimated] = useState(false); // Track if initial animation is done
 
-    const { chatLogs, setChatLogs, inventoryItems } = useGame();
-
     // Check for "Suspicious Contract" or "Enlightenment Contract" (item004 or item020)
     // If user has these, it means they completed the intro sequence.
     const hasContract = inventoryItems.some(item => item.id === 'item004' || item.id === 'item020');
+
+    // Make it instantly fail if they already have the contract and are not in tutorial
+    useEffect(() => {
+        if (hasContract && !isStartMode) {
+            const timer = setTimeout(() => {
+                setPhase('failed');
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (phase === 'loading') { // For start mode or before contract
+            const timer = setTimeout(() => {
+                setPhase('list');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [hasContract, isStartMode, phase]);
 
     // Initialize messages
     useEffect(() => {
         if (initialMessages) {
             setMessages(initialMessages);
             setIsListAnimated(true);
-        } else if (chatLogs && chatLogs.length > 0) {
-            // Restore from context
-            console.log("Restoring chat logs from context:", chatLogs);
-            setMessages(chatLogs);
-            setIsListAnimated(true); // Skip animation
         } else if (messages.length === 0) {
             // New Game Start (Tutorial not done yet)
             // Or if we just started fresh
@@ -705,13 +757,6 @@ const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
             setMessages(initialMsgs);
         }
     }, [initialMessages]); // Run when initialMessages prop changes or on mount
-
-    // Sync messages back to context whenever they change
-    useEffect(() => {
-        if (messages.length > 0) {
-            setChatLogs(messages);
-        }
-    }, [messages, setChatLogs]);
 
     // Check Disconnect State based on Inventory
     useEffect(() => {
@@ -738,9 +783,6 @@ const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
         }
     }, [hasContract]);
 
-    // Blackout effect state
-    const [blackout, setBlackout] = useState(false);
-
     // This is called when the ChatScreen decides it's time (after X messages)
     const handleTriggerContract = () => {
         console.log("MessengerApp: Triggering Contract Phase globally");
@@ -748,16 +790,45 @@ const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
         // We stay in 'chat' phase here!
     };
 
-    // We might still need to handle completion if the scene tells us? 
-    // Or maybe the Scene handles the completion flow entirely now.
-    // For now, let's keep the blackout logic if 'onComplete' is called explicitly.
 
     return (
         <div className="w-full h-full relative">
             <AnimatePresence mode="wait">
                 {phase === 'loading' && (
                     <motion.div key="loading" className="w-full h-full" exit={{ opacity: 0 }}>
-                        <MessengerLoading onLoaded={() => setPhase('list')} />
+                        {/* We handle loading spinner internally without passing onLoaded initially */}
+                        <div className="w-full h-full bg-white flex flex-col items-center justify-center">
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                                className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 text-white shadow-xl"
+                            >
+                                <MessageCircle className="w-12 h-12" />
+                            </motion.div>
+                            <motion.h2
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+                            >
+                                MESSENGER
+                            </motion.h2>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.6 }}
+                                className="absolute bottom-10"
+                            >
+                                <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {phase === 'failed' && (
+                    <motion.div key="failed" className="w-full h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <ConnectionFailedScreen onBack={onBack} />
                     </motion.div>
                 )}
 

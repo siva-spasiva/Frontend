@@ -5,13 +5,14 @@ import { useGame } from '../../context/GameContext';
 
 const RecorderApp = ({ onBack }) => {
     const {
-        chatLogs,
         hp,
         updateHp,
         addCustomItem,
         currentLocationInfo, // To be added to GameContext
         npcData
     } = useGame();
+
+    const chatLogs = []; // 전역 대화 로직 제거됨
 
     const [status, setStatus] = useState('idle'); // idle, processing, success, error
 
@@ -134,8 +135,8 @@ const RecorderApp = ({ onBack }) => {
                         onClick={handleSave}
                         disabled={chatLogs.length === 0}
                         className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all ${chatLogs.length === 0
-                                ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                                : 'bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-900/50'
+                            ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                            : 'bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-900/50'
                             }`}
                     >
                         <Save className="w-5 h-5" />
