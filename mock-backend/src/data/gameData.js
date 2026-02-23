@@ -29,38 +29,12 @@ const NPC_DATA = {
             model: 'gpt-oss:20b-cloud',
         }
     },
-    reporter: {
-        id: 'reporter',
-        name: '기자',
-        initialPortrait: 'npc_reporter_00.png',
-        portraits: {
-            default: 'npc_reporter_00.png',
-            talking: 'npc_reporter_01.png',
-        },
-        prompts: {
-            friendly: {
-                DEFAULT: PROMPTS.REPORTER_PROMPT,
-            },
-        },
-        apiConfig: {
-            model: 'gpt-oss:20b-cloud',
-        }
-    },
     detective_kang: {
         id: 'detective_kang',
         name: '강 형사',
         prompts: {
             friendly: {
                 DEFAULT: PROMPTS.DETECTIVE_KANG_PROMPT,
-            },
-        },
-    },
-    test02: {
-        id: 'test02',
-        name: 'Test NPC 02',
-        prompts: {
-            friendly: {
-                DEFAULT: PROMPTS.TEST02_NPC_PROMPT,
             },
         },
     },
