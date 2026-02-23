@@ -61,3 +61,33 @@ export const completeTutorialAPI = async (userId = 'user_dev_session') => {
         body: JSON.stringify({ userId }),
     });
 };
+// Actions
+export const spendHpBackend = async (amount) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/action/spendHp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'default_user', amount })
+        });
+        if (!response.ok) throw new Error('Failed to spend HP');
+        return await response.json();
+    } catch (error) {
+        console.error("spendHp API Error:", error);
+        throw error;
+    }
+};
+
+export const restBackend = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/action/rest`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'default_user' })
+        });
+        if (!response.ok) throw new Error('Failed to rest');
+        return await response.json();
+    } catch (error) {
+        console.error("rest API Error:", error);
+        throw error;
+    }
+};
