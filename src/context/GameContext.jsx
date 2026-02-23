@@ -209,9 +209,11 @@ export const GameProvider = ({ children }) => {
     const ACTION_COSTS = {
         move: 1,
         interact: 1,
+        item: 1,
         npcChat: 10,
-        eavesdrop: 5,
-        eavesdropJoin: 5,
+        eavesdrop: 1,
+        eavesdropContinue: 5,
+        eavesdropJoin: 10,
     };
 
     const SECTION_TRANSITIONS = {
