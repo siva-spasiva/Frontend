@@ -7,6 +7,7 @@ import FishEyeEffect from '../components/FishEyeEffect';
 import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import useFishVisuals from '../hooks/useFishVisuals';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
+import MapContainer from '../components/MapContainer';
 
 const Test03Scene = () => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -171,7 +172,9 @@ const Test03Scene = () => {
     };
 
     return (
-        <div
+        <div className="w-full h-full relative bg-black overflow-hidden">
+            <MapContainer aspectRatio={16 / 9}>
+                <div
             className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
             style={{
                 backgroundImage: mapInfo.background,
@@ -181,7 +184,7 @@ const Test03Scene = () => {
                 transform: mapTransform !== 'none' ? mapTransform : undefined,
                 transformOrigin: 'center center',
             }}
-        >
+                >
             {/* Fish Eye Effect Overlay */}
             <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
@@ -215,6 +218,8 @@ const Test03Scene = () => {
                 chatLeftInset="340px"
                 chatRightInset="24px"
             />
+                </div>
+            </MapContainer>
         </div>
     );
 };

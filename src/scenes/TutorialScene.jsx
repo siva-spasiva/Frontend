@@ -10,6 +10,7 @@ import InteractionPopup from '../components/InteractionPopup';
 import PortraitDisplay from '../components/PortraitDisplay';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import ViewControls from '../components/ViewControls';
+import MapContainer from '../components/MapContainer';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' -> 
@@ -215,6 +216,7 @@ const TutorialScene = ({ onComplete }) => {
 
     const isBingeoFinishSequence = ['chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
     const disableItemUseInInventory = ['chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const isMapInteractionLocked = guideOpen || showNpcDialog || showMessenger || step === 'contract' || isBingeoFinishSequence;
 
     const blockMoveByBingeo = () => {
         setCurrentScript([
@@ -443,7 +445,7 @@ const TutorialScene = ({ onComplete }) => {
 
 
     return (
-        <div className="relative w-full h-screen bg-gray-900 overflow-hidden font-sans">
+        <div className="relative w-full h-screen bg-black overflow-hidden font-sans">
             {/* 1. 인트로 독백 */}
             <AnimatePresence mode="wait">
                 {step === 'intro' && (
@@ -452,6 +454,8 @@ const TutorialScene = ({ onComplete }) => {
                     </Motion.div>
                 )}
             </AnimatePresence>
+
+            <MapContainer aspectRatio={16 / 9}>
 
             {/* 2. 배경 (Map Viewer) */}
             <AnimatePresence>
@@ -474,7 +478,7 @@ const TutorialScene = ({ onComplete }) => {
                             mapInfo={mapInfo}
                             onInteract={handleMapInteract}
                             highlightCondition={(zone) => step === 'obtain_item005' && zone.type === 'item' && zone.itemId === 'item005'}
-                            isInteractionLocked={isBingeoFinishSequence || showNpcDialog}
+                            isInteractionLocked={isMapInteractionLocked}
                         />
 
                         {/* Dummy NPC in Class room */}
@@ -636,6 +640,7 @@ const TutorialScene = ({ onComplete }) => {
                 </Motion.div>
             )}
 
+            </MapContainer>
         </div>
     );
 };

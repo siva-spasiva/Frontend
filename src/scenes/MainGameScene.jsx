@@ -13,6 +13,7 @@ import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import HpWarningModal from '../components/HpWarningModal';
 import useFishVisuals from '../hooks/useFishVisuals';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
+import MapContainer from '../components/MapContainer';
 
 const MainGameScene = () => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
@@ -249,7 +250,9 @@ const MainGameScene = () => {
     const currentFloorId = floorData?.find((floor) => floor.rooms.some((room) => room.id === currentRoomId))?.id;
 
     return (
-        <div
+        <div className="w-full h-full relative bg-black overflow-hidden">
+            <MapContainer aspectRatio={16 / 9}>
+                <div
             className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
             style={{
                 backgroundImage: mapInfo.background,
@@ -259,7 +262,7 @@ const MainGameScene = () => {
                 transform: mapTransform !== 'none' ? mapTransform : undefined,
                 transformOrigin: 'center center',
             }}
-        >
+                >
             {/* Fish Eye Effect Overlay */}
             <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
@@ -358,6 +361,8 @@ const MainGameScene = () => {
                 requirement={pendingRequirement}
                 onClose={resolveRequirement}
             />
+                </div>
+            </MapContainer>
         </div>
     );
 };
