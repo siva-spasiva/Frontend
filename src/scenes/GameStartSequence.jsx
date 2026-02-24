@@ -58,26 +58,29 @@ const GameStartSequence = ({ onSign }) => {
         >
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border border-gray-200">
                 <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-                    솔피 힐링 클래스 <span className="glitch-text" data-text="권리 포기">[참가자 서약]</span> 및 <span className="glitch-text" data-text="신체 양도">[권리 포기]</span> 각서
+                    원데이 클래스 우미 <span className="glitch-text" data-text="영혼 양도">[참가 동의]</span> 및 <span className="glitch-text" data-text="신체 귀속">[면책 동의]</span>서
                 </h2>
 
                 <div className="mb-6 text-gray-600 space-y-4 text-sm leading-relaxed">
                     <p>
-                        1. 본인은 <span className="font-bold">'5일간의 재탄생 프로그램'</span> 도중 발생하는 신체의{' '}
+                        1. 본인은 <span className="font-bold">'원데이 클래스 우미'</span> 프로그램 참가 중 발생하는 신체의{' '}
                         <span className="glitch-text font-bold" data-text="[영구적 변이 및 훼손]">[긍정적 변화]</span>
                         에 대해 주최 측에 책임을 묻지 않으며, 중도 퇴소하지 않겠습니다.
                     </p>
                     <p>
                         2. 제공되는 웰컴 드링크 <span className="font-bold text-blue-600">([솔피의 눈물])</span> 섭취 후 발생하는{' '}
-                        <span className="glitch-text font-bold" data-text="[정신 오염 및 환각]">[명상 효과]</span>
-                        는 프로그램의 일환임을 인지하고 받아들입니다.
+                        <span className="glitch-text font-bold" data-text="[정신 오염 및 어류화]">[힐링 효과]</span>
+                        는 프로그램의 정상적인 과정임을 인지하고 받아들입니다.
                     </p>
                     <p>
                         3. 본 클래스 종료 시, 참가자의{' '}
-                        <span className="glitch-text font-bold" data-text="[육체와 영혼]">[새로운 자아]</span>
+                        <span className="glitch-text font-bold" data-text="[육체와 영혼]">[참가 경험]</span>
                         의 소유권은{' '}
-                        <span className="glitch-text font-bold text-blue-600" data-text="[위대한 솔피]">[센터장님]</span>에게{' '}
-                        <span className="glitch-text font-bold" data-text="영구히 귀속됨">[전적으로 위임됨]</span>에 동의합니다.
+                        <span className="glitch-text font-bold text-blue-600" data-text="[위대한 솔피]">[클래스 운영진]</span>에게{' '}
+                        <span className="glitch-text font-bold" data-text="영구히 귀속됨">[위임됨]</span>에 동의합니다.
+                    </p>
+                    <p className="text-xs text-gray-400 italic">
+                        ※ 본 동의서에서 약간의 비린내가 날 수 있으나 정상입니다.
                     </p>
                 </div>
 

@@ -599,15 +599,15 @@ const ContractPhase = ({ onComplete }) => {
                         <span className="text-xs font-bold text-red-800 uppercase transform -rotate-12">Confidential</span>
                     </div>
 
-                    <h2 className="text-3xl font-bold text-center mb-8 border-b-2 border-black pb-4">AGREEMENT</h2>
+                    <h2 className="text-2xl font-bold text-center mb-8 border-b-2 border-black pb-4">원데이 클래스 우미 동의서</h2>
 
                     <div className="space-y-4 text-sm leading-relaxed opacity-80" style={{ filter: 'blur(0.4px)' }}>
-                        <p>제 1조 [목적] 본 계약은 '솔피 리조트' (이하 "갑")와 방문객 (이하 "을") 사이의 영에 귀속된 권리를 규정함에 있다.</p>
-                        <p>제 2조 [뻐끔] "을"은 시설 내에서 발생하는 모든 <span className="font-bold text-red-700">뻐끔뻐끔</span> 현상에 대해 이의를 제기하지 아니한다.</p>
-                        <p>제 3조 [서명] 본 서명은 "을"의 자유 의지에 의한 것이며, 이후 발생하는 신체적 변이는 자연스러운 진화의 과정으로 간주한다.</p>
+                        <p>제 1조 [목적] 본 동의서는 '원데이 클래스 우미' (이하 "갑")와 참가자 (이하 "을") 사이의 프로그램 참가에 관한 권리를 규정함에 있다.</p>
+                        <p>제 2조 [면책] "을"은 프로그램 참가 중 발생하는 신체의 <span className="font-bold text-red-700">[뻐끔뻐끔]</span>에 대해 이의를 제기하지 아니한다.</p>
+                        <p>제 3조 [웰컴 드링크] 제공되는 웰컴 드링크(솔피의 눈물) 섭취 후 발생하는 <span className="font-bold text-red-700">[뻐끔뻐끔]</span>는 프로그램의 정상적인 과정이다.</p>
+                        <p>제 4조 [서명] 본 서명은 "을"의 자유 의지에 의한 것이며, 이후 발생하는 <span className="font-bold text-red-700">[뻐끔뻐끔]</span>는 자연스러운 과정으로 간주한다.</p>
                         <div className="my-8 h-px bg-gray-300"></div>
-                        <p className="font-mono text-xs">SECTION 4.2: THE FISH EYES ARE WATCHING.</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                        <p className="text-xs text-gray-400 italic">※ 본 동의서에서 약간의 비린내가 날 수 있으나 정상입니다.</p>
                     </div>
 
                     {/* Sign Area */}

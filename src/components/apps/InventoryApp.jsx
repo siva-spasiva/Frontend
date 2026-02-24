@@ -146,31 +146,31 @@ const InventoryApp = ({ onBack, disableConsumableUse = false, useOnlyItemId = nu
                             {(selectedItem.id === 'item004' || selectedItem.id === 'item020' || selectedItem.isContract) && (
                                 <div className="w-full bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
                                     <h3 className="text-lg font-bold mb-4 text-center text-gray-800 border-b pb-2">
-                                        참가자 <span className="text-red-500 font-mono">
-                                            {selectedItem.id === 'item020' ? '[권리 포기]' : '[뻐끔뻐끔]'}
+                                        원데이 클래스 우미 <span className="text-red-500 font-mono">
+                                            {selectedItem.id === 'item020' ? '[영혼 양도]' : '[뻐끔뻐끔]'}
                                         </span> 및 <span className="text-red-500 font-mono">
-                                            {selectedItem.id === 'item020' ? '[양도]' : '[뻐끔]'}
-                                        </span> 각서
+                                            {selectedItem.id === 'item020' ? '[신체 귀속]' : '[뻐끔]'}
+                                        </span> 동의서
                                     </h3>
                                     <div className="text-gray-600 space-y-4 text-xs leading-relaxed font-serif">
                                         <p>
-                                            1. 본인은 '솔피 힐링 클래스' 진행 중 발생하는 신체의{' '}
+                                            1. 본인은 '원데이 클래스 우미' 프로그램 참가 중 발생하는 신체의{' '}
                                             <span className="text-red-500 font-bold font-mono">
                                                 {selectedItem.id === 'item020' ? '[영구적 변이 및 훼손]' : '[뻐끔뻐끔]'}
                                             </span>
                                             에 대해 주최 측에 책임을 묻지 않습니다.
                                         </p>
                                         <p>
-                                            2. 제공되는 음료(솔피의 눈물) 섭취 후 발생하는{' '}
+                                            2. 제공되는 웰컴 드링크(솔피의 눈물) 섭취 후 발생하는{' '}
                                             <span className="text-red-500 font-bold font-mono">
-                                                {selectedItem.id === 'item020' ? '[정신 오염 및 환각]' : '[명상 효과]'}
+                                                {selectedItem.id === 'item020' ? '[정신 오염 및 어류화]' : '[뻐끔뻐끔]'}
                                             </span>
-                                            는 프로그램의 일환임을 인지합니다.
+                                            는 프로그램의 정상적인 과정임을 인지합니다.
                                         </p>
                                         <p>
                                             3. 본 클래스 종료 시, 참가자의{' '}
                                             <span className="text-red-500 font-bold font-mono">
-                                                {selectedItem.id === 'item020' ? '[모든 권리]' : '[뻐끔뻐끔]'}
+                                                {selectedItem.id === 'item020' ? '[육체와 영혼]' : '[뻐끔뻐끔]'}
                                             </span>
                                             의 소유권은{' '}
                                             <span className="text-blue-600 font-bold font-mono">
@@ -180,6 +180,16 @@ const InventoryApp = ({ onBack, disableConsumableUse = false, useOnlyItemId = nu
                                                 {selectedItem.id === 'item020' ? '[영구히 귀속됨]' : '[뻐끔뻐끔]'}
                                             </span>에 동의합니다.
                                         </p>
+                                        {selectedItem.id !== 'item020' && (
+                                            <p className="text-gray-400 italic">
+                                                ※ 본 동의서에서 약간의 비린내가 날 수 있으나 정상입니다.
+                                            </p>
+                                        )}
+                                        {selectedItem.id === 'item020' && (
+                                            <p className="text-red-400 italic font-bold">
+                                                ※ 이제 내용이 전부 보인다...
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
                                         <div className="text-red-600 font-script text-xl transform -rotate-12 border-2 border-red-600 px-2 py-1 rounded inline-block opacity-70">
