@@ -83,55 +83,85 @@ const PhoneFrame = ({ children, header, isBroken }) => {
     );
 };
 
-const AppIcon = ({ icon: Icon, label, color, onClick }) => (
+import logo from '../assets/solphi_logo.png';
+
+const MenuOption = ({ icon: Icon, label, color, onClick }) => (
     <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.03, x: 5 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className="flex flex-col items-center space-y-2 p-4"
+        className={`w-full flex items-center px-6 py-5 rounded-3xl shadow-lg border border-white/50 bg-gradient-to-r ${color} transition-all duration-300 group`}
     >
-        <div className={`w-16 h-16 ${color} rounded-2xl flex items-center justify-center shadow-md text-white`}>
-            <Icon className="w-8 h-8" />
+        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-white/30 transition-colors mr-5">
+            <Icon className="w-6 h-6 text-white drop-shadow-md" />
         </div>
-        <span className="text-xs font-medium text-gray-700">{label}</span>
+        <span className="text-xl font-bold text-white tracking-wide drop-shadow-md text-left flex-1">{label}</span>
+        <div className="text-white/50 group-hover:text-white/90 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </div>
     </motion.button>
 );
 
-
-
-
-
 const MainMenu = ({ onAppOpen }) => {
     return (
-        <div className="w-full h-full flex flex-col pt-12 px-6">
-            {/* Status Bar Placeholder */}
-            <div className="flex justify-between items-center text-xs font-semibold text-gray-800 mb-8 px-2">
-                <span>9:41</span>
-                <div className='flex space-x-1'>
-                    <span>5G</span>
-                    <span>100%</span>
-                </div>
+        <div className="w-full h-full flex flex-col items-center p-8 bg-gray-50/50 relative overflow-hidden">
+            {/* Background decorative elements */}
+            <div className="absolute top-[-10%] right-[-20%] w-96 h-96 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] left-[-20%] w-80 h-80 bg-purple-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            {/* Header / Logo section */}
+            <div className="flex flex-col items-center justify-center mt-12 mb-16 z-10 w-full">
+                <motion.img
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    src={logo}
+                    alt="Solphi Logo"
+                    className="w-48 h-auto object-contain drop-shadow-xl mb-4"
+                />
             </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-10 px-2">Home</h1>
+            {/* Options List */}
+            <div className="w-full flex-1 flex flex-col space-y-4 z-10">
+                <motion.div initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.5 }}>
+                    <MenuOption
+                        icon={Play}
+                        label="Game Start"
+                        color="from-blue-600 to-indigo-600"
+                        onClick={() => onAppOpen('start')}
+                    />
+                </motion.div>
 
-            <div className="grid grid-cols-4 gap-4">
-                <AppIcon icon={Play} label="Start" color="bg-blue-500" onClick={() => onAppOpen('start')} />
-                <AppIcon icon={Save} label="Load" color="bg-green-500" onClick={() => { }} />
+                <motion.div initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}>
+                    <MenuOption
+                        icon={FileText}
+                        label="Credits"
+                        color="from-purple-600 to-pink-600"
+                        onClick={() => onAppOpen('credits')}
+                    />
+                </motion.div>
 
-                <AppIcon icon={FileText} label="Credits" color="bg-purple-500" onClick={() => { }} />
-                <AppIcon icon={Grid} label="Test01" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
-                <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
-                <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
-                <AppIcon icon={Grid} label="Test04" color="bg-teal-600" onClick={() => onAppOpen('test04')} />
-                <AppIcon icon={Grid} label="Test05" color="bg-orange-500" onClick={() => onAppOpen('test05')} />
-                <AppIcon icon={Grid} label="DEBUG 00" color="bg-orange-600" onClick={() => onAppOpen('debug00')} />
-                <AppIcon icon={Grid} label="DEBUG 01" color="bg-red-600" onClick={() => onAppOpen('debug01')} />
-                <AppIcon icon={Grid} label="DEBUG 02" color="bg-emerald-600" onClick={() => onAppOpen('debug02')} />
-                <AppIcon icon={Grid} label="DEBUG 03" color="bg-pink-600" onClick={() => onAppOpen('debug03')} />
-                {/* <AppIcon icon={FileText} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} /> */}
-                {/* Dummies to fill space if needed, or leave empty */}
+                <motion.div initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}>
+                    <MenuOption
+                        icon={Settings}
+                        label="Settings"
+                        color="from-gray-700 to-gray-900"
+                        onClick={() => alert('준비 중입니다.')}
+                    />
+                </motion.div>
             </div>
+
+            {/* Footer version */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="mt-auto pb-4 z-10"
+            >
+                <span className="text-xs font-mono font-bold text-gray-400 tracking-widest uppercase">Solphi Version 1.0</span>
+            </motion.div>
         </div>
     );
 };
@@ -141,6 +171,7 @@ const MainMenu = ({ onAppOpen }) => {
 import { IngameHomeScreen, Ingame02HomeScreen, Ingame03HomeScreen, IngameCorruptedHomeScreen } from '../components/PhoneHomeScreens';
 import MapApp from '../components/apps/MapApp';
 import RecorderApp from '../components/apps/RecorderApp';
+import CreditsApp from '../components/apps/CreditsApp';
 
 
 const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase }) => {
@@ -334,6 +365,18 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                             else if (currentPhase === 'mainGame') setInternalPhase('ingame03_home');
                             else setInternalPhase('menu');
                         }} />
+                    </motion.div>
+                )}
+
+                {internalPhase === 'credits' && (
+                    <motion.div
+                        key="credits"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                        <CreditsApp onBack={() => setInternalPhase('menu')} onAppOpen={handleAppOpen} />
                     </motion.div>
                 )}
 
