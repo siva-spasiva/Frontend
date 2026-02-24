@@ -228,7 +228,7 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     const isBingeoFinishSequence = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
-    const disableItemUseInInventory = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const disableItemUseInInventory = ['obtain_item005', 'return_to_class', 'npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
     const inventoryUseOnlyItemId = step === 'use_item_tutorial' ? 'item005' : null;
     const isMapInteractionLocked =
         guideOpen ||
