@@ -1,5 +1,5 @@
 import React from 'react';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, ChevronDown } from 'lucide-react';
 import ChatLog from './ChatLog';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
@@ -28,10 +28,14 @@ const SmartphoneMenu = ({
     showControls = true,
     leftInset = null,
     rightInset = '40px',
+    isSidebarVisible = false,
 }) => {
 
     // Derived border color for container
     const containerBorderClass = theme === 'corrupted' ? 'border-red-900/30' : 'border-white/10';
+
+    // Dynamic left position based on sidebar visibility
+    const computedLeft = leftInset || (isSidebarVisible ? '320px' : '20px');
 
     return (
         <>
@@ -40,13 +44,24 @@ const SmartphoneMenu = ({
                 <div
                     style={{
                         height: viewMode === 'full' ? '80%' : 'auto',
-                        left: leftInset || (isPhoneOpen ? '480px' : '120px'),
+                        left: computedLeft,
                         right: rightInset
                     }}
                     className="absolute bottom-6 z-20 flex flex-col justify-end pointer-events-none transition-all duration-300 ease-out"
                 >
                     {/* Log History */}
                     <ChatLog logs={logs} viewMode={viewMode} />
+
+                    {/* Hide Chat Button — right above chat container */}
+                    <div className="pointer-events-auto flex items-center gap-2 mb-1">
+                        <button
+                            onClick={onToggleHidden}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white/50 hover:text-white/80 rounded-full border border-white/10 hover:border-white/20 transition-all text-[10px] font-medium tracking-wide group"
+                        >
+                            <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                            숨기기
+                        </button>
+                    </div>
 
                     {/* Recent Dialog Box + Input Wrapper */}
                     <div className={`pointer-events-auto bg-black/90 backdrop-blur-sm rounded-t-3xl border-t border-white/20 shadow-2xl overflow-hidden flex flex-col ${containerBorderClass}`}>
@@ -99,7 +114,7 @@ const SmartphoneMenu = ({
                 </div>
             )}
 
-            {/* Floating Buttons */}
+            {/* View Controls (restore button when hidden + extra children) */}
             {showControls && (
                 <ViewControls
                     viewMode={viewMode}
@@ -108,6 +123,7 @@ const SmartphoneMenu = ({
                     isPhoneOpen={isPhoneOpen}
                     onTogglePhone={onTogglePhone}
                     theme={theme}
+                    isSidebarVisible={isSidebarVisible}
                 >
                     {children}
                 </ViewControls>

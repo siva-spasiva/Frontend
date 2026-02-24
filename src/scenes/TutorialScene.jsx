@@ -10,7 +10,6 @@ import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import InteractionPopup from '../components/InteractionPopup';
 import PortraitDisplay from '../components/PortraitDisplay';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
-import ViewControls from '../components/ViewControls';
 import MapContainer from '../components/MapContainer';
 import SmartphoneMenu from '../components/SmartphoneMenu';
 
@@ -52,9 +51,9 @@ const TutorialScene = ({ onComplete }) => {
     const [pendingItem, setPendingItem] = useState(null);
 
     // Ingame menu state (left HUD button)
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMenuEnabled, setIsMenuEnabled] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
+    const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
     // === AI Chat State (for npc_chatting step) ===
     const [chatLogs, setChatLogs] = useState([]);
@@ -130,7 +129,7 @@ const TutorialScene = ({ onComplete }) => {
         const timer = setTimeout(() => {
             if (presentedItem.itemId === 'item005') {
                 setCurrentScript([
-                    { speaker: '곽빙어', text: '좋아, 그럼 시작하고 시식하자.', portrait: true }
+                    { speaker: '곽빙어', text: '오, 잘했어. 이렇게 아이템을 NPC에게 제시할 수 있어. 뭐든 한마디 해봐.', portrait: true }
                 ]);
                 setStep('correct_present');
             } else {
@@ -212,11 +211,14 @@ const TutorialScene = ({ onComplete }) => {
                     "솔피의 눈물 아이템을 제시하세요."
                 ]);
             } else if (step === 'correct_present') {
-                setStep('use_item_tutorial');
-                showGuide([
-                    "'솔피의 눈물' 아이템을 인벤토리에서 '사용' 할 수 있습니다.",
-                    "인벤토리를 열고 웰컴 드링크를 마셔봅시다."
-                ]);
+                // NPC 대사 닫고 채팅 UI 유지 — 사용자의 메시지 대기
+                setShowNpcDialog(false);
+                setChatDialogContent({
+                    speaker: '곽빙어',
+                    text: '오, 잘했어. 이렇게 아이템을 NPC에게 제시할 수 있어. 뭐든 한마디 해봐.',
+                    type: 'active_npc'
+                });
+                setChatViewMode('mini');
             }
         }
     };
@@ -240,6 +242,10 @@ const TutorialScene = ({ onComplete }) => {
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         setIsSidebarPanelOpen(!!panelState?.isOpen);
+    }, []);
+
+    const handleSidebarVisibleChange = useCallback((visible) => {
+        setIsSidebarVisible(visible);
     }, []);
 
     const blockMoveByBingeo = () => {
@@ -475,17 +481,16 @@ const TutorialScene = ({ onComplete }) => {
         setShowNpcChatHpWarning(false);
     };
 
-    // AI Chat Send Handler (for npc_chatting step)
+    // Tutorial Chat Send Handler - 체험용 고정 스크립트 응답
     const handleTutorialChatSend = async () => {
         if (!chatInputText.trim() || isChatThinking) return;
-        if (step !== 'npc_chatting') return;
-        if (chatTurnCount >= MAX_CHAT_TURNS) return;
+        if (step !== 'npc_chatting' && step !== 'correct_present') return;
 
         const userMsg = chatInputText;
         setChatInputText('');
         setIsChatThinking(true);
 
-        // Archive current dialog
+        // Archive current dialog + add user message
         const newLogs = [...chatLogs];
         if (chatDialogContent) {
             newLogs.push({
@@ -494,95 +499,73 @@ const TutorialScene = ({ onComplete }) => {
                 type: chatDialogContent.type || 'npc'
             });
         }
-
-        // Add user message
         newLogs.push({
             id: Date.now() + '_user',
             speaker: 'You',
             text: userMsg,
             type: 'user'
         });
-
-        // If presenting an item, add presentation log
-        if (presentedItem) {
-            newLogs.push({
-                id: Date.now() + '_presentation',
-                speaker: 'System',
-                text: `${presentedItem.name}을(를) 제시했습니다.`,
-                itemName: presentedItem.name,
-                icon: presentedItem.icon,
-                type: 'item_presentation'
-            });
-        }
-
         setChatLogs(newLogs);
         setChatDialogContent(null);
 
-        const newTurnCount = chatTurnCount + 1;
-        setChatTurnCount(newTurnCount);
+        // 짧은 "생각 중" 딜레이 후 고정 응답
+        await new Promise(resolve => setTimeout(resolve, 1200));
 
-        try {
-            const data = await generateAIResponse(userMsg, {
-                npcId: 'bingeo',
-                presentedItem: presentedItem || undefined,
-            });
-
+        // correct_present 상태: 제시 후 사용자 메시지 → 사용 단계로 전환
+        if (step === 'correct_present') {
+            const presentResponse = '오케이, 이렇게 제시하는 거야. 자, 이제 인벤토리에서 솔피의 눈물을 마셔보자.';
+            
             setChatDialogContent({
                 speaker: '곽빙어',
-                text: data.response,
+                text: presentResponse,
                 type: 'active_npc'
             });
-
-            if (presentedItem) {
-                clearPresentation();
-            }
-
-            // 5회 대화 후 아이템 제시 요구 대사 전환
-            if (newTurnCount >= 5 && !presentedItem) {
-                setTimeout(() => {
-                    // 대화 로그에 곽빙어의 제시 요구 추가
-                    const presentRequestLogs = [...newLogs];
-                    if (data.response) {
-                        presentRequestLogs.push({
-                            id: Date.now() + '_npc_resp',
-                            speaker: '곽빙어',
-                            text: data.response,
-                            type: 'active_npc'
-                        });
-                    }
-                    setChatLogs(presentRequestLogs);
-
-                    setStep('chat_bingeo_present');
-                    setCurrentScript([
-                        { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
-                    ]);
-                    setShowNpcDialog(true);
-                    setNpcDialogStep(0);
-                }, 1500);
-            }
-
-            // 10회 도달 시에도 제시 요구로 전환
-            if (newTurnCount >= MAX_CHAT_TURNS) {
-                setTimeout(() => {
-                    setStep('chat_bingeo_present');
-                    setCurrentScript([
-                        { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
-                    ]);
-                    setShowNpcDialog(true);
-                    setNpcDialogStep(0);
-                }, 1500);
-            }
-
-        } catch (error) {
-            console.error(error);
-            setChatDialogContent({
-                speaker: 'System',
-                text: '...(시스템 오류: 응답 불가)...',
-                type: 'system'
-            });
-        } finally {
             setIsChatThinking(false);
+
+            setTimeout(() => {
+                const finalLogs = [...newLogs, {
+                    id: Date.now() + '_npc_present_done',
+                    speaker: '곽빙어',
+                    text: presentResponse,
+                    type: 'active_npc'
+                }];
+                setChatLogs(finalLogs);
+
+                setStep('use_item_tutorial');
+                showGuide([
+                    "인벤토리를 열고 '솔피의 눈물'을 '사용'해봅시다."
+                ]);
+            }, 2000);
+            return;
         }
+
+        // npc_chatting 상태: 대화 체험 → 제시 단계로 전환
+        const fixedResponse = '흠, 뭘 물어보든 지금은 대답 안 해줄 거야. 인벤토리에서 아이템을 제시하는 것도 해봐. 아까 받은 솔피의 눈물을 꺼내서 나한테 보여줘 봐.';
+
+        setChatDialogContent({
+            speaker: '곽빙어',
+            text: fixedResponse,
+            type: 'active_npc'
+        });
+        setIsChatThinking(false);
+
+        // 고정 응답 후 바로 아이템 제시 단계로 전환
+        setTimeout(() => {
+            const finalLogs = [...newLogs, {
+                id: Date.now() + '_npc_fixed',
+                speaker: '곽빙어',
+                text: fixedResponse,
+                type: 'active_npc'
+            }];
+            setChatLogs(finalLogs);
+
+            setStep('chat_bingeo_present');
+            setCurrentScript([
+                { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
+            ]);
+            setShowNpcDialog(true);
+            setNpcDialogStep(0);
+        }, 2000);
     };
 
     const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger && step !== 'contract';
@@ -643,7 +626,7 @@ const TutorialScene = ({ onComplete }) => {
                 )}
             </AnimatePresence>
 
-            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && isMenuOpen && (
+            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && (
                 <IngameSidebarMenu
                     currentFloorId={currentFloorId}
                     currentRoomId={currentRoomId}
@@ -652,22 +635,10 @@ const TutorialScene = ({ onComplete }) => {
                     inventoryUseDisabled={disableItemUseInInventory}
                     inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                     onPanelStateChange={handleSidebarPanelStateChange}
+                    onSidebarVisibleChange={handleSidebarVisibleChange}
                 />
             )}
 
-            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
-                <ViewControls
-                    viewMode="hidden"
-                    isPhoneOpen={isMenuOpen}
-                    onTogglePhone={() => {
-                        if (!canToggleMenu) return;
-                        setIsMenuOpen((prev) => !prev);
-                    }}
-                    onToggleHidden={null}
-                    theme="basic"
-                    disabled={!canToggleMenu}
-                />
-            )}
 
             {/* 가이드 팝업 */}
             <InteractionPopup

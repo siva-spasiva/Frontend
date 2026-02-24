@@ -96,6 +96,7 @@ const MainGameScene = () => {
 
     const [isThinking, setIsThinking] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
+    const [isSidebarVisible, setIsSidebarVisible] = useState(false);
     
     // NPC Session State -> Free chat count logic
     const [freeChatCount, setFreeChatCount] = useState(0);
@@ -300,6 +301,10 @@ const MainGameScene = () => {
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         setIsSidebarPanelOpen(!!panelState?.isOpen);
+    }, []);
+
+    const handleSidebarVisibleChange = useCallback((visible) => {
+        setIsSidebarVisible(visible);
     }, []);
 
     // ========================
@@ -596,6 +601,7 @@ const MainGameScene = () => {
                         currentRoomId={currentRoomId}
                         onNavigate={handleMove}
                         onPanelStateChange={handleSidebarPanelStateChange}
+                        onSidebarVisibleChange={handleSidebarVisibleChange}
                     />
 
             {/* NPC Interaction Panel */}
@@ -655,9 +661,8 @@ const MainGameScene = () => {
                 onToggleNpc={npcsInRoom.length > 1 && !isChatActive ? toggleNpc : undefined}
                 presentedItem={presentedItem}
                 onClearPresentation={clearPresentation}
-                showViewControls={false}
-                locationLeftInset="340px"
-                chatLeftInset="340px"
+                showViewControls={true}
+                isSidebarVisible={isSidebarVisible}
                 chatRightInset="24px"
             />
 

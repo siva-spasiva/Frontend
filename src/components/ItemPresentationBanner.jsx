@@ -22,57 +22,64 @@ const ItemPresentationBanner = ({ presentedItem, onClear, npcName }) => {
         <AnimatePresence>
             {presentedItem && (
                 <motion.div
-                    initial={{ opacity: 0, y: -10, height: 0 }}
-                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, y: -10, height: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                    className="pointer-events-auto"
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                    className="pointer-events-auto mx-2 mb-1"
                 >
-                    <div className="mx-2 mb-2 bg-gradient-to-r from-amber-900/60 to-yellow-900/40 backdrop-blur-md rounded-xl border border-yellow-600/30 shadow-lg overflow-hidden">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-3 py-2 border-b border-yellow-600/20">
-                            <div className="flex items-center space-x-2">
-                                <HandMetal className="w-4 h-4 text-yellow-400" />
-                                <span className="text-xs font-bold text-yellow-300 uppercase tracking-wider">
-                                    아이템 제시 중
-                                </span>
-                            </div>
-                            <button
-                                onClick={onClear}
-                                className="p-1 rounded-full hover:bg-white/10 transition-colors"
-                                title="제시 취소"
-                            >
-                                <X className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
-                            </button>
-                        </div>
+                    <div className="relative bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 backdrop-blur-xl rounded-2xl border border-amber-400/25 shadow-[0_4px_20px_rgba(245,158,11,0.15)] overflow-hidden">
+                        {/* Subtle animated glow line */}
+                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
 
-                        {/* Body */}
-                        <div className="px-3 py-2 flex items-center space-x-3">
-                            {/* Item Icon */}
-                            <div className="w-10 h-10 bg-black/30 rounded-lg flex items-center justify-center border border-yellow-700/30 flex-shrink-0">
-                                <span className="text-2xl">{presentedItem.icon || '📦'}</span>
+                        <div className="flex items-center px-3 py-2.5 gap-3">
+                            {/* Item Icon with glow */}
+                            <div className="relative flex-shrink-0">
+                                <div className="w-11 h-11 bg-gradient-to-br from-amber-900/40 to-yellow-900/30 rounded-xl flex items-center justify-center border border-amber-500/20 shadow-inner">
+                                    <span className="text-2xl drop-shadow-[0_0_6px_rgba(245,158,11,0.4)]">{presentedItem.icon || '📦'}</span>
+                                </div>
+                                {/* Pulsing dot indicator */}
+                                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_6px_rgba(245,158,11,0.8)] animate-pulse" />
                             </div>
 
                             {/* Item Info */}
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-bold text-white truncate">
-                                        {presentedItem.name}
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                    <HandMetal className="w-3 h-3 text-amber-400/80" />
+                                    <span className="text-[10px] font-bold text-amber-400/90 uppercase tracking-widest">
+                                        제시 중
                                     </span>
                                     {isTranscript && (
-                                        <span className="text-[9px] bg-blue-500/30 text-blue-300 px-1.5 py-0.5 rounded font-mono">
+                                        <span className="text-[8px] bg-blue-500/25 text-blue-300 px-1 py-0.5 rounded font-mono leading-none">
                                             녹음
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-[11px] text-gray-400 truncate mt-0.5">
-                                    {npcName ? `${npcName}에게 제시` : '제시 대기'}
-                                    {isTranscript && presentedItem.transcriptSummary
-                                        ? ` — "${presentedItem.transcriptSummary}"`
-                                        : ''
-                                    }
-                                </p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-sm font-bold text-white/95 truncate">
+                                        {presentedItem.name}
+                                    </span>
+                                    {npcName && (
+                                        <span className="text-[10px] text-white/40 flex-shrink-0">
+                                            → {npcName}
+                                        </span>
+                                    )}
+                                </div>
+                                {isTranscript && presentedItem.transcriptSummary && (
+                                    <p className="text-[10px] text-white/30 truncate mt-0.5 italic">
+                                        "{presentedItem.transcriptSummary}"
+                                    </p>
+                                )}
                             </div>
+
+                            {/* Clear Button */}
+                            <button
+                                onClick={onClear}
+                                className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 active:bg-white/15 transition-colors group"
+                                title="제시 취소"
+                            >
+                                <X className="w-3.5 h-3.5 text-white/30 group-hover:text-white/70 transition-colors" />
+                            </button>
                         </div>
                     </div>
                 </motion.div>

@@ -38,6 +38,9 @@ const GameHUD = ({
     presentedItem = null,
     onClearPresentation = null,
 
+    // Sidebar State
+    isSidebarVisible = false,
+
     children
 }) => {
     return (
@@ -58,7 +61,7 @@ const GameHUD = ({
             <div
                 className="absolute top-8 z-10 pointer-events-none transition-all duration-300 ease-out"
                 style={{
-                    left: locationLeftInset || (isPhoneOpen ? '450px' : '40px'),
+                    left: locationLeftInset || (isSidebarVisible ? '340px' : '40px'),
                     transform: viewMode === 'hidden' ? 'translateY(-200px)' : 'translateY(0)',
                     opacity: viewMode === 'hidden' ? 0 : 1,
                 }}
@@ -99,6 +102,7 @@ const GameHUD = ({
                 showControls={showViewControls}
                 leftInset={chatLeftInset}
                 rightInset={chatRightInset}
+                isSidebarVisible={isSidebarVisible}
             >
                 {/* Debug / Extra Buttons */}
                 {children}

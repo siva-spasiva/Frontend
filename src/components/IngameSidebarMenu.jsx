@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-    Bell,
     CalendarDays,
     Clock3,
+    Fish,
     Heart,
     Map,
     MessageCircle,
@@ -81,6 +81,16 @@ const MenuButton = ({ icon, label, colorClass, active, disabled = false, onClick
     </button>
 );
 
+// Fish Level tier colors (0~5, 5 = game over)
+const FISH_TIER_COLORS = [
+    { bg: 'from-slate-500/20 to-slate-600/10', border: 'border-slate-400/20', text: 'text-slate-300', bar: 'from-slate-400 to-slate-300', icon: 'text-slate-400', label: '정상' },
+    { bg: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-400/20', text: 'text-cyan-300', bar: 'from-cyan-400 to-cyan-300', icon: 'text-cyan-400', label: '미세 변이' },
+    { bg: 'from-blue-500/20 to-blue-600/10', border: 'border-blue-400/20', text: 'text-blue-300', bar: 'from-blue-400 to-blue-300', icon: 'text-blue-400', label: '중간 변이' },
+    { bg: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-400/20', text: 'text-purple-300', bar: 'from-purple-400 to-purple-300', icon: 'text-purple-400', label: '심각 변이' },
+    { bg: 'from-red-500/20 to-red-600/10', border: 'border-red-400/20', text: 'text-red-300', bar: 'from-red-400 to-red-300', icon: 'text-red-400', label: '거의 물고기' },
+    { bg: 'from-rose-500/25 to-rose-600/15', border: 'border-rose-400/30', text: 'text-rose-200', bar: 'from-rose-500 to-rose-400', icon: 'text-rose-400 animate-pulse', label: '완전한 물고기' },
+];
+
 const IngameSidebarMenu = ({
     currentFloorId,
     currentRoomId,
@@ -89,8 +99,13 @@ const IngameSidebarMenu = ({
     inventoryUseDisabled = false,
     inventoryUseOnlyItemId = null,
     onPanelStateChange,
+    onSidebarVisibleChange,
 }) => {
     const [activePanel, setActivePanel] = useState(null);
+    const [isHovered, setIsHovered] = useState(false);
+    const hoverTimeoutRef = useRef(null);
+    const sidebarRef = useRef(null);
+
     const {
         currentDay,
         currentPeriod,
@@ -99,6 +114,9 @@ const IngameSidebarMenu = ({
         hp,
         maxHp,
         plusHp,
+        fishLevel,
+        fishTier,
+        fishTierLabel,
     } = useGame();
 
     const dayLabel = currentDay === 0 ? 'Tutorial' : `Day ${currentDay}`;
@@ -108,6 +126,13 @@ const IngameSidebarMenu = ({
     const plusHpPercent = Math.max(0, Math.min(100 - baseHpPercent, (((plusHp || 0) / (maxHp || 100)) * 100)));
     const hpText = (plusHp || 0) > 0 ? `${hp}+${plusHp} / ${maxHp}` : `${hp} / ${maxHp}`;
 
+    // Fish Level (0~5 scale, 5 = game over)
+    const currentFishLevel = fishLevel || 0;
+    const fishPercent = Math.min(100, (currentFishLevel / 5) * 100);
+    const tierColor = FISH_TIER_COLORS[currentFishLevel] || FISH_TIER_COLORS[0];
+
+    const isSidebarVisible = isHovered || !!activePanel;
+
     const isPanelDisabled = (panelId) => disabledPanels.includes(panelId);
     const closePanel = () => setActivePanel(null);
     const togglePanel = (panelId) => {
@@ -115,6 +140,37 @@ const IngameSidebarMenu = ({
         setActivePanel((prev) => (prev === panelId ? null : panelId));
     };
 
+    // Hover handlers with debounce for leaving
+    const handleMouseEnter = useCallback(() => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+            hoverTimeoutRef.current = null;
+        }
+        setIsHovered(true);
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        // Delay hiding to prevent flicker
+        hoverTimeoutRef.current = setTimeout(() => {
+            setIsHovered(false);
+        }, 300);
+    }, []);
+
+    // Cleanup timeout
+    useEffect(() => {
+        return () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    // Notify parent of sidebar visibility
+    useEffect(() => {
+        onSidebarVisibleChange?.(isSidebarVisible);
+    }, [isSidebarVisible, onSidebarVisibleChange]);
+
+    // Notify parent of panel state
     useEffect(() => {
         if (!onPanelStateChange) return;
 
@@ -171,8 +227,22 @@ const IngameSidebarMenu = ({
     };
 
     return (
-        <div className="absolute inset-y-0 left-0 z-40 flex pointer-events-none">
-            <aside className="pointer-events-auto w-[270px] md:w-[300px] h-full p-4 md:p-5 bg-slate-900/45 backdrop-blur-xl border-r border-white/20 shadow-2xl flex flex-col">
+        <div
+            ref={sidebarRef}
+            className="absolute inset-y-0 left-0 z-40 flex pointer-events-none"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Hover trigger zone — always visible for mouse detection */}
+            <div className="pointer-events-auto w-5 h-full" />
+
+            {/* Sidebar */}
+            <aside
+                className="pointer-events-auto w-[270px] md:w-[300px] h-full p-4 md:p-5 bg-slate-900/45 backdrop-blur-xl border-r border-white/20 shadow-2xl flex flex-col transition-transform duration-300 ease-out"
+                style={{
+                    transform: isSidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
+                }}
+            >
                 <div className="flex items-center justify-between text-xs text-slate-100 mb-5">
                     <span className="font-semibold">{clockLabel}</span>
                     <span className="font-semibold">5G</span>
@@ -233,22 +303,26 @@ const IngameSidebarMenu = ({
                     />
                 </div>
 
-                <button
-                    onClick={() => togglePanel('messenger')}
-                    disabled={isPanelDisabled('messenger')}
-                    className="text-left mb-auto bg-blue-500/15 border border-blue-200/20 rounded-xl p-3 hover:bg-blue-500/20 transition-colors"
-                >
-                    <div className="flex items-start gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-blue-200/20 text-blue-200 flex items-center justify-center">
-                            <Bell className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-blue-100">New Notification</p>
-                            <p className="text-[11px] text-blue-200/90 mt-0.5">Check messenger updates.</p>
-                        </div>
+                {/* Fish Level Indicator */}
+                <div className={`mb-auto rounded-2xl bg-gradient-to-r ${tierColor.bg} border ${tierColor.border} backdrop-blur-sm px-3 py-3`}>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Fish className={`w-4 h-4 ${tierColor.icon}`} />
+                        <span className={`text-[11px] font-bold uppercase tracking-wider ${tierColor.text}`}>
+                            Fish Lv. {currentFishLevel}
+                        </span>
+                        <span className={`ml-auto text-[10px] font-mono ${tierColor.text} opacity-70`}>
+                            {tierColor.label}
+                        </span>
                     </div>
-                </button>
+                    <div className="w-full h-2 rounded-full bg-black/30 overflow-hidden border border-white/10">
+                        <div
+                            className={`h-full rounded-full bg-gradient-to-r ${tierColor.bar} transition-all duration-500`}
+                            style={{ width: `${fishPercent}%` }}
+                        />
+                    </div>
+                </div>
 
+                {/* HP Bar */}
                 <div className="mt-4 rounded-2xl bg-slate-950/80 border border-white/15 px-3 py-3 text-white">
                     <div className="flex items-center gap-2 mb-2 text-[11px] uppercase tracking-wide text-slate-300">
                         <Heart className="w-3.5 h-3.5 text-red-400 fill-current animate-pulse" />
@@ -279,6 +353,7 @@ const IngameSidebarMenu = ({
                 </div>
             </aside>
 
+            {/* App Panel */}
             {activePanel && (
                 <div className="pointer-events-auto absolute top-2 bottom-2 left-[278px] md:left-[308px] right-2 md:right-auto md:w-[390px] rounded-2xl overflow-hidden border border-white/30 shadow-2xl bg-white/95 transition-all duration-200 ease-out">
                     {renderPanel()}
