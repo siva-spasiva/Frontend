@@ -1,4 +1,4 @@
-// Map & Floor Data - extracted from gameData.js
+﻿// Map & Floor Data - extracted from gameData.js
 
 export const FLOOR_DATA = [
     {
@@ -214,7 +214,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-blue-300",
                 "description": "잔잔한 재즈 음악이 흐르는, 바닷가가 보이는 깔끔한 인테리어와 곳곳에 놓인 싱그러운 화분들이 돋보인다.",
                 "background": "1F_hall02.png",
-                "overlayColor": "bg-black/5",
+                "overlayColor": "bg-black/0",
                 "activeZones": [
                     {
                         "id": "to_outside",
@@ -286,7 +286,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-blue-400",
                 "description": "아치형 창문으로 바다가 내다보이는 아름다운 강의실. 나무 바닥 위로 햇살이 길게 드리워져 있고, 이젤과 책들이 여기저기 놓여있다.",
                 "background": "1F_class02.png",
-                "overlayColor": "bg-black/5",
+                "overlayColor": "bg-black/0",
                 "activeZones": [
                     {
                         "id": "to_main_hall_from_class",
@@ -454,7 +454,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-orange-300",
                 "description": "조금 소란스러운 식당. 신도들이 식사를 하고 있다.",
                 "mapImage": "B1_restaurant01.png",
-                "overlayColor": "bg-black/20",
+                "overlayColor": "bg-black/0",
                 "background": "B1_hall01.png",
                 "activeZones": [
                     {
@@ -671,7 +671,7 @@ export const FLOOR_DATA = [
                 "highlightText": "HALL",
                 "highlightColor": "text-gray-600",
                 "description": "묘한 비린내와 곰팡이 냄새가 진동하는 복도.",
-                "overlayColor": "bg-black/20",
+                "overlayColor": "bg-black/0",
                 "background": "B2_hallway02.png",
                 "activeZones": [
                     {
@@ -792,7 +792,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-yellow-500",
                 "description": "어둡고 조용한 방. 왠지 모르게 춥다.",
                 "background": "B2_room04.png",
-                "overlayColor": "bg-black/40",
+                "overlayColor": "bg-black/30",
                 "activeZones": [
                     {
                         "id": "zone_bed",
@@ -876,7 +876,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-red-500",
                 "description": "항상 잠겨있다. 문틈으로 비린내가 새어 나온다.",
                 "background": "B2_room03.png",
-                "overlayColor": "bg-black/40",
+                "overlayColor": "bg-black/60",
                 "activeZones": [
                     {
                         "id": "zone_door_002",
@@ -1792,7 +1792,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-yellow-500",
                 "description": "정체불명의 공간. 비릿한 냄새가 난다.",
                 "background": null,
-                "overlayColor": "bg-black/40",
+                "overlayColor": "bg-black/0",
                 "activeZones": []
             }
         ]
