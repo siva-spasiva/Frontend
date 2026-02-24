@@ -26,6 +26,7 @@ const SmartphoneMenu = ({
     presentedItem = null,
     npcName = null,
     onClearPresentation = null,
+    showControls = true,
 }) => {
 
     // Derived border color for container
@@ -97,16 +98,18 @@ const SmartphoneMenu = ({
             </AnimatePresence>
 
             {/* Floating Buttons */}
-            <ViewControls
-                viewMode={viewMode}
-                onToggleViewMode={onToggleViewMode}
-                onToggleHidden={onToggleHidden}
-                isPhoneOpen={isPhoneOpen}
-                onTogglePhone={onTogglePhone}
-                theme={theme}
-            >
-                {children}
-            </ViewControls>
+            {showControls && (
+                <ViewControls
+                    viewMode={viewMode}
+                    onToggleViewMode={onToggleViewMode}
+                    onToggleHidden={onToggleHidden}
+                    isPhoneOpen={isPhoneOpen}
+                    onTogglePhone={onTogglePhone}
+                    theme={theme}
+                >
+                    {children}
+                </ViewControls>
+            )}
         </>
     );
 };

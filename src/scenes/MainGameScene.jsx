@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { generateAIResponse } from '../utils/aiService';
 import GameHUD from '../components/GameHUD';
-
-import PortraitDisplay from '../components/PortraitDisplay';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import { useInteraction } from '../hooks/useInteraction';
 import NavigationConfirmation from '../components/NavigationConfirmation';
@@ -15,8 +12,9 @@ import FishEyeEffect from '../components/FishEyeEffect';
 import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import HpWarningModal from '../components/HpWarningModal';
 import useFishVisuals from '../hooks/useFishVisuals';
+import IngameSidebarMenu from '../components/IngameSidebarMenu';
 
-const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
+const MainGameScene = () => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
@@ -24,7 +22,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active Room State - Starts in Warehouse Main
     const [currentRoomId, setCurrentRoomId] = useState('storage_main');
 
-    const { syncStats, npcData, mapData, floorData, isLoading, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, getNpcsForRoom, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+    const { syncStats, npcData, mapData, floorData, scheduleData, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -75,7 +73,23 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Active NPC State - Driven by schedule
     const [activeNpc, setActiveNpc] = useState(null);
     // All NPCs in current room (for future multi-NPC support)
-    const [npcsInRoom, setNpcsInRoom] = useState([]);
+    const npcsInRoom = React.useMemo(() => {
+        if (!scheduleData || !currentRoomId) return [];
+
+        const ids = [];
+        for (const npcId in scheduleData) {
+            const npcSchedule = scheduleData[npcId];
+            if (!npcSchedule) continue;
+            const daySchedule = npcSchedule[currentDay] ?? npcSchedule.default;
+            if (!daySchedule) continue;
+
+            if (daySchedule[currentPeriod] === currentRoomId) {
+                ids.push(npcId);
+            }
+        }
+
+        return ids;
+    }, [scheduleData, currentRoomId, currentDay, currentPeriod]);
 
     const [isThinking, setIsThinking] = useState(false);
     
@@ -87,23 +101,20 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
     // Map Info (Dynamic based on currentRoomId)
     const mapInfo = mapData?.[currentRoomId] || {};
 
-    // Update NPC presence when room, day, or period changes
+    // Update active NPC from computed room schedule
     useEffect(() => {
-        const npcIds = getNpcsForRoom(currentRoomId);
-        setNpcsInRoom(npcIds);
-
-        if (npcIds.length > 0 && npcData) {
+        if (npcsInRoom.length > 0 && npcData) {
             // First NPC becomes active (primary interaction target)
-            const primaryNpc = npcData[npcIds[0]] || null;
+            const primaryNpc = npcData[npcsInRoom[0]] || null;
             setActiveNpc(primaryNpc);
-            console.log(`[Schedule] Room: ${currentRoomId}, Day: ${currentDay}, Period: ${currentPeriod}, NPCs:`, npcIds);
+            console.log(`[Schedule] Room: ${currentRoomId}, Day: ${currentDay}, Period: ${currentPeriod}, NPCs:`, npcsInRoom);
         } else {
             setActiveNpc(null);
         }
         
         // Reset chat session on move
         setFreeChatCount(0);
-    }, [currentRoomId, currentDay, currentPeriod, npcData]);
+    }, [currentRoomId, currentDay, currentPeriod, npcData, npcsInRoom]);
 
     // Sync activeNpc to GameContext for InventoryApp presentation awareness
     useEffect(() => {
@@ -235,12 +246,10 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
 
     // Fish Visual Effects
     const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
+    const currentFloorId = floorData?.find((floor) => floor.rooms.some((room) => room.id === currentRoomId))?.id;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+        <div
             className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
             style={{
                 backgroundImage: mapInfo.background,
@@ -260,11 +269,10 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 onInteract={handleInteraction}
             />
 
-            {/* NPC Portrait */}
-            <PortraitDisplay
-                activeNpc={activeNpc}
-                viewMode={viewMode}
-                isPhoneOpen={isPhoneOpen}
+            <IngameSidebarMenu
+                currentFloorId={currentFloorId}
+                currentRoomId={currentRoomId}
+                onNavigate={handleMove}
             />
 
             {/* Multi-NPC indicator */}
@@ -294,12 +302,12 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 viewMode={viewMode}
                 onToggleHidden={handleToggleHidden}
                 onToggleExpand={handleToggleExpand}
-                isPhoneOpen={isPhoneOpen}
-                onTogglePhone={onTogglePhone}
+                isPhoneOpen={false}
                 theme="corrupted"
                 onToggleNpc={npcsInRoom.length > 1 ? toggleNpc : undefined}
                 presentedItem={presentedItem}
                 onClearPresentation={clearPresentation}
+                showViewControls={false}
             />
 
             {/* Navigation Confirmation Popup */}
@@ -347,7 +355,7 @@ const MainGameScene = ({ isPhoneOpen, onTogglePhone }) => {
                 requirement={pendingRequirement}
                 onClose={resolveRequirement}
             />
-        </motion.div>
+        </div>
     );
 };
 

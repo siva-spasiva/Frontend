@@ -405,6 +405,7 @@ const TutorialScene = ({ onComplete }) => {
                 messages={guideMessages}
                 onComplete={handleGuideComplete}
                 title="튜토리얼 안내"
+                showTitle
             />
 
             {/* 메신저 앱 */}
