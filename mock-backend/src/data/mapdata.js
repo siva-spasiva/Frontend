@@ -1,4 +1,4 @@
-﻿// Map & Floor Data - extracted from gameData.js
+// Map & Floor Data - extracted from gameData.js
 
 export const FLOOR_DATA = [
     {
@@ -371,13 +371,13 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_umi_class",
                         "type": "move",
-                        "target": "umi_class",
+                        "target": "main_hall",
                         "x": 90,
                         "y": 40,
                         "width": 7.720695254723822,
                         "height": 41.10734301882992,
-                        "label": "복도",
-                        "message": "복도로 나간다.",
+                        "label": "홀",
+                        "message": "홀로 나간다.",
                         "itemId": ""
                     },
                     {
@@ -427,13 +427,13 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_umi_class",
                         "type": "move",
-                        "target": "umi_class",
+                        "target": "main_hall",
                         "x": 90.39999999999999,
                         "y": 44.30769230769231,
                         "width": 8.700000000000003,
                         "height": 46.61538461538461,
-                        "label": "복도",
-                        "message": "복도로 나간다.",
+                        "label": "홀",
+                        "message": "홀로 나간다.",
                         "itemId": ""
                     }
                 ],

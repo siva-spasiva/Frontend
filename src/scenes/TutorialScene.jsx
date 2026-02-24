@@ -182,8 +182,8 @@ const TutorialScene = ({ onComplete }) => {
             } else if (step === 'hp_tutorial_chat') {
                 setStep('explore_inside');
                 showGuide([
-                    "튜토리얼 기간 동안 자유롭게 탐사해보세요!",
-                    "HP는 튜토리얼 기간동안만큼은 소모되지 않으니 안심하세요. 이후 1일차부터는 행동력을 소모하게 됩니다."
+                    "모든 행동에는 HP를 소모합니다. 맵 탐색, 이동과 아이템 줍기는 1씩 소모합니다.",
+                    "HP는 튜토리얼 기간동안은 소모되지 않으니 안심하세요. 이후 1일차부터는 행동력을 소모하게 됩니다. 튜토리얼 기간 동안 자유롭게 탐사해보세요!"
                 ]);
             } else if (step === 'chat_bingeo_present') {
                 setStep('present_tutorial');
@@ -275,7 +275,7 @@ const TutorialScene = ({ onComplete }) => {
 
             if (zone.type === 'move') {
                 showGuide([
-                    "?? ???? ??? ??? ???? ??? ? ????."
+                    "웰컴 드링크를 먼저 얻어야 합니다."
                 ]);
                 return;
             }
@@ -384,16 +384,14 @@ const TutorialScene = ({ onComplete }) => {
 
         setTimeout(() => {
             showGuide([
-                "이제부터 왼쪽 게임 메뉴를 사용할 수 있습니다.",
-                "여러 가지 앱들을 열어보면서 확인해보세요.",
-                "녹음기 기능은 아직 사용할 수 없습니다."
+                "? ???? ??? 1???? ?????.",
+                "???? ??? ??? ??? ??????."
             ], () => {
-                setIsMenuEnabled(true);
                 setStep('hp_tutorial_chat');
                 setCurrentScript([
-                    { speaker: '곽빙어', text: '빠르네. 이제 너도 정식 입소자야.', portrait: true },
-                    { speaker: '곽빙어', text: '자, 2층 테라스에 웰컴 드링크가 준비되어 있어.', portrait: true },
-                    { speaker: '곽빙어', text: '가서 경치 구경도 좀 하고, 드링크도 마시고 오라고.', portrait: true }
+                    { speaker: '???', text: '???. ?? ?? ?? ????.', portrait: true },
+                    { speaker: '???', text: '2? ???? ?? ???? ???? ??.', portrait: true },
+                    { speaker: '???', text: '?? ??? ??, ???? ?? ?.', portrait: true }
                 ]);
                 setShowNpcDialog(true);
                 setNpcDialogStep(0);
@@ -410,12 +408,19 @@ const TutorialScene = ({ onComplete }) => {
         spendHp(1);
 
         if (step === 'obtain_item005' && collectedItemId === 'item005') {
-            setStep('return_to_class');
             setTimeout(() => {
+                setIsMenuEnabled(true);
                 showGuide([
-                    "솔피의 눈물을 획득했습니다.",
-                    "이제 1층 강의실로 돌아가 고빙어에게 말을 걸어보세요."
-                ]);
+                    "??? ??? ??????! ??? ???.",
+                    "?? ?? ???? ?? ??? ??? ? ????.",
+                    "Inventory, Messenger, Map, Settings? ??????.",
+                    "Recorder? ?? ??? ? ????."
+                ], () => {
+                    setStep('return_to_class');
+                    showGuide([
+                        "??? ????, ?? 1? ???? ?????."
+                    ]);
+                });
             }, 300);
         }
     };
@@ -469,6 +474,7 @@ const TutorialScene = ({ onComplete }) => {
                             mapInfo={mapInfo}
                             onInteract={handleMapInteract}
                             highlightCondition={(zone) => step === 'obtain_item005' && zone.type === 'item' && zone.itemId === 'item005'}
+                            isInteractionLocked={isBingeoFinishSequence || showNpcDialog}
                         />
 
                         {/* Dummy NPC in Class room */}

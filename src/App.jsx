@@ -71,6 +71,22 @@ const MainLayout = () => {
   }, [phase, setIsPhoneCentered]);
 
   const isSplit = ['test02', 'test04', 'test05'].includes(phase);
+  const gameNoDragPhases = ['tutorial', 'mainGame', 'test02', 'test03', 'test04', 'test05'];
+  const isGameNoDrag = gameNoDragPhases.includes(phase);
+
+  const handleGameDragStartCapture = (event) => {
+    if (!isGameNoDrag) return;
+
+    const target = event.target;
+    const isTextInput =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable);
+
+    if (!isTextInput) {
+      event.preventDefault();
+    }
+  };
 
   React.useEffect(() => {
     if (!isMusicEnabled) {
@@ -96,7 +112,10 @@ const MainLayout = () => {
   }, [phase, currentDay, currentPeriod, isMusicEnabled, playBgm, stopBgm]);
 
   return (
-    <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
+    <div
+      className={`relative w-full h-screen bg-gray-100 overflow-hidden ${isGameNoDrag ? 'game-no-drag' : ''}`}
+      onDragStartCapture={handleGameDragStartCapture}
+    >
       <AnimatePresence mode="wait">
         {phase === 'teamLogo' && (
           <TeamLogoScene key="teamLogo" onComplete={toMainMenu} />

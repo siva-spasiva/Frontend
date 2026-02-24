@@ -84,3 +84,23 @@ body {
 .animate-shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
+
+/* Disable dragging/text selection in game scenes except text inputs */
+.game-no-drag,
+.game-no-drag * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.game-no-drag img,
+.game-no-drag svg,
+.game-no-drag [draggable="true"] {
+  -webkit-user-drag: none;
+}
+
+.game-no-drag input,
+.game-no-drag textarea,
+.game-no-drag [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
