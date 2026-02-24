@@ -145,20 +145,23 @@ const MainLayout = () => {
             </AnimatePresence>
 
             {/* Foreground UI (Split Layout) */}
-            <div className="flex w-full h-full relative z-10 pointer-events-none">
+            <div className="absolute inset-0 z-10 pointer-events-none">
               <motion.div
                 layout
-                className="flex-shrink-0 flex items-center justify-center overflow-hidden"
+                className={`flex items-center justify-center overflow-hidden bg-transparent pointer-events-auto ${!isPhoneCentered ? 'shadow-2xl border-r border-gray-600' : ''}`}
                 initial={{ width: '100%' }}
                 animate={{
                   width: isPhoneCentered
                     ? '100%'
-                    : (isSplit
-                      ? (isPhoneOpen ? '420px' : '0px')
-                      : '100%'),
-                  opacity: (['mainGame', 'test02', 'test03', 'test04', 'test05'].includes(phase) && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
-                  position: isPhoneCentered ? 'absolute' : 'relative',
+                    : (isSplit ? '420px' : '100%'),
+                  x: isPhoneCentered
+                    ? 0
+                    : (isSplit ? (isPhoneOpen ? 0 : '-100%') : 0),
+                  opacity: (isSplit && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
+                  position: 'absolute',
                   left: 0,
+                  top: 0,
+                  height: '100%',
                   zIndex: 50
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}

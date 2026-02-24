@@ -54,9 +54,9 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                         <div className={`w-full h-full border-2 border-dashed rounded-lg transition-colors duration-300 flex items-center justify-center
                             ${hoveredZone === zone.id ? 'border-white/50 bg-white/10' : 'border-transparent'}
                         `}>
-                            {/* Icon Indicator (Shows on hover or always if critical) */}
+                            {/* Icon Indicator (Shows on hover or always if move type) */}
                             <AnimatePresence>
-                                {hoveredZone === zone.id && (
+                                {(hoveredZone === zone.id || zone.type === 'move') && (
                                     <motion.div
                                         initial={{ scale: 0, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}

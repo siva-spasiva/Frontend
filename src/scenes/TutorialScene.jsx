@@ -6,7 +6,7 @@ import GameStartSequence from './GameStartSequence';
 import ItemPickupModal from '../components/ItemPickupModal';
 import MessengerApp from '../components/apps/MessengerApp';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
-import TutorialGuidePopup from '../components/TutorialGuidePopup';
+import InteractionPopup from '../components/InteractionPopup';
 import PortraitDisplay from '../components/PortraitDisplay';
 
 const TutorialScene = ({ onComplete }) => {
@@ -18,7 +18,7 @@ const TutorialScene = ({ onComplete }) => {
     const [step, setStep] = useState('intro');
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
-        completeTutorial, mapData,
+        completeTutorial, mapData, npcData,
         spendHp
     } = useGame();
 
@@ -121,7 +121,8 @@ const TutorialScene = ({ onComplete }) => {
             } else if (step === 'hp_tutorial_chat') {
                 setStep('explore_inside');
                 showGuide([
-                    "튜토리얼 기간 동안 자유롭게 탐사해보세요!"
+                    "튜토리얼 기간 동안 자유롭게 탐사해보세요!",
+                    "HP는 튜토리얼 기간동안만큼은 소모되지 않으니 안심하세요!"
                 ]);
             } else if (step === 'chat_bingeo_present') {
                 setStep('present_tutorial');
@@ -224,7 +225,6 @@ const TutorialScene = ({ onComplete }) => {
 
         setCurrentLocationInfo({ floorId: targetFloorId, roomId: targetRoomId });
 
-        spendHp(1);
 
         // Move hooks
         if (step === 'explore_outside' && targetRoomId === 'main_hall') {
@@ -375,46 +375,37 @@ const TutorialScene = ({ onComplete }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black flex justify-center items-center"
+                        className="absolute inset-0 bg-gray-900 overflow-hidden"
+                        style={{
+                            backgroundImage: mapInfo?.background,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                        }}
                     >
-                        {mapInfo?.background && (
-                            <div className="relative w-full h-full max-w-5xl mx-auto flex items-center justify-center">
-                                <div className="relative h-[90%] w-auto aspect-video">
-                                    <div
-                                        className="w-full h-full filter brightness-[0.7]"
-                                        style={{
-                                            backgroundImage: mapInfo.background,
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                        }}
-                                    />
-                                    {/* Map Interactive Layer overlay */}
-                                    <MapInteractiveLayer mapInfo={mapInfo} onInteract={handleMapInteract} />
+                        {/* Map Interactive Layer overlay */}
+                        <div className="absolute inset-0 filter brightness-[0.7] pointer-events-none bg-black/30" />
+                        <MapInteractiveLayer mapInfo={mapInfo} onInteract={handleMapInteract} />
 
-                                    {/* Dummy NPC in Class room */}
-                                    {mapInfo.id === 'umi_class' && (step === 'npc_chat_tutorial' || step === 'chat_bingeo_present' || step === 'present_tutorial' || step === 'use_item_tutorial') && (
-                                        <div
-                                            className="absolute cursor-pointer rounded-full bg-blue-500/50 hover:bg-blue-500/80 transition shadow-xl animate-pulse flex items-center justify-center z-20"
-                                            style={{ left: '50%', top: '50%', width: '10%', height: '20%' }}
-                                            onClick={handleNpcClick}
-                                        >
-                                            <span className='text-xs text-white font-bold'>곽빙어</span>
-                                        </div>
-                                    )}
-
-                                </div>
+                        {/* Dummy NPC in Class room */}
+                        {mapInfo?.id === 'umi_class' && (step === 'npc_chat_tutorial' || step === 'chat_bingeo_present' || step === 'present_tutorial' || step === 'use_item_tutorial') && (
+                            <div
+                                className="absolute cursor-pointer rounded-full bg-blue-500/50 hover:bg-blue-500/80 transition shadow-xl animate-pulse flex items-center justify-center z-20"
+                                style={{ left: '50%', top: '50%', width: '10%', height: '20%' }}
+                                onClick={handleNpcClick}
+                            >
+                                <span className='text-xs text-white font-bold'>곽빙어</span>
                             </div>
                         )}
-
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* 가이드 팝업 */}
-            <TutorialGuidePopup
+            <InteractionPopup
                 isOpen={guideOpen}
                 messages={guideMessages}
                 onComplete={handleGuideComplete}
+                title="튜토리얼 안내"
             />
 
             {/* 메신저 앱 */}
@@ -442,7 +433,7 @@ const TutorialScene = ({ onComplete }) => {
             {showNpcDialog && (
                 <div className="absolute inset-x-0 bottom-0 top-0 pointer-events-none flex flex-col justify-end items-center z-50">
                     {currentScript[npcDialogStep]?.portrait && (
-                        <PortraitDisplay npcKey="bingeo" mood="neutral" isVisible={true} isLeft={false} />
+                        <PortraitDisplay activeNpc={npcData?.bingeo} mood="neutral" isVisible={true} isLeft={false} />
                     )}
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}

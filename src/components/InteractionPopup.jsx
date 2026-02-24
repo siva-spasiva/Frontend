@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const TutorialGuidePopup = ({ isOpen, messages, onComplete }) => {
+const InteractionPopup = ({ isOpen, messages, onComplete, title = "안내" }) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
 
     // Reset index when newly opened
@@ -27,8 +27,8 @@ const TutorialGuidePopup = ({ isOpen, messages, onComplete }) => {
                 initial={{ opacity: 0, scale: 0.9, y: -20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                key="tutorial-guide"
-                className="absolute top-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md"
+                key="interaction-popup"
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-md"
             >
                 <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-400">
                     {/* Header line */}
@@ -41,7 +41,7 @@ const TutorialGuidePopup = ({ isOpen, messages, onComplete }) => {
                             </svg>
                         </div>
                         <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 mb-1 text-lg">튜토리얼 안내</h4>
+                            <h4 className="font-bold text-gray-900 mb-1 text-lg">{title}</h4>
                             <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
                                 {messages[currentIndex]}
                             </p>
@@ -65,4 +65,4 @@ const TutorialGuidePopup = ({ isOpen, messages, onComplete }) => {
     );
 };
 
-export default TutorialGuidePopup;
+export default InteractionPopup;

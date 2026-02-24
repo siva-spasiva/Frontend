@@ -7,6 +7,7 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
     const [pendingItem, setPendingItem] = useState(null); // New state for item pickup
     const [pendingHpWarning, setPendingHpWarning] = useState(null); // { zone, cost, preview }
     const [pendingRequirement, setPendingRequirement] = useState(null); // New state for locked requirements
+    const [pendingInfoPopup, setPendingInfoPopup] = useState(null); // New state for info popup
 
     const handleInteraction = useCallback((zone) => {
         console.log("System Interaction with zone:", zone);
@@ -57,7 +58,7 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
         if (zone.type === 'move') costKey = 'move';
         else if (zone.type === 'item') costKey = 'item';
         else if (zone.type === 'eavesdrop') costKey = 'eavesdrop';
-        
+
         const cost = ACTION_COSTS?.[costKey] ?? 0;
 
         // Check if this cost would cross a section boundary
@@ -160,6 +161,8 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
                 });
             }
 
+        } else if (zone.type === 'info') {
+            setPendingInfoPopup([responseText]);
         } else {
             setDialogContent({
                 speaker: 'System',
@@ -231,6 +234,10 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
         setPendingRequirement(null);
     }, []);
 
+    const resolveInfoPopup = useCallback(() => {
+        setPendingInfoPopup(null);
+    }, []);
+
     const setDialog = useCallback((content) => {
         setDialogContent(content);
     }, []);
@@ -249,6 +256,8 @@ export const useInteraction = ({ viewMode, setViewMode, onMove, inventory = [], 
         resolveItem,
         pendingRequirement,
         resolveRequirement,
+        pendingInfoPopup,
+        resolveInfoPopup,
         pendingHpWarning,
         confirmHpWarning,
         cancelHpWarning,

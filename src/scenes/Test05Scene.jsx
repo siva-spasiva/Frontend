@@ -12,6 +12,7 @@ import ItemPickupModal from '../components/ItemPickupModal';
 import FishEyeEffect from '../components/FishEyeEffect';
 import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import HpWarningModal from '../components/HpWarningModal';
+import InteractionPopup from '../components/InteractionPopup';
 import useFishVisuals from '../hooks/useFishVisuals';
 
 const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
@@ -52,6 +53,8 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
         resolveItem,
         setDialogContent,
         setLogs,
+        pendingInfoPopup,
+        resolveInfoPopup,
         pendingHpWarning,
         confirmHpWarning,
         cancelHpWarning,
@@ -169,6 +172,14 @@ const Test05Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 warning={pendingHpWarning}
                 onConfirm={confirmHpWarning}
                 onCancel={cancelHpWarning}
+            />
+
+            {/* Interaction Popup (Info clicks) */}
+            <InteractionPopup
+                isOpen={!!pendingInfoPopup}
+                messages={pendingInfoPopup || []}
+                onComplete={resolveInfoPopup}
+                title="상호작용"
             />
 
             {/* Item Pickup Modal */}
