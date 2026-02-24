@@ -69,6 +69,7 @@ const MainGameScene = () => {
         ACTION_COSTS,
         getHpCostPreview,
         PERIOD_LABELS,
+        itemInteractionMode: 'popup',
     });
 
     // Active NPC State - Driven by schedule
@@ -351,13 +352,6 @@ const MainGameScene = () => {
                 onCollect={() => {
                     if (pendingItem) {
                         addItem(pendingItem);
-                        // Add log for item pickup
-                        setLogs(prev => [...prev, {
-                            id: Date.now() + '_item_pickup',
-                            speaker: 'System',
-                            text: `[${ITEMS[pendingItem]?.name}] 을(를) 획득했습니다.`,
-                            type: 'system_action'
-                        }]);
                         resolveItem();
                     }
                 }}
