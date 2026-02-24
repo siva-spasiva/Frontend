@@ -32,12 +32,12 @@ export const FLOOR_DATA = [
                         "id": "item_box_01",
                         "type": "item",
                         "target": "",
-                        "x": 48.76520980122257,
-                        "y": 65.64399223265926,
+                        "x": 47.635226456303926,
+                        "y": 66.27560441465819,
                         "width": 10,
                         "height": 10,
                         "label": "작은 상자",
-                        "message": "구석에 놓인 낡은 상자.",
+                        "message": "미술도구 사이, 잡동사니들이 놓여 있다.",
                         "itemId": "item010"
                     },
                     {
@@ -62,7 +62,7 @@ export const FLOOR_DATA = [
                 "highlightColor": "text-blue-200",
                 "description": "테라스. 바닷바람이 시원하게 불어온다.",
                 "overlayColor": "bg-black/0",
-                "background": "2F_terrace03.png",
+                "background": "2F_terrace02.png",
                 "activeZones": [
                     {
                         "id": "back_to_storage",
@@ -92,12 +92,12 @@ export const FLOOR_DATA = [
                         "id": "item_solpi_tear",
                         "type": "item",
                         "target": "",
-                        "x": 39.86005952487907,
-                        "y": 64.76613451088436,
-                        "width": 7.466844277980357,
-                        "height": 9.08771287878298,
-                        "label": "작은 상자",
-                        "message": "미술도구 사이, 푸른빛의 액체가 담긴 병이 놓여 있다.",
+                        "x": 64.43719727685946,
+                        "y": 48.34421777891198,
+                        "width": 4.641885915683758,
+                        "height": 7.19287633278617,
+                        "label": "웰컴 드링크",
+                        "message": "검푸른 커피인지 뭔지 모를 음료가 있다.",
                         "itemId": "item005"
                     }
                 ]
@@ -167,6 +167,18 @@ export const FLOOR_DATA = [
                         "label": "간판",
                         "message": "우미 카페의 간판. 멋들어지게 umi 라고 쓰여 있다.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_5",
+                        "type": "info",
+                        "target": "",
+                        "x": 10.5,
+                        "y": 13.8,
+                        "width": 7.9,
+                        "height": 14.8,
+                        "label": "구름",
+                        "message": "하늘이 맑고 예쁘다.",
+                        "itemId": ""
                     }
                 ]
             },
@@ -227,6 +239,18 @@ export const FLOOR_DATA = [
                         "label": "화로",
                         "message": "따듯해보이는 화로.",
                         "itemId": ""
+                    },
+                    {
+                        "id": "zone_5",
+                        "type": "move",
+                        "target": "stairs_up",
+                        "x": 31.4,
+                        "y": 88.1,
+                        "width": 15,
+                        "height": 9.9,
+                        "label": "2층 계단",
+                        "message": "2층으로 향한다.",
+                        "itemId": ""
                     }
                 ]
             },
@@ -244,8 +268,8 @@ export const FLOOR_DATA = [
                         "id": "to_main_hall_from_class",
                         "type": "move",
                         "target": "main_hall",
-                        "x": 43.90272710911725,
-                        "y": 86.55484831165012,
+                        "x": 38.81204932477523,
+                        "y": 85.85064364299897,
                         "width": 16.597987420536327,
                         "height": 12.91713372723111,
                         "label": "메인 홀",
@@ -1692,6 +1716,18 @@ export const FLOOR_DATA = [
                         "height": 7.7,
                         "label": "깊은 방",
                         "message": "...",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_2",
+                        "type": "move",
+                        "target": "B5_hallway",
+                        "x": 43.7,
+                        "y": 88.3,
+                        "width": 7.2,
+                        "height": 11.2,
+                        "label": "갈림길",
+                        "message": "갈림길로 돌아간다.",
                         "itemId": ""
                     }
                 ],

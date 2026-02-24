@@ -10,7 +10,7 @@ const ItemPickupModal = ({ isOpen, item, onClose, onCollect }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
+                <div key="pickup-modal-wrapper" className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
