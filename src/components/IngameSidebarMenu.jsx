@@ -72,8 +72,8 @@ const SidebarSettingsPanel = ({ onBack }) => {
     );
 };
 
-const MenuButton = ({ icon, label, colorClass, active, onClick }) => (
-    <button onClick={onClick} className="flex flex-col items-center gap-2 group">
+const MenuButton = ({ icon, label, colorClass, active, disabled = false, onClick }) => (
+    <button onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-2 group disabled:opacity-40 disabled:cursor-not-allowed">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 ${active ? 'ring-2 ring-blue-300' : ''} ${colorClass}`}>
             {React.createElement(icon, { className: 'w-5 h-5' })}
         </div>
@@ -81,7 +81,7 @@ const MenuButton = ({ icon, label, colorClass, active, onClick }) => (
     </button>
 );
 
-const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
+const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate, disabledPanels = [], inventoryUseDisabled = false }) => {
     const [activePanel, setActivePanel] = useState(null);
     const {
         currentDay,
@@ -100,11 +100,16 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
     const plusHpPercent = Math.max(0, Math.min(100 - baseHpPercent, (((plusHp || 0) / (maxHp || 100)) * 100)));
     const hpText = (plusHp || 0) > 0 ? `${hp}+${plusHp} / ${maxHp}` : `${hp} / ${maxHp}`;
 
+    const isPanelDisabled = (panelId) => disabledPanels.includes(panelId);
     const closePanel = () => setActivePanel(null);
-    const togglePanel = (panelId) => setActivePanel((prev) => (prev === panelId ? null : panelId));
+    const togglePanel = (panelId) => {
+        if (isPanelDisabled(panelId)) return;
+        setActivePanel((prev) => (prev === panelId ? null : panelId));
+    };
 
     const renderPanel = () => {
         if (!activePanel) return null;
+        if (isPanelDisabled(activePanel)) return null;
 
         if (activePanel === 'map') {
             return (
@@ -121,7 +126,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
         }
 
         if (activePanel === 'inventory') {
-            return <InventoryApp onBack={closePanel} />;
+            return <InventoryApp onBack={closePanel} disableConsumableUse={inventoryUseDisabled} />;
         }
 
         if (activePanel === 'recorder') {
@@ -160,6 +165,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         icon={Map}
                         label="Map"
                         active={activePanel === 'map'}
+                        disabled={isPanelDisabled('map')}
                         onClick={() => togglePanel('map')}
                         colorClass="bg-blue-100 text-blue-600"
                     />
@@ -167,6 +173,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         icon={Package}
                         label="Inventory"
                         active={activePanel === 'inventory'}
+                        disabled={isPanelDisabled('inventory')}
                         onClick={() => togglePanel('inventory')}
                         colorClass="bg-amber-100 text-amber-700"
                     />
@@ -174,6 +181,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         icon={Mic}
                         label="Recorder"
                         active={activePanel === 'recorder'}
+                        disabled={isPanelDisabled('recorder')}
                         onClick={() => togglePanel('recorder')}
                         colorClass="bg-rose-100 text-rose-700"
                     />
@@ -181,6 +189,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         icon={MessageCircle}
                         label="Messenger"
                         active={activePanel === 'messenger'}
+                        disabled={isPanelDisabled('messenger')}
                         onClick={() => togglePanel('messenger')}
                         colorClass="bg-emerald-100 text-emerald-700"
                     />
@@ -188,6 +197,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         icon={Settings}
                         label="Settings"
                         active={activePanel === 'settings'}
+                        disabled={isPanelDisabled('settings')}
                         onClick={() => togglePanel('settings')}
                         colorClass="bg-slate-200 text-slate-700"
                     />
@@ -195,6 +205,7 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
 
                 <button
                     onClick={() => togglePanel('messenger')}
+                    disabled={isPanelDisabled('messenger')}
                     className="text-left mb-auto bg-blue-500/15 border border-blue-200/20 rounded-xl p-3 hover:bg-blue-500/20 transition-colors"
                 >
                     <div className="flex items-start gap-2.5">
