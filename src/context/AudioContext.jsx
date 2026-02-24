@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { Howl, Howler } from 'howler';
 
 // BGM 파일 임포트
@@ -44,65 +44,55 @@ export const AudioProvider = ({ children }) => {
     const bgmHowlRef = useRef(null);
     const fadeoutTimeoutRef = useRef(null);
     const baseTrackVolumeRef = useRef(0.5);
+    const currentBgmRef = useRef(null);
+    const isMusicEnabledRef = useRef(initialSettings.isMusicEnabled);
+    const bgmVolumeRef = useRef(initialSettings.bgmVolume);
 
-    const bgmMap = {
+    // Sync refs with state
+    useEffect(() => { isMusicEnabledRef.current = isMusicEnabled; }, [isMusicEnabled]);
+    useEffect(() => { bgmVolumeRef.current = bgmVolume; }, [bgmVolume]);
+    useEffect(() => { currentBgmRef.current = currentBgm; }, [currentBgm]);
+
+    const bgmMapRef = useRef({
         choir: choirBgm,
         ending: endingBgm,
         opening: openingBgm,
         overworld01: overworld01Bgm,
         overworld02: overworld02Bgm,
-    };
+    });
 
-    const getEffectiveVolume = (trackVolume = 0.5) => clampVolume(trackVolume) * clampVolume(bgmVolume);
+    const getEffectiveVolume = useCallback((trackVolume = 0.5) => {
+        return clampVolume(trackVolume) * clampVolume(bgmVolumeRef.current);
+    }, []);
 
-    const playBgm = (bgmName, { loop = true, volume = 0.5, fadeDuration = 0 } = {}) => {
-        if (!bgmMap[bgmName]) {
-            console.warn(`BGM '${bgmName}' 을 찾을 수 없습니다.`);
-            return;
-        }
-
-        if (!isMusicEnabled) {
-            return;
-        }
-
-        // 이미 같은 BGM이 재생 중이면 무시
-        if (currentBgm === bgmName && bgmHowlRef.current && bgmHowlRef.current.playing()) {
-            return;
-        }
-
+    const stopBgmInternal = useCallback(() => {
         if (fadeoutTimeoutRef.current) {
             clearTimeout(fadeoutTimeoutRef.current);
             fadeoutTimeoutRef.current = null;
         }
-
-        // 기존 BGM 정지 (페이드 아웃 설정 가능)
         if (bgmHowlRef.current) {
-            if (fadeDuration > 0) {
-                bgmHowlRef.current.fade(bgmHowlRef.current.volume(), 0, fadeDuration);
-                fadeoutTimeoutRef.current = setTimeout(() => {
-                    stopBgm();
-                    startNewBgm(bgmName, loop, volume, fadeDuration);
-                    fadeoutTimeoutRef.current = null;
-                }, fadeDuration);
-                return;
-            } else {
-                stopBgm();
-            }
+            bgmHowlRef.current.stop();
+            bgmHowlRef.current.unload();
+            bgmHowlRef.current = null;
         }
+        setCurrentBgm(null);
+        currentBgmRef.current = null;
+    }, []);
 
-        startNewBgm(bgmName, loop, volume, fadeDuration);
-    };
-
-    const startNewBgm = (bgmName, loop, volume, fadeDuration) => {
+    const startNewBgm = useCallback((bgmName, loop, volume, fadeDuration) => {
         const normalizedTrackVolume = clampVolume(volume);
         const targetVolume = getEffectiveVolume(normalizedTrackVolume);
 
+        // 모든 Howl 인스턴스를 완전히 정리 (HTML5 Audio 풀 포함)
+        Howler.unload();
+        bgmHowlRef.current = null;
+
         const sound = new Howl({
-            src: [bgmMap[bgmName]],
+            src: [bgmMapRef.current[bgmName]],
             loop: loop,
             volume: fadeDuration > 0 ? 0 : targetVolume,
-            mute: !isMusicEnabled,
-            html5: true, // 대용량 오디오(BGM)용 권장 설정
+            mute: !isMusicEnabledRef.current,
+            html5: true,
         });
 
         if (fadeDuration > 0) {
@@ -115,37 +105,72 @@ export const AudioProvider = ({ children }) => {
         baseTrackVolumeRef.current = normalizedTrackVolume;
         bgmHowlRef.current = sound;
         setCurrentBgm(bgmName);
-    };
+        currentBgmRef.current = bgmName;
+    }, [getEffectiveVolume]);
 
-    const stopBgm = () => {
+    const playBgm = useCallback((bgmName, { loop = true, volume = 0.5, fadeDuration = 0 } = {}) => {
+        if (!bgmMapRef.current[bgmName]) {
+            console.warn(`BGM '${bgmName}' 을 찾을 수 없습니다.`);
+            return;
+        }
+
+        if (!isMusicEnabledRef.current) {
+            return;
+        }
+
+        // 이미 같은 BGM이 재생 중이면 무시
+        if (currentBgmRef.current === bgmName && bgmHowlRef.current && bgmHowlRef.current.playing()) {
+            return;
+        }
+
         if (fadeoutTimeoutRef.current) {
             clearTimeout(fadeoutTimeoutRef.current);
             fadeoutTimeoutRef.current = null;
         }
-        if (bgmHowlRef.current) {
-            bgmHowlRef.current.stop();
-            bgmHowlRef.current.unload(); // 메모리 해제
-            bgmHowlRef.current = null;
-        }
-        setCurrentBgm(null);
-    };
 
-    const setMusicEnabled = (enabled) => {
+        // 기존 BGM 정지
+        if (bgmHowlRef.current) {
+            if (fadeDuration > 0) {
+                bgmHowlRef.current.fade(bgmHowlRef.current.volume(), 0, fadeDuration);
+                fadeoutTimeoutRef.current = setTimeout(() => {
+                    stopBgmInternal();
+                    startNewBgm(bgmName, loop, volume, fadeDuration);
+                    fadeoutTimeoutRef.current = null;
+                }, fadeDuration);
+                return;
+            } else {
+                stopBgmInternal();
+            }
+        }
+
+        startNewBgm(bgmName, loop, volume, fadeDuration);
+    }, [stopBgmInternal, startNewBgm]);
+
+    const stopBgm = useCallback(() => {
+        stopBgmInternal();
+    }, [stopBgmInternal]);
+
+    // stopBgm is now defined above via useCallback
+
+    const setMusicEnabled = useCallback((enabled) => {
         const nextEnabled = !!enabled;
         setIsMusicEnabled(nextEnabled);
+        isMusicEnabledRef.current = nextEnabled;
 
         if (!nextEnabled) {
-            stopBgm();
+            stopBgmInternal();
         }
-    };
+    }, [stopBgmInternal]);
 
-    const toggleMute = () => {
-        setMusicEnabled(!isMusicEnabled);
-    };
+    const toggleMute = useCallback(() => {
+        setMusicEnabled(!isMusicEnabledRef.current);
+    }, [setMusicEnabled]);
 
-    const setMasterBgmVolume = (nextVolume) => {
-        setBgmVolume(clampVolume(Number(nextVolume)));
-    };
+    const setMasterBgmVolume = useCallback((nextVolume) => {
+        const v = clampVolume(Number(nextVolume));
+        setBgmVolume(v);
+        bgmVolumeRef.current = v;
+    }, []);
 
     const playEventBgm = (eventName, options = {}) => {
         if (eventName === 'choir' || eventName === 'ending') {
@@ -175,14 +200,15 @@ export const AudioProvider = ({ children }) => {
         }
     }, [isMusicEnabled, bgmVolume]);
 
+    // 초기 마운트 시 잔여 오디오 정리 + 언마운트 시 정리
     useEffect(() => {
+        Howler.unload();
         return () => {
             if (fadeoutTimeoutRef.current) {
                 clearTimeout(fadeoutTimeoutRef.current);
             }
-            if (bgmHowlRef.current) {
-                bgmHowlRef.current.unload();
-            }
+            Howler.unload();
+            bgmHowlRef.current = null;
         };
     }, []);
 
