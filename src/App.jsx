@@ -110,6 +110,7 @@ const MainLayout = () => {
           <CrashScene key="crash" onMount={toTerminal} />
         )}
 
+        {phase === 'test01' && <Test01Scene key="test01" isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onBack={toMainMenu} />}
         {phase === 'debug00' && <Debug00Scene key="debug00" onBack={toMainMenu} />}
         {phase === 'debug01' && <Debug01Scene key="debug01" onBack={toMainMenu} />}
         {phase === 'debug02' && <Debug02Scene key="debug02" onBack={toMainMenu} />}
@@ -203,7 +204,7 @@ const MainLayout = () => {
                         toTutorial();
                       }
                     }}
-                    onTestStart={() => { }}
+                    onTestStart={toTest01}
                     onTest02Start={toTest02}
                     onTest03Start={toTest03}
                     onTest04Start={toTest04}
