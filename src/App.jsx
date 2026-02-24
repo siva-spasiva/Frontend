@@ -33,7 +33,7 @@ import OutsideBg from './assets/map/1F_outside01.png';
 const MainLayout = () => {
   // phase state: 'teamLogo' -> 'mainMenu' -> 'tutorial' -> 'mainGame' 
   // (legacy phases kept for debug buttons)
-  const [phase, setPhase] = useState('mainMenu');
+  const [phase, setPhase] = useState('teamLogo');
 
   // Access Game Context for Layout
   const { isPhoneCentered, setIsPhoneCentered, appEvent, currentDay, currentPeriod } = useGame();
