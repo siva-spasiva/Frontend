@@ -95,7 +95,7 @@ const CreditsApp = ({ onBack, onAppOpen }) => {
 
                     <h3 className="font-bold text-gray-400 text-xs tracking-widest uppercase mb-4 px-2">테스트 메뉴</h3>
                     <div className="grid grid-cols-4 gap-2">
-                        <AppIcon icon={Grid} label="Test01" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
+                        <AppIcon icon={Grid} label="TestED" color="bg-indigo-600" onClick={() => onAppOpen('test01')} />
                         <AppIcon icon={Grid} label="Test02" color="bg-pink-600" onClick={() => onAppOpen('test02')} />
                         <AppIcon icon={Grid} label="Test03" color="bg-cyan-600" onClick={() => onAppOpen('test03')} />
                         <AppIcon icon={Grid} label="Test04" color="bg-teal-600" onClick={() => onAppOpen('test04')} />

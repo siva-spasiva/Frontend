@@ -21,7 +21,7 @@ import { ChevronDown } from 'lucide-react';
  * - Auto-advances through each step with escape hatches
  * 
  * USAGE:
- * - From Credits menu (Test01):  Credits > Test01 button
+ * - From Credits menu (TestED):  Credits > TestED button
  * - Manual trigger:              useGame().isGameOver === true
  * - Direct import:               <EndingScene onComplete={handleNext} />
  * 
@@ -44,33 +44,27 @@ import { ChevronDown } from 'lucide-react';
 const NARRATION_SEQUENCES = [
   {
     id: 'opening_monologue',
-    character: '나',
+    character: '',
     // ⬇️ EDIT: Change lines here for opening monologue
     lines: [
-      '이곳에서 얼마나 있었을까.',
-      '시간이 흘러도, 여전히 물은 차갑고.',
-      '손가락은 막 물갈퀴가 되려는 듯 아파오고.',
-      '하지만 이제는 두렵지 않아.',
-      '무언가가 바뀌었다는 것을,',
-      '난 깨달았으니까.',
+      '5일이 지났다.',
+      '이야기를 끝낼 시간이다.',
     ],
   },
   {
     id: 'reflection',
-    character: '나',
+    character: '',
     // ⬇️ EDIT: Change lines here for reflection monologue
     lines: [
-      '만날 수 있어서 고마웠어.',
-      '너희 없이는 여기까지 올 수 없었어.',
-      '이제...',
-      '이제 다시 시작할 수 있을 것 같아.',
+      '1.',
+      '2.',
     ],
   },
 ];
 
 const BOOK_CONTENT = {
-  title: '평범한 그림 원데이 클래스 우미',
-  subtitle: 'An Ordinary Drawing One-Day Class Umi',
+  title: '원데이 클래스 우미',
+  subtitle: 'Drawing One-Day Class Umi',
   // ⬇️ EDIT: Change book placeholders here
   placeholders: [
     '▢ 이야기 진행률: □□□□□ 미완성',
@@ -93,7 +87,6 @@ const THANK_YOU_MESSAGES = [
   // ⬇️ EDIT: Change thank you messages here
   '게임을 플레이해주셔서 감사합니다.',
   'Thank you for playing.',
-  '다음 이야기에서 뵙겠습니다.',
 ];
 
 // ============================================================================

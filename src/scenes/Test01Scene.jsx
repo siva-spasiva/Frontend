@@ -2,8 +2,8 @@ import React from 'react';
 import EndingScene from './EndingScene';
 
 /**
- * Test01Scene - Now dedicated to ENDING SEQUENCE
- * Wraps EndingScene for launch from the test menu / credits flow
+ * TestED Scene (formerly Test01Scene) - Now dedicated to ENDING SEQUENCE
+ * Wraps EndingScene for launch from the credits menu
  *
  * Props:
  *   - isPhoneOpen: (unused - full screen scene)

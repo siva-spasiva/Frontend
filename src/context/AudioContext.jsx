@@ -42,6 +42,7 @@ export const AudioProvider = ({ children }) => {
     const [isMusicEnabled, setIsMusicEnabled] = useState(initialSettings.isMusicEnabled);
     const [bgmVolume, setBgmVolume] = useState(initialSettings.bgmVolume);
     const bgmHowlRef = useRef(null);
+    const fadeoutTimeoutRef = useRef(null);
     const baseTrackVolumeRef = useRef(0.5);
 
     const bgmMap = {
@@ -69,13 +70,19 @@ export const AudioProvider = ({ children }) => {
             return;
         }
 
+        if (fadeoutTimeoutRef.current) {
+            clearTimeout(fadeoutTimeoutRef.current);
+            fadeoutTimeoutRef.current = null;
+        }
+
         // 기존 BGM 정지 (페이드 아웃 설정 가능)
         if (bgmHowlRef.current) {
             if (fadeDuration > 0) {
                 bgmHowlRef.current.fade(bgmHowlRef.current.volume(), 0, fadeDuration);
-                setTimeout(() => {
+                fadeoutTimeoutRef.current = setTimeout(() => {
                     stopBgm();
                     startNewBgm(bgmName, loop, volume, fadeDuration);
+                    fadeoutTimeoutRef.current = null;
                 }, fadeDuration);
                 return;
             } else {
@@ -111,6 +118,10 @@ export const AudioProvider = ({ children }) => {
     };
 
     const stopBgm = () => {
+        if (fadeoutTimeoutRef.current) {
+            clearTimeout(fadeoutTimeoutRef.current);
+            fadeoutTimeoutRef.current = null;
+        }
         if (bgmHowlRef.current) {
             bgmHowlRef.current.stop();
             bgmHowlRef.current.unload(); // 메모리 해제
@@ -166,6 +177,9 @@ export const AudioProvider = ({ children }) => {
 
     useEffect(() => {
         return () => {
+            if (fadeoutTimeoutRef.current) {
+                clearTimeout(fadeoutTimeoutRef.current);
+            }
             if (bgmHowlRef.current) {
                 bgmHowlRef.current.unload();
             }
