@@ -87,7 +87,7 @@ const TutorialScene = ({ onComplete }) => {
                 setCurrentScript([
                     { speaker: '?', text: '어휴, 배 끊겼다더니 또 누가 왔네.', portrait: true },
                     { speaker: '나', text: '누구시죠? 여기 직원인가요?', portrait: false },
-                    { speaker: '곽빙어', text: '직원? 난 \'평범한 그림 원데이 클래스 우미\'의 직원이지. 곽빙어라고 해.', portrait: true },
+                    { speaker: '곽빙어', text: '직원...? 맞아. \'평범한 원데이 클래스 우미\'의 직원 곽빙어라고 해.', portrait: true },
                     { speaker: '곽빙어', text: '밖에 서 있지 말고 일단 안으로 들어와. 안으로 먼저 들어갈 테니까 따라와.', portrait: true }
                 ]);
                 setShowNpcDialog(true);
@@ -122,12 +122,12 @@ const TutorialScene = ({ onComplete }) => {
                 setStep('explore_inside');
                 showGuide([
                     "튜토리얼 기간 동안 자유롭게 탐사해보세요!",
-                    "HP는 튜토리얼 기간동안만큼은 소모되지 않으니 안심하세요!"
+                    "HP는 튜토리얼 기간동안만큼은 소모되지 않으니 안심하세요. 이후 1일차부터는 행동력을 소모하게 됩니다."
                 ]);
             } else if (step === 'chat_bingeo_present') {
                 setStep('present_tutorial');
                 showGuide([
-                    "아이템 '제시(Present)' 기능을 사용해봅시다.",
+                    "아이템 '제시' 기능을 사용해봅시다.",
                     "화면의 '아이템 제시' 버튼을 눌러보세요."
                 ], () => {
                     setShowInventoryForPresent(true);
@@ -138,7 +138,7 @@ const TutorialScene = ({ onComplete }) => {
             } else if (step === 'correct_present') {
                 setStep('use_item_tutorial');
                 showGuide([
-                    "'솔피의 눈물' 아이템을 인벤토리에서 '사용(Use)' 할 수 있습니다.",
+                    "'솔피의 눈물' 아이템을 인벤토리에서 '사용' 할 수 있습니다.",
                     "인벤토리를 열고 웰컴 드링크를 마셔봅시다."
                 ], () => {
                     // Wait for manual item use
@@ -161,7 +161,7 @@ const TutorialScene = ({ onComplete }) => {
                 if (!allClicked) {
                     showGuide([
                         "굳게 닫혀있다. 아직 주변을 덜 둘러본 것 같다.",
-                        "주변의 돋보기 아이콘을 모두 눌러 확인해주세요."
+                        "주변의 상호작용 오브젝트를 더 찾아보세요. 아직 남아있습니다!"
                     ]);
                     return;
                 }
@@ -227,7 +227,7 @@ const TutorialScene = ({ onComplete }) => {
             setTimeout(() => {
                 setCurrentScript([
                     { speaker: '곽빙어', text: '여기서부터는 진짜 우미의 공간이야. 일단 이거부터 서명해.', portrait: true },
-                    { speaker: '곽빙어', text: '입소하려면 꼭 써야 하는 ‘계약서’ 같은 거니까.', portrait: true }
+                    { speaker: '곽빙어', text: '입소하려면 꼭 써야 하는 간단한 서명 같은 거니까, 걱정하지 말고.', portrait: true }
                 ]);
                 setShowNpcDialog(true);
                 setNpcDialogStep(0);
@@ -302,14 +302,14 @@ const TutorialScene = ({ onComplete }) => {
         setShowInventoryForPresent(false);
         if (itemId === 'item005') {
             setCurrentScript([
-                { speaker: '곽빙어', text: '좋아요. 그럼 한잔 하고 시작할까요?', portrait: true }
+                { speaker: '곽빙어', text: '좋아요. 그럼 한잔 하고 시작할까?', portrait: true }
             ]);
             setStep('correct_present');
             setShowNpcDialog(true);
             setNpcDialogStep(0);
         } else {
             setCurrentScript([
-                { speaker: '곽빙어', text: '이게 아니잖아요. 장난감 말고 제대로 제시해주세요!', portrait: true }
+                { speaker: '곽빙어', text: '이게 아니잖아. 제대로 제시해.', portrait: true }
             ]);
             setStep('wrong_present');
             setShowNpcDialog(true);
