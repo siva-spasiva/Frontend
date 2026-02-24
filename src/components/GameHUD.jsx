@@ -7,6 +7,7 @@ const GameHUD = ({
     // Map & Visuals
     mapInfo = {},
     activeNpc,
+    secondaryNpc,
 
     // Chat State
     logs,
@@ -76,7 +77,7 @@ const GameHUD = ({
             </div>
 
             {/* Portrait Placeholder */}
-            <PortraitDisplay activeNpc={activeNpc} isPhoneOpen={isPhoneOpen} viewMode={viewMode} />
+            <PortraitDisplay activeNpc={activeNpc} secondaryNpc={secondaryNpc} isPhoneOpen={isPhoneOpen} viewMode={viewMode} />
 
             {/* Smartphone Menu */}
             <SmartphoneMenu

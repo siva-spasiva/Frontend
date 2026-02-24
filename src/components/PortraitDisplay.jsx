@@ -28,44 +28,74 @@ const PlaceholderPortrait = ({ filename, name }) => (
     </div>
 );
 
-const PortraitDisplay = ({ activeNpc, className, isPhoneOpen, viewMode }) => {
+const SinglePortrait = ({ npc, imgError, onLoad, onError }) => {
+    const portraitSrc = npc.portraits?.default || npc.initialPortrait;
+    const showPlaceholder = !portraitSrc || imgError === portraitSrc;
+
+    return (
+        <motion.div
+            key={npc.id}
+            className="h-full flex items-end justify-center"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+            {showPlaceholder ? (
+                <PlaceholderPortrait
+                    filename={portraitSrc?.split('/').pop() || npc.id}
+                    name={npc.name}
+                />
+            ) : (
+                <img
+                    src={portraitSrc}
+                    alt={npc.name}
+                    className="h-[90%] object-contain drop-shadow-2xl"
+                    onError={onError}
+                    onLoad={onLoad}
+                />
+            )}
+        </motion.div>
+    );
+};
+
+const PortraitDisplay = ({ activeNpc, secondaryNpc, className, isPhoneOpen, viewMode }) => {
     const [imgError, setImgError] = useState(null);
+    const [imgError2, setImgError2] = useState(null);
 
     if (!activeNpc || viewMode === 'hidden') return null;
 
-    const portraitSrc = activeNpc.portraits?.default || activeNpc.initialPortrait;
-    const showPlaceholder = !portraitSrc || imgError === portraitSrc;
-
-    const handleLoad = () => setImgError(null);
-    const handleError = () => setImgError(portraitSrc);
+    const hasDual = !!secondaryNpc;
 
     return (
-        <div className={`absolute right-10 top-0 h-full w-[500px] flex items-end justify-center z-0 pointer-events-none ${className}`}>
+        <div className={`absolute right-10 top-0 h-full flex items-end justify-center z-0 pointer-events-none ${hasDual ? 'w-[700px]' : 'w-[500px]'} ${className}`}>
             <AnimatePresence mode="wait">
-                {activeNpc && (
-                    <motion.div
-                        key={activeNpc.id}
-                        className="h-full flex items-end justify-center"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                    >
-                        {showPlaceholder ? (
-                            <PlaceholderPortrait
-                                filename={portraitSrc?.split('/').pop() || activeNpc.id}
-                                name={activeNpc.name}
+                {hasDual ? (
+                    <div key={`dual-${activeNpc.id}-${secondaryNpc.id}`} className="h-full flex items-end justify-center gap-2">
+                        <div className="h-full flex items-end" style={{ maxWidth: '320px' }}>
+                            <SinglePortrait
+                                npc={secondaryNpc}
+                                imgError={imgError2}
+                                onLoad={() => setImgError2(null)}
+                                onError={() => setImgError2(secondaryNpc.portraits?.default || secondaryNpc.initialPortrait)}
                             />
-                        ) : (
-                            <img
-                                src={portraitSrc}
-                                alt={activeNpc.name}
-                                className="h-[90%] object-contain drop-shadow-2xl"
-                                onError={handleError}
-                                onLoad={handleLoad}
+                        </div>
+                        <div className="h-full flex items-end" style={{ maxWidth: '320px' }}>
+                            <SinglePortrait
+                                npc={activeNpc}
+                                imgError={imgError}
+                                onLoad={() => setImgError(null)}
+                                onError={() => setImgError(activeNpc.portraits?.default || activeNpc.initialPortrait)}
                             />
-                        )}
-                    </motion.div>
+                        </div>
+                    </div>
+                ) : (
+                    <SinglePortrait
+                        npc={activeNpc}
+                        imgError={imgError}
+                        onLoad={() => setImgError(null)}
+                        onError={() => setImgError(activeNpc.portraits?.default || activeNpc.initialPortrait)}
+                    />
                 )}
             </AnimatePresence>
         </div>

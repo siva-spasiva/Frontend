@@ -27,6 +27,23 @@ const LogEntry = ({ log }) => {
         );
     }
 
+    // Eavesdrop log types
+    if (log.type === 'eavesdrop_preview' || log.type === 'eavesdrop_listen') {
+        return (
+            <div className="mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 bg-purple-900/20 border-purple-500/40 italic">
+                <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-900/40 px-1.5 py-0.5 rounded">
+                        {log.type === 'eavesdrop_preview' ? '엿듣기' : '엿듣기'}
+                    </span>
+                    <span className="text-purple-300 font-medium text-xs">{log.speaker}</span>
+                </div>
+                <p className="text-gray-200 pl-1 leading-relaxed">
+                    <FishText text={log.text} />
+                </p>
+            </div>
+        );
+    }
+
     if (log.type === 'active_npc' || log.type === 'npc' || log.type === 'system') {
         const isSystem = log.type === 'system';
         return (

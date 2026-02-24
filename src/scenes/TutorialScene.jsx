@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
+import { generateAIResponse } from '../utils/aiService';
 import IntroSequence from './IntroSequence';
 import GameStartSequence from './GameStartSequence';
 import ItemPickupModal from '../components/ItemPickupModal';
@@ -11,11 +12,12 @@ import PortraitDisplay from '../components/PortraitDisplay';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import ViewControls from '../components/ViewControls';
 import MapContainer from '../components/MapContainer';
+import SmartphoneMenu from '../components/SmartphoneMenu';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' -> 
     // 'meet_bingeo_inside' -> 'contract_wait' -> 'contract' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
-    // 'return_to_class' -> 'npc_chat_tutorial' -> 'chat_bingeo_present' ->
+    // 'return_to_class' -> 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
     const [step, setStep] = useState('intro');
@@ -53,6 +55,16 @@ const TutorialScene = ({ onComplete }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMenuEnabled, setIsMenuEnabled] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
+
+    // === AI Chat State (for npc_chatting step) ===
+    const [chatLogs, setChatLogs] = useState([]);
+    const [chatDialogContent, setChatDialogContent] = useState(null);
+    const [chatInputText, setChatInputText] = useState('');
+    const [isChatThinking, setIsChatThinking] = useState(false);
+    const [chatTurnCount, setChatTurnCount] = useState(0);
+    const MAX_CHAT_TURNS = 10;
+    const [showNpcChatHpWarning, setShowNpcChatHpWarning] = useState(false);
+    const [chatViewMode, setChatViewMode] = useState('mini');
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
@@ -106,7 +118,7 @@ const TutorialScene = ({ onComplete }) => {
     }, [step, messengerDisconnected]);
 
     useEffect(() => {
-        const hasNpcInField = ['npc_chat_tutorial', 'chat_bingeo_present', 'present_tutorial', 'use_item_tutorial'].includes(step);
+        const hasNpcInField = ['npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'use_item_tutorial'].includes(step);
         setActiveNpcInField(hasNpcInField ? npcData?.bingeo || null : null);
 
         return () => setActiveNpcInField(null);
@@ -215,8 +227,8 @@ const TutorialScene = ({ onComplete }) => {
         return outsideInfoZones.every((zone) => interactedZones.includes(zone.id));
     };
 
-    const isBingeoFinishSequence = ['chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
-    const disableItemUseInInventory = ['chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const isBingeoFinishSequence = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
+    const disableItemUseInInventory = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
     const inventoryUseOnlyItemId = step === 'use_item_tutorial' ? 'item005' : null;
     const isMapInteractionLocked =
         guideOpen ||
@@ -439,17 +451,141 @@ const TutorialScene = ({ onComplete }) => {
         }
     };
 
-    // Dummy Npc interact
-    const handleNpcClick = () => {
-        if (step === 'npc_chat_tutorial') {
-            spendHp(10);
-            setStep('chat_bingeo_present');
-            setCurrentScript([
-                { speaker: '곽빙어', text: '잘 왔어. 음료는 챙겼지?', portrait: true },
-                { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
-            ]);
-            setShowNpcDialog(true);
-            setNpcDialogStep(0);
+    // NPC Chat: "대화하기" 버튼 클릭 핸들러
+    const handleStartChatClick = () => {
+        if (step !== 'npc_chat_tutorial') return;
+        setShowNpcChatHpWarning(true);
+    };
+
+    const handleConfirmChatHp = async () => {
+        setShowNpcChatHpWarning(false);
+        const ok = await spendHp(10);
+        if (!ok) {
+            showGuide(['체력이 부족하여 대화를 시작할 수 없습니다.']);
+            return;
+        }
+        setStep('npc_chatting');
+        setChatLogs([]);
+        setChatDialogContent({
+            speaker: '곽빙어',
+            text: '잘 왔어. 음료는 챙겼지? 이것저것 물어볼 게 있으면 말해봐.',
+            type: 'active_npc'
+        });
+        setChatTurnCount(0);
+        setChatViewMode('mini');
+    };
+
+    const handleCancelChatHp = () => {
+        setShowNpcChatHpWarning(false);
+    };
+
+    // AI Chat Send Handler (for npc_chatting step)
+    const handleTutorialChatSend = async () => {
+        if (!chatInputText.trim() || isChatThinking) return;
+        if (step !== 'npc_chatting') return;
+        if (chatTurnCount >= MAX_CHAT_TURNS) return;
+
+        const userMsg = chatInputText;
+        setChatInputText('');
+        setIsChatThinking(true);
+
+        // Archive current dialog
+        const newLogs = [...chatLogs];
+        if (chatDialogContent) {
+            newLogs.push({
+                ...chatDialogContent,
+                id: Date.now() + '_prev_npc',
+                type: chatDialogContent.type || 'npc'
+            });
+        }
+
+        // Add user message
+        newLogs.push({
+            id: Date.now() + '_user',
+            speaker: 'You',
+            text: userMsg,
+            type: 'user'
+        });
+
+        // If presenting an item, add presentation log
+        if (presentedItem) {
+            newLogs.push({
+                id: Date.now() + '_presentation',
+                speaker: 'System',
+                text: `${presentedItem.name}을(를) 제시했습니다.`,
+                itemName: presentedItem.name,
+                icon: presentedItem.icon,
+                type: 'item_presentation'
+            });
+        }
+
+        setChatLogs(newLogs);
+        setChatDialogContent(null);
+
+        const newTurnCount = chatTurnCount + 1;
+        setChatTurnCount(newTurnCount);
+
+        try {
+            const data = await generateAIResponse(userMsg, {
+                npcId: 'bingeo',
+                presentedItem: presentedItem || undefined,
+            });
+
+            setChatDialogContent({
+                speaker: '곽빙어',
+                text: data.response,
+                type: 'active_npc'
+            });
+
+            if (presentedItem) {
+                clearPresentation();
+            }
+
+            // 5회 대화 후 아이템 제시 요구 대사 전환
+            if (newTurnCount >= 5 && !presentedItem) {
+                setTimeout(() => {
+                    // 대화 로그에 곽빙어의 제시 요구 추가
+                    const presentRequestLogs = [...newLogs];
+                    if (data.response) {
+                        presentRequestLogs.push({
+                            id: Date.now() + '_npc_resp',
+                            speaker: '곽빙어',
+                            text: data.response,
+                            type: 'active_npc'
+                        });
+                    }
+                    setChatLogs(presentRequestLogs);
+
+                    setStep('chat_bingeo_present');
+                    setCurrentScript([
+                        { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
+                    ]);
+                    setShowNpcDialog(true);
+                    setNpcDialogStep(0);
+                }, 1500);
+            }
+
+            // 10회 도달 시에도 제시 요구로 전환
+            if (newTurnCount >= MAX_CHAT_TURNS) {
+                setTimeout(() => {
+                    setStep('chat_bingeo_present');
+                    setCurrentScript([
+                        { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
+                    ]);
+                    setShowNpcDialog(true);
+                    setNpcDialogStep(0);
+                }, 1500);
+            }
+
+        } catch (error) {
+            console.error(error);
+            setChatDialogContent({
+                speaker: 'System',
+                text: '...(시스템 오류: 응답 불가)...',
+                type: 'system'
+            });
+        } finally {
+            setIsChatThinking(false);
         }
     };
 
@@ -492,14 +628,19 @@ const TutorialScene = ({ onComplete }) => {
                             isInteractionLocked={isMapInteractionLocked}
                         />
 
-                        {/* Dummy NPC in Class room */}
-                        {mapInfo?.id === 'umi_class' && (step === 'npc_chat_tutorial' || step === 'chat_bingeo_present' || step === 'present_tutorial' || step === 'use_item_tutorial') && (
+                        {/* NPC "대화하기" 버튼 (강의실에서 곽빙어와 대화 시작) */}
+                        {mapInfo?.id === 'umi_class' && step === 'npc_chat_tutorial' && (
                             <div
-                                className="absolute cursor-pointer rounded-full bg-blue-500/50 hover:bg-blue-500/80 transition shadow-xl animate-pulse flex items-center justify-center z-20"
-                                style={{ left: '50%', top: '50%', width: '10%', height: '20%' }}
-                                onClick={handleNpcClick}
+                                className="absolute z-20 flex flex-col items-center gap-2"
+                                style={{ left: '50%', bottom: '18%', transform: 'translateX(-50%)' }}
                             >
-                                <span className='text-xs text-white font-bold'>곽빙어</span>
+                                <button
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-xl transition-all hover:scale-105 animate-pulse"
+                                    onClick={handleStartChatClick}
+                                >
+                                    💬 대화하기
+                                </button>
+                                <span className="text-xs text-white/70 bg-black/50 px-2 py-1 rounded">10 HP 소모</span>
                             </div>
                         )}
                     </Motion.div>
@@ -561,6 +702,66 @@ const TutorialScene = ({ onComplete }) => {
                     </Motion.div>
                 )}
             </AnimatePresence>
+
+            {/* AI 채팅 UI (npc_chatting 스텝) */}
+            {step === 'npc_chatting' && (
+                <SmartphoneMenu
+                    logs={chatLogs}
+                    dialogContent={chatDialogContent}
+                    isThinking={isChatThinking}
+                    onSend={handleTutorialChatSend}
+                    inputText={chatInputText}
+                    setInputText={setChatInputText}
+                    viewMode={chatViewMode}
+                    onToggleExpand={() => setChatViewMode(prev => prev === 'full' ? 'mini' : 'full')}
+                    onToggleHidden={() => setChatViewMode(prev => prev === 'hidden' ? 'mini' : 'hidden')}
+                    theme="basic"
+                    presentedItem={presentedItem}
+                    npcName="곽빙어"
+                    onClearPresentation={clearPresentation}
+                    showControls={false}
+                    leftInset="340px"
+                    rightInset="24px"
+                />
+            )}
+
+            {/* NPC 대화 HP 경고 모달 */}
+            {showNpcChatHpWarning && (
+                <Motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                >
+                    <Motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
+                    >
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="text-yellow-400 text-lg">⚠️</span>
+                            <span className="text-sm font-bold text-yellow-300">대화 시작 확인</span>
+                        </div>
+                        <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+                            곽빙어와 대화를 시작하면 <strong className="text-yellow-300">10 HP</strong>가 소모됩니다.<br />
+                            대화가 끝날 때까지 이동과 다른 상호작용이 제한됩니다.
+                        </p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleCancelChatHp}
+                                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleConfirmChatHp}
+                                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
+                            >
+                                대화 시작
+                            </button>
+                        </div>
+                    </Motion.div>
+                </Motion.div>
+            )}
 
             {/* 대화창 */}
             {showNpcDialog && (
