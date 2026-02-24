@@ -395,8 +395,8 @@ const TutorialScene = ({ onComplete }) => {
             setTimeout(() => {
                 showGuide([
                     "곽빙어를 클릭해서 대화를 시도해봅시다.",
-                    "NPC에게 대화를 요청할 때는 10의 행동력을 소모합니다.",
-                    "행동력 고갈에 주의하세요!"
+                    "본편에서는 NPC에게 대화를 요청할 때 10의 행동력을 소모하지만,",
+                    "튜토리얼에서는 행동력이 소모되지 않습니다."
                 ], () => {
                     // Give player control to click on NPC
                 });
@@ -431,7 +431,7 @@ const TutorialScene = ({ onComplete }) => {
         const collectedItemId = pendingItem.itemId;
         addItem(collectedItemId);
         setPendingItem(null);
-        spendHp(1);
+        // 튜토리얼에서는 HP를 소모하지 않음
 
         if (step === 'obtain_item005' && collectedItemId === 'item005') {
             setTimeout(() => {
@@ -459,11 +459,7 @@ const TutorialScene = ({ onComplete }) => {
 
     const handleConfirmChatHp = async () => {
         setShowNpcChatHpWarning(false);
-        const ok = await spendHp(10);
-        if (!ok) {
-            showGuide(['체력이 부족하여 대화를 시작할 수 없습니다.']);
-            return;
-        }
+        // 튜토리얼에서는 HP를 소모하지 않음
         setStep('npc_chatting');
         setChatLogs([]);
         setChatDialogContent({
