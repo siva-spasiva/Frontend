@@ -118,12 +118,12 @@ const TutorialScene = ({ onComplete }) => {
         const timer = setTimeout(() => {
             if (presentedItem.itemId === 'item005') {
                 setCurrentScript([
-                    { speaker: '고빙어', text: '좋아, 그럼 시작하고 시식하자.', portrait: true }
+                    { speaker: '곽빙어', text: '좋아, 그럼 시작하고 시식하자.', portrait: true }
                 ]);
                 setStep('correct_present');
             } else {
                 setCurrentScript([
-                    { speaker: '고빙어', text: '그건 아니야. 시식용 음료를 보여줘.', portrait: true }
+                    { speaker: '곽빙어', text: '그건 아니야. 시식용 음료를 보여줘.', portrait: true }
                 ]);
                 setStep('wrong_present');
             }
@@ -217,6 +217,7 @@ const TutorialScene = ({ onComplete }) => {
 
     const isBingeoFinishSequence = ['chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
     const disableItemUseInInventory = ['chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const inventoryUseOnlyItemId = step === 'use_item_tutorial' ? 'item005' : null;
     const isMapInteractionLocked =
         guideOpen ||
         showNpcDialog ||
@@ -324,8 +325,8 @@ const TutorialScene = ({ onComplete }) => {
 
         if (step === 'explore_outside' && targetRoomId === 'main_hall' && !canEnterMainHall()) {
             showGuide([
-                "?? ???? ?? ???? ??? ????.",
-                "???? ?? ??? ? ?? ??? ?????."
+                "아직 메인 홀로 바로 들어갈 수 없습니다.",
+                "주변의 정보 포인트를 먼저 확인해 주세요."
             ]);
             return;
         }
@@ -397,14 +398,14 @@ const TutorialScene = ({ onComplete }) => {
 
         setTimeout(() => {
             showGuide([
-                "? ???? ??? 1???? ?????.",
-                "???? ??? ??? ??? ??????."
+                "매 이동에는 체력을 1포인트씩 소모합니다.",
+                "튜토리얼에서는 소모되지 않으니 지금은 시스템에 익숙해져 봅시다."
             ], () => {
                 setStep('hp_tutorial_chat');
                 setCurrentScript([
-                    { speaker: '???', text: '???. ?? ?? ?? ????.', portrait: true },
-                    { speaker: '???', text: '2? ???? ?? ???? ???? ??.', portrait: true },
-                    { speaker: '???', text: '?? ??? ??, ???? ?? ?.', portrait: true }
+                    { speaker: '곽빙어', text: '좋아. 이제 너도 정식 입소자야.', portrait: true },
+                    { speaker: '곽빙어', text: '2층 테라스에 웰컴 드링크가 준비되어 있어.', portrait: true },
+                    { speaker: '곽빙어', text: '가서 경치도 보고, 드링크도 챙겨와.', portrait: true }
                 ]);
                 setShowNpcDialog(true);
                 setNpcDialogStep(0);
@@ -424,14 +425,14 @@ const TutorialScene = ({ onComplete }) => {
             setTimeout(() => {
                 setIsMenuEnabled(true);
                 showGuide([
-                    "??? ??? ??????! ??? ???.",
-                    "?? ?? ???? ?? ??? ??? ? ????.",
-                    "Inventory, Messenger, Map, Settings? ??????.",
-                    "Recorder? ?? ??? ? ????."
+                    "솔피의 눈물을 획득했습니다! 확인해 봅시다.",
+                    "왼쪽 버튼으로 게임 메뉴를 열 수 있습니다.",
+                    "Inventory, Messenger, Map, Settings를 사용할 수 있습니다.",
+                    "Recorder는 인게임 진입 후 사용할 수 있습니다."
                 ], () => {
                     setStep('return_to_class');
                     showGuide([
-                        "??? ????, ?? 1? ???? ?????."
+                        "이제 돌아갑시다. 1층 강의실로 이동해 주세요."
                     ]);
                 });
             }, 300);
@@ -512,6 +513,7 @@ const TutorialScene = ({ onComplete }) => {
                     onNavigate={handleMenuNavigate}
                     disabledPanels={['recorder']}
                     inventoryUseDisabled={disableItemUseInInventory}
+                    inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                     onPanelStateChange={handleSidebarPanelStateChange}
                 />
             )}

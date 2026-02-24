@@ -4,10 +4,16 @@ import { ChevronLeft, Package, Info, CheckCircle, Trash2, PlayCircle, HandMetal 
 import { useGame } from '../../context/GameContext';
 import ChatLog from '../ChatLog';
 
-const InventoryApp = ({ onBack, disableConsumableUse = false }) => {
+const InventoryApp = ({ onBack, disableConsumableUse = false, useOnlyItemId = null }) => {
     const { inventoryItems, removeItem, useItem: consumeItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
     const [selectedItem, setSelectedItem] = useState(null);
     const [isReading, setIsReading] = useState(false); // Reading mode for transcripts
+    const isUseOnlyMode = Boolean(useOnlyItemId);
+    const canPresentSelectedItem = isNpcPresent && !isUseOnlyMode;
+    const isUseTargetItem = !isUseOnlyMode || selectedItem?.id === useOnlyItemId;
+    const canReadSelectedItem = selectedItem?.type === 'transcript' && !isUseOnlyMode;
+    const canUseSelectedItem = !!selectedItem?.consumable && !disableConsumableUse && isUseTargetItem;
+    const canUseAction = canReadSelectedItem || canUseSelectedItem;
 
     return (
         <div className="w-full h-full bg-gray-50 flex flex-col pt-12 relative overflow-hidden">
@@ -187,13 +193,13 @@ const InventoryApp = ({ onBack, disableConsumableUse = false }) => {
                                 {/* 제시 Button — active only when NPC is present in field */}
                                 <button
                                     onClick={() => {
-                                        if (selectedItem && isNpcPresent) {
+                                        if (selectedItem && canPresentSelectedItem) {
                                             presentItem(selectedItem);
                                             onBack(); // Close inventory and return to game
                                         }
                                     }}
-                                    disabled={!isNpcPresent}
-                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${isNpcPresent
+                                    disabled={!canPresentSelectedItem}
+                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${canPresentSelectedItem
                                         ? presentedItem?.itemId === selectedItem?.id
                                             ? 'bg-yellow-700 text-yellow-200 border-2 border-yellow-500'
                                             : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-900/30'
@@ -202,7 +208,9 @@ const InventoryApp = ({ onBack, disableConsumableUse = false }) => {
                                 >
                                     <HandMetal className="w-5 h-5" />
                                     <span>
-                                        {!isNpcPresent
+                                        {isUseOnlyMode
+                                            ? '튜토리얼 진행 중 제시 불가'
+                                            : !isNpcPresent
                                             ? 'NPC가 없어 제시할 수 없음'
                                             : presentedItem?.itemId === selectedItem?.id
                                                 ? `${activeNpcInField?.name || 'NPC'}에게 제시 중`
@@ -213,33 +221,35 @@ const InventoryApp = ({ onBack, disableConsumableUse = false }) => {
 
                                 <button
                                     onClick={() => {
-                                        if (selectedItem.type === 'transcript') {
+                                        if (canReadSelectedItem) {
                                             setIsReading(true);
-                                        } else if (selectedItem.consumable && !disableConsumableUse) {
+                                        } else if (canUseSelectedItem) {
                                             if (consumeItem(selectedItem)) {
                                                 setSelectedItem(null); // 사용 후 목록으로
                                             }
                                         }
                                     }}
-                                    disabled={selectedItem.type !== 'transcript' && (!selectedItem.consumable || disableConsumableUse)}
-                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${selectedItem.type === 'transcript'
+                                    disabled={!canUseAction}
+                                    className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${canReadSelectedItem
                                             ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
-                                            : selectedItem.consumable && !disableConsumableUse
+                                            : canUseSelectedItem
                                                 ? 'bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white shadow-teal-900/20'
                                                 : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
                                         }`}
                                 >
-                                    {selectedItem.type === 'transcript' ? <PlayCircle className="w-5 h-5" /> : null}
+                                    {canReadSelectedItem ? <PlayCircle className="w-5 h-5" /> : null}
                                     <span>
-                                        {selectedItem.type === 'transcript'
+                                        {canReadSelectedItem
                                             ? '기록 보기'
-                                            : selectedItem.consumable && !disableConsumableUse
+                                            : canUseSelectedItem
                                                 ? '사용하기'
+                                                : isUseOnlyMode
+                                                    ? '튜토리얼 대상 아이템만 사용 가능'
                                                 : '사용 불가'}
                                     </span>
                                 </button>
 
-                                {selectedItem.type === 'transcript' && (
+                                {selectedItem.type === 'transcript' && !isUseOnlyMode && (
                                     <button
                                         onClick={() => {
                                             if (confirm('정말 삭제하시겠습니까?')) {

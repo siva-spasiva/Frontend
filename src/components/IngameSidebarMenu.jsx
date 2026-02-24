@@ -87,6 +87,7 @@ const IngameSidebarMenu = ({
     onNavigate,
     disabledPanels = [],
     inventoryUseDisabled = false,
+    inventoryUseOnlyItemId = null,
     onPanelStateChange,
 }) => {
     const [activePanel, setActivePanel] = useState(null);
@@ -149,7 +150,13 @@ const IngameSidebarMenu = ({
         }
 
         if (activePanel === 'inventory') {
-            return <InventoryApp onBack={closePanel} disableConsumableUse={inventoryUseDisabled} />;
+            return (
+                <InventoryApp
+                    onBack={closePanel}
+                    disableConsumableUse={inventoryUseDisabled}
+                    useOnlyItemId={inventoryUseOnlyItemId}
+                />
+            );
         }
 
         if (activePanel === 'recorder') {
