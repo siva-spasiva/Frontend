@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { generateAIResponse } from '../utils/aiService';
@@ -93,6 +93,7 @@ const MainGameScene = () => {
     }, [scheduleData, currentRoomId, currentDay, currentPeriod]);
 
     const [isThinking, setIsThinking] = useState(false);
+    const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
     
     // NPC Session State -> Free chat count logic
     const [freeChatCount, setFreeChatCount] = useState(0);
@@ -248,6 +249,11 @@ const MainGameScene = () => {
     // Fish Visual Effects
     const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
     const currentFloorId = floorData?.find((floor) => floor.rooms.some((room) => room.id === currentRoomId))?.id;
+    const isMapInteractionLocked = isSidebarPanelOpen || !!pendingMove || !!pendingItem || !!pendingRequirement || !!pendingHpWarning;
+
+    const handleSidebarPanelStateChange = useCallback((panelState) => {
+        setIsSidebarPanelOpen(!!panelState?.isOpen);
+    }, []);
 
     return (
         <div className="w-full h-full relative bg-black overflow-hidden">
@@ -267,16 +273,18 @@ const MainGameScene = () => {
             <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
             {/* Interactive Layer */}
-            <MapInteractiveLayer
-                mapInfo={mapInfo}
-                onInteract={handleInteraction}
-            />
+                    <MapInteractiveLayer
+                        mapInfo={mapInfo}
+                        onInteract={handleInteraction}
+                        isInteractionLocked={isMapInteractionLocked}
+                    />
 
-            <IngameSidebarMenu
-                currentFloorId={currentFloorId}
-                currentRoomId={currentRoomId}
-                onNavigate={handleMove}
-            />
+                    <IngameSidebarMenu
+                        currentFloorId={currentFloorId}
+                        currentRoomId={currentRoomId}
+                        onNavigate={handleMove}
+                        onPanelStateChange={handleSidebarPanelStateChange}
+                    />
 
             {/* Multi-NPC indicator */}
             {npcsInRoom.length > 1 && (

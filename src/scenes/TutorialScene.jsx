@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
@@ -52,6 +52,7 @@ const TutorialScene = ({ onComplete }) => {
     // Ingame menu state (left HUD button)
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMenuEnabled, setIsMenuEnabled] = useState(false);
+    const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
@@ -216,7 +217,17 @@ const TutorialScene = ({ onComplete }) => {
 
     const isBingeoFinishSequence = ['chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
     const disableItemUseInInventory = ['chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
-    const isMapInteractionLocked = guideOpen || showNpcDialog || showMessenger || step === 'contract' || isBingeoFinishSequence;
+    const isMapInteractionLocked =
+        guideOpen ||
+        showNpcDialog ||
+        showMessenger ||
+        step === 'contract' ||
+        isBingeoFinishSequence ||
+        isSidebarPanelOpen;
+
+    const handleSidebarPanelStateChange = useCallback((panelState) => {
+        setIsSidebarPanelOpen(!!panelState?.isOpen);
+    }, []);
 
     const blockMoveByBingeo = () => {
         setCurrentScript([
@@ -472,8 +483,7 @@ const TutorialScene = ({ onComplete }) => {
                             backgroundPosition: 'center',
                         }}
                     >
-                        {/* Map Interactive Layer overlay */}
-                        <div className="absolute inset-0 filter brightness-[0.7] pointer-events-none bg-black/30" />
+                        {/* Map Interactive Layer */}
                         <MapInteractiveLayer
                             mapInfo={mapInfo}
                             onInteract={handleMapInteract}
@@ -502,6 +512,7 @@ const TutorialScene = ({ onComplete }) => {
                     onNavigate={handleMenuNavigate}
                     disabledPanels={['recorder']}
                     inventoryUseDisabled={disableItemUseInInventory}
+                    onPanelStateChange={handleSidebarPanelStateChange}
                 />
             )}
 

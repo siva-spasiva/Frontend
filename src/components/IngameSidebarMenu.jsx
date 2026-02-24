@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Bell,
     CalendarDays,
@@ -81,7 +81,14 @@ const MenuButton = ({ icon, label, colorClass, active, disabled = false, onClick
     </button>
 );
 
-const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate, disabledPanels = [], inventoryUseDisabled = false }) => {
+const IngameSidebarMenu = ({
+    currentFloorId,
+    currentRoomId,
+    onNavigate,
+    disabledPanels = [],
+    inventoryUseDisabled = false,
+    onPanelStateChange,
+}) => {
     const [activePanel, setActivePanel] = useState(null);
     const {
         currentDay,
@@ -106,6 +113,22 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate, disabled
         if (isPanelDisabled(panelId)) return;
         setActivePanel((prev) => (prev === panelId ? null : panelId));
     };
+
+    useEffect(() => {
+        if (!onPanelStateChange) return;
+
+        onPanelStateChange({
+            isOpen: !!activePanel,
+            panelId: activePanel,
+        });
+
+        return () => {
+            onPanelStateChange({
+                isOpen: false,
+                panelId: null,
+            });
+        };
+    }, [activePanel, onPanelStateChange]);
 
     const renderPanel = () => {
         if (!activePanel) return null;
