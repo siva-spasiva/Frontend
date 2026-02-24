@@ -35,7 +35,7 @@ export const FLOOR_DATA = [
                         "x": 47.635226456303926,
                         "y": 66.27560441465819,
                         "width": 10,
-                        "height": 10,
+                        "height": 7.007947639083696,
                         "label": "작은 상자",
                         "message": "미술도구 사이, 잡동사니들이 놓여 있다.",
                         "itemId": "item010"
@@ -99,6 +99,30 @@ export const FLOOR_DATA = [
                         "label": "웰컴 드링크",
                         "message": "검푸른 커피인지 뭔지 모를 음료가 있다.",
                         "itemId": "item005"
+                    },
+                    {
+                        "id": "zone_4",
+                        "type": "info",
+                        "target": "",
+                        "x": 38.8,
+                        "y": 61.2,
+                        "width": 6.8,
+                        "height": 9,
+                        "label": "화단",
+                        "message": "작은 화단. 정성스럽게 관리된 듯 하다.",
+                        "itemId": ""
+                    },
+                    {
+                        "id": "zone_5",
+                        "type": "info",
+                        "target": "",
+                        "x": 67.71909618718165,
+                        "y": 5.995656158668083,
+                        "width": 24.81253726146043,
+                        "height": 22.36764176821623,
+                        "label": "하늘",
+                        "message": "풍경이 예쁘다.",
+                        "itemId": ""
                     }
                 ]
             }
@@ -289,11 +313,11 @@ export const FLOOR_DATA = [
                         "itemId": "item025"
                     },
                     {
-                        "id": "zone_6",
+                        "id": "zone_vase",
                         "type": "item",
                         "target": "",
                         "x": 79.2,
-                        "y": 62.9,
+                        "y": 63.13314778323545,
                         "width": 2.3,
                         "height": 9.1,
                         "label": "꽃병",
@@ -301,7 +325,7 @@ export const FLOOR_DATA = [
                         "itemId": "item025"
                     },
                     {
-                        "id": "zone_4",
+                        "id": "zone_i",
                         "type": "info",
                         "target": "",
                         "x": 51.7,
@@ -313,7 +337,7 @@ export const FLOOR_DATA = [
                         "itemId": ""
                     },
                     {
-                        "id": "zone_5",
+                        "id": "zone_s",
                         "type": "info",
                         "target": "",
                         "x": 1.4,
@@ -560,6 +584,18 @@ export const FLOOR_DATA = [
                         "label": "고기",
                         "message": "썰린 고기.",
                         "itemId": "item023"
+                    },
+                    {
+                        "id": "zone_5",
+                        "type": "info",
+                        "target": "",
+                        "x": 3.9,
+                        "y": 16.7,
+                        "width": 10.1,
+                        "height": 13.8,
+                        "label": "소스병",
+                        "message": "정체불명의 요리 소스들.",
+                        "itemId": ""
                     }
                 ],
                 "namePrefix": "B1"
@@ -659,13 +695,8 @@ export const FLOOR_DATA = [
                         "width": 5.880239775273445,
                         "height": 24.86412225105301,
                         "label": "002호",
-                        "message": "002호 문을 연다. (굳게 닫혀있다)",
-                        "itemId": "",
-                        "locked": {
-                            "type": "item",
-                            "targetId": "item010",
-                            "message": "굳게 잠겨있다. 무언가 검은 열쇠가 필요해 보인다."
-                        }
+                        "message": "002호 문을 연다.",
+                        "itemId": ""
                     },
                     {
                         "id": "door_laundry",
@@ -843,7 +874,7 @@ export const FLOOR_DATA = [
                 "namePrefix": "002호",
                 "highlightText": "LOCKED",
                 "highlightColor": "text-red-500",
-                "description": "항상 잠겨있다. 문틈으로 비린내가 새어 나온다. 살인의 증거가 있을지 모른다.",
+                "description": "항상 잠겨있다. 문틈으로 비린내가 새어 나온다.",
                 "background": "B2_room03.png",
                 "overlayColor": "bg-black/40",
                 "activeZones": [
@@ -1044,7 +1075,7 @@ export const FLOOR_DATA = [
                     },
                     {
                         "id": "zone_galchi_cards",
-                        "type": "inspect",
+                        "type": "item",
                         "target": "",
                         "x": 4.661519445903706,
                         "y": 60.197490028212876,
@@ -1056,7 +1087,7 @@ export const FLOOR_DATA = [
                     },
                     {
                         "id": "zone_galchi_phones",
-                        "type": "inspect",
+                        "type": "item",
                         "target": "",
                         "x": 55.246648089879386,
                         "y": 64.80640140091448,
@@ -1068,7 +1099,7 @@ export const FLOOR_DATA = [
                     },
                     {
                         "id": "zone_galchi_receipts",
-                        "type": "inspect",
+                        "type": "item",
                         "target": "",
                         "x": 13.750506880120824,
                         "y": 43.79657554236792,
@@ -1080,7 +1111,7 @@ export const FLOOR_DATA = [
                     },
                     {
                         "id": "zone_galchi_ledger",
-                        "type": "inspect",
+                        "type": "item",
                         "target": "",
                         "x": 33.680211642289045,
                         "y": 62.66514252359178,
@@ -1089,6 +1120,18 @@ export const FLOOR_DATA = [
                         "label": "장부 사본",
                         "message": "헌금 흐름을 정리한 장부. 과거 투자사기 장부와 포맷이 똑같다. 범죄 기술의 전이.",
                         "itemId": "npc_galchi_006"
+                    },
+                    {
+                        "id": "zone_6",
+                        "type": "item",
+                        "target": "",
+                        "x": 64.56180762563669,
+                        "y": 54.8,
+                        "width": 3.2,
+                        "height": 7.7,
+                        "label": "",
+                        "message": "",
+                        "itemId": ""
                     }
                 ]
             },
