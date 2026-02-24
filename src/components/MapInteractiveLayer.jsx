@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Search, DoorOpen, Package, BedDouble } from 'lucide-react';
 
-const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
+const MapInteractiveLayer = ({ mapInfo, onInteract, highlightCondition }) => {
     const [hoveredZone, setHoveredZone] = useState(null);
 
     if (!mapInfo || !mapInfo.activeZones) return null;
@@ -51,23 +51,28 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                             />
                         </div>
                     ) : (
-                        <div className={`w-full h-full border-2 border-dashed rounded-lg transition-colors duration-300 flex items-center justify-center
-                            ${hoveredZone === zone.id ? 'border-white/50 bg-white/10' : 'border-transparent'}
+                        <motion.div
+                            animate={highlightCondition && highlightCondition(zone) ? {
+                                boxShadow: ["0px 0px 0px rgba(251,191,36,0)", "0px 0px 15px rgba(251,191,36,0.6)", "0px 0px 0px rgba(251,191,36,0)"]
+                            } : {}}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            className={`w-full h-full border-2 rounded-lg transition-colors duration-300 flex items-center justify-center
+                            ${highlightCondition && highlightCondition(zone) ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(251,191,36,0.5)]' : (hoveredZone === zone.id ? 'border-white/50 bg-white/10 border-dashed' : 'border-dashed border-transparent')}
                         `}>
-                            {/* Icon Indicator (Shows on hover or always if move type) */}
+                            {/* Icon Indicator (Shows on hover or always if move type or highlighted) */}
                             <AnimatePresence>
-                                {(hoveredZone === zone.id || zone.type === 'move') && (
+                                {(hoveredZone === zone.id || zone.type === 'move' || (highlightCondition && highlightCondition(zone))) && (
                                     <motion.div
                                         initial={{ scale: 0, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         exit={{ scale: 0, opacity: 0 }}
-                                        className="bg-black/60 backdrop-blur-md p-2 rounded-full shadow-lg"
+                                        className={`${highlightCondition && highlightCondition(zone) ? 'bg-yellow-500' : 'bg-black/60'} backdrop-blur-md p-2 rounded-full shadow-lg`}
                                     >
                                         {getIcon(zone.type)}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Label Tooltip */}
@@ -77,7 +82,7 @@ const MapInteractiveLayer = ({ mapInfo, onInteract }) => {
                                 initial={{ y: 10, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: 10, opacity: 0 }}
-                                className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none"
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(100%+24px)] bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none z-20"
                             >
                                 {zone.label}
                             </motion.div>

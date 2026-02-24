@@ -181,13 +181,8 @@ const TutorialScene = ({ onComplete }) => {
         // --- 내부 탐구 ---
         if (step === 'explore_inside') {
             if (zone.type === 'move') {
-                if (zone.target === 'terrace') {
-                    handleMoveInternal(zone.target);
-                    return;
-                } else if (zone.target === 'storage_main' || zone.target === 'main_hall' || zone.target === 'stairs_up') {
-                    handleMoveInternal(zone.target);
-                    return;
-                }
+                handleMoveInternal(zone.target);
+                return;
             } else if (zone.type === 'info') {
                 showGuide([zone.message]);
                 return;
@@ -384,7 +379,11 @@ const TutorialScene = ({ onComplete }) => {
                     >
                         {/* Map Interactive Layer overlay */}
                         <div className="absolute inset-0 filter brightness-[0.7] pointer-events-none bg-black/30" />
-                        <MapInteractiveLayer mapInfo={mapInfo} onInteract={handleMapInteract} />
+                        <MapInteractiveLayer
+                            mapInfo={mapInfo}
+                            onInteract={handleMapInteract}
+                            highlightCondition={(zone) => step === 'obtain_item005' && zone.type === 'item' && zone.itemId === 'item005'}
+                        />
 
                         {/* Dummy NPC in Class room */}
                         {mapInfo?.id === 'umi_class' && (step === 'npc_chat_tutorial' || step === 'chat_bingeo_present' || step === 'present_tutorial' || step === 'use_item_tutorial') && (
