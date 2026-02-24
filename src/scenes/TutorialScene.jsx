@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
 import GameStartSequence from './GameStartSequence';
@@ -8,20 +8,23 @@ import MessengerApp from '../components/apps/MessengerApp';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
 import InteractionPopup from '../components/InteractionPopup';
 import PortraitDisplay from '../components/PortraitDisplay';
+import IngameSidebarMenu from '../components/IngameSidebarMenu';
+import ViewControls from '../components/ViewControls';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' -> 
-    // 'meet_bingeo_inside' -> 'contract_wait' -> 'contract' -> 'hp_tutorial' -> 'explore_inside' -> 
-    // 'obtain_item005' -> 'return_to_class' -> 'npc_chat_tutorial' -> 'chat_bingeo_present' -> 
+    // 'meet_bingeo_inside' -> 'contract_wait' -> 'contract' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
+    // 'return_to_class' -> 'npc_chat_tutorial' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
     const [step, setStep] = useState('intro');
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
-        completeTutorial, mapData, npcData,
-        spendHp
+        completeTutorial, mapData, npcData, spendHp,
+        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField
     } = useGame();
 
+    const currentFloorId = currentLocationInfo?.floorId || '1F';
     const currentRoomId = currentLocationInfo?.roomId || 'outside01';
     const mapInfo = mapData?.[currentRoomId] || {};
 
@@ -45,8 +48,11 @@ const TutorialScene = ({ onComplete }) => {
     // Item Modals
     const [pendingItem, setPendingItem] = useState(null);
 
-    // Present specific state
-    const [showInventoryForPresent, setShowInventoryForPresent] = useState(false);
+    // Ingame menu state (left HUD button)
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMenuEnabled, setIsMenuEnabled] = useState(false);
+
+    const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
     // Initial map data fetch is no longer needed via fetchMapData
 
@@ -97,14 +103,69 @@ const TutorialScene = ({ onComplete }) => {
         }
     }, [step, messengerDisconnected]);
 
+    useEffect(() => {
+        const hasNpcInField = ['npc_chat_tutorial', 'chat_bingeo_present', 'present_tutorial', 'use_item_tutorial'].includes(step);
+        setActiveNpcInField(hasNpcInField ? npcData?.bingeo || null : null);
+
+        return () => setActiveNpcInField(null);
+    }, [step, npcData, setActiveNpcInField]);
+
+    useEffect(() => {
+        if (!presentedItem || step !== 'present_tutorial') return;
+
+        const timer = setTimeout(() => {
+            if (presentedItem.itemId === 'item005') {
+                setCurrentScript([
+                    { speaker: '고빙어', text: '좋아, 그럼 시작하고 시식하자.', portrait: true }
+                ]);
+                setStep('correct_present');
+            } else {
+                setCurrentScript([
+                    { speaker: '고빙어', text: '그건 아니야. 시식용 음료를 보여줘.', portrait: true }
+                ]);
+                setStep('wrong_present');
+            }
+
+            setShowNpcDialog(true);
+            setNpcDialogStep(0);
+            clearPresentation();
+        }, 0);
+
+        return () => clearTimeout(timer);
+    }, [presentedItem, step, clearPresentation]);
+
+    useEffect(() => {
+        const hasItem005 = currentInventory?.includes('item005');
+
+        if (step === 'use_item_tutorial' && previousHasItem005.current && !hasItem005) {
+            const timer = setTimeout(() => {
+                setStep('fish_level_up');
+                setTimeout(() => {
+                    setStep('fadeout');
+                    completeTutorial();
+
+                    setTimeout(() => {
+                        setDay(1);
+                        setPeriod('morning');
+                        setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' });
+                        onComplete();
+                    }, 3000);
+                }, 3000);
+            }, 0);
+
+            return () => clearTimeout(timer);
+        }
+
+        previousHasItem005.current = hasItem005;
+    }, [step, currentInventory, completeTutorial, setDay, setPeriod, setCurrentLocationInfo, onComplete]);
+
     // NPC 대화 넘기기 핸들러
     const handleNpcNext = () => {
         if (npcDialogStep < currentScript.length - 1) {
-            setNpcDialogStep(prev => prev + 1);
+            setNpcDialogStep((prev) => prev + 1);
         } else {
             setShowNpcDialog(false);
 
-            // 대화 스텝 종료 후 다음 단계 로직
             if (step === 'meet_bingeo_outside') {
                 setStep('explore_outside');
                 showGuide([
@@ -127,38 +188,53 @@ const TutorialScene = ({ onComplete }) => {
             } else if (step === 'chat_bingeo_present') {
                 setStep('present_tutorial');
                 showGuide([
-                    "아이템 '제시' 기능을 사용해봅시다.",
-                    "화면의 '아이템 제시' 버튼을 눌러보세요."
-                ], () => {
-                    setShowInventoryForPresent(true);
-                });
+                    "게임 메뉴를 호출해서 인벤토리를 열 수 있습니다.",
+                    "아까 획득한 솔피의 눈물을 곽빙어에게 제시하세요."
+                ]);
             } else if (step === 'wrong_present') {
-                setStep('chat_bingeo_present');
-                setShowInventoryForPresent(true);
+                setStep('present_tutorial');
+                showGuide([
+                    "잘못된 아이템을 제시했습니다.",
+                    "솔피의 눈물 아이템을 제시하세요."
+                ]);
             } else if (step === 'correct_present') {
                 setStep('use_item_tutorial');
                 showGuide([
                     "'솔피의 눈물' 아이템을 인벤토리에서 '사용' 할 수 있습니다.",
                     "인벤토리를 열고 웰컴 드링크를 마셔봅시다."
-                ], () => {
-                    // Wait for manual item use
-                });
+                ]);
             }
         }
     };
 
     // 맵 상호작용 핸들러
+    const canEnterMainHall = () => {
+        const outsideInfoZones = mapData?.outside01?.activeZones?.filter((zone) => zone.type === 'info') || [];
+        return outsideInfoZones.every((zone) => interactedZones.includes(zone.id));
+    };
+
+    const isBingeoFinishSequence = ['chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
+    const disableItemUseInInventory = ['chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+
+    const blockMoveByBingeo = () => {
+        setCurrentScript([
+            { speaker: '곽빙어', text: '어디가, 하던일은 마무리하고 가야지!', portrait: true }
+        ]);
+        setShowNpcDialog(true);
+        setNpcDialogStep(0);
+    };
+
     const handleMapInteract = (zone) => {
         if (guideOpen || showNpcDialog || showMessenger || step === 'contract') return;
 
-        // --- 외부 탐구 강제 ---
+        if (isBingeoFinishSequence && zone.type === 'move') {
+            blockMoveByBingeo();
+            return;
+        }
+
         if (step === 'explore_outside') {
             if (zone.type === 'move' && zone.target === 'main_hall') {
-                // Check if all info zones are clicked
-                const infoZones = mapInfo?.activeZones?.filter(z => z.type === 'info') || [];
-                const allClicked = infoZones.every(z => interactedZones.includes(z.id));
-
-                if (!allClicked) {
+                if (!canEnterMainHall()) {
                     showGuide([
                         "굳게 닫혀있다. 아직 주변을 덜 둘러본 것 같다.",
                         "주변의 상호작용 오브젝트를 더 찾아보세요. 아직 남아있습니다!"
@@ -166,52 +242,97 @@ const TutorialScene = ({ onComplete }) => {
                     return;
                 }
 
-                // Allow entering (move)
                 handleMoveInternal(zone.target);
                 return;
-            } else if (zone.type === 'info') {
+            }
+
+            if (zone.type === 'info') {
                 if (!interactedZones.includes(zone.id)) {
-                    setInteractedZones(prev => [...prev, zone.id]);
+                    setInteractedZones((prev) => [...prev, zone.id]);
                 }
                 showGuide([zone.message]);
                 return;
             }
         }
 
-        // --- 내부 탐구 ---
         if (step === 'explore_inside') {
             if (zone.type === 'move') {
                 handleMoveInternal(zone.target);
                 return;
-            } else if (zone.type === 'info') {
+            }
+
+            if (zone.type === 'info') {
                 showGuide([zone.message]);
                 return;
-            } else if (zone.type === 'item') {
-                if (zone.itemId) {
-                    setPendingItem(zone);
-                }
             }
         }
 
-        // --- 테라스 도착 및 아이템 획득 ---
         if (step === 'obtain_item005') {
             if (zone.type === 'item' && zone.itemId === 'item005') {
                 setPendingItem(zone);
-            } else {
-                showGuide([zone.message || "이동할 수 없습니다."]);
+                return;
+            }
+
+            if (zone.type === 'move') {
+                showGuide([
+                    "?? ???? ??? ??? ???? ??? ? ????."
+                ]);
+                return;
+            }
+
+            if (zone.type === 'info' && zone.message) {
+                showGuide([zone.message]);
+                return;
             }
         }
 
-        // --- 복귀 후 npc 대화 ---
         if (step === 'return_to_class' || step === 'npc_chat_tutorial') {
             if (zone.type === 'move') {
                 handleMoveInternal(zone.target);
             }
         }
+    };
 
+    const handleMenuNavigate = (targetRoomId) => {
+        if (!targetRoomId) return;
+        if (guideOpen || showNpcDialog || showMessenger || step === 'contract') return;
+
+        if (isBingeoFinishSequence && targetRoomId !== currentRoomId) {
+            blockMoveByBingeo();
+            return;
+        }
+
+        if (step === 'obtain_item005') {
+            showGuide([
+                "솔피의 눈물을 먼저 획득해야 합니다."
+            ]);
+            return;
+        }
+
+        if (step === 'explore_outside' && targetRoomId === 'main_hall' && !canEnterMainHall()) {
+            showGuide([
+                "?? ???? ?? ???? ??? ????.",
+                "???? ?? ??? ? ?? ??? ?????."
+            ]);
+            return;
+        }
+
+        handleMoveInternal(targetRoomId);
     };
 
     const handleMoveInternal = (targetRoomId) => {
+        if (isBingeoFinishSequence && targetRoomId !== currentRoomId) {
+            blockMoveByBingeo();
+            return;
+        }
+
+        if (step === 'obtain_item005' && targetRoomId !== currentRoomId) {
+            showGuide([
+                "솔피의 눈물을 먼저 획득해야 합니다."
+            ]);
+            return;
+        }
+
         // Determine floor
         let targetFloorId = '1F';
         if (targetRoomId === 'storage_main' || targetRoomId === 'terrace') {
@@ -257,34 +378,17 @@ const TutorialScene = ({ onComplete }) => {
         }
     };
 
-    // Item Collection processing
-    const handleItemCollect = () => {
-        addItem(pendingItem.itemId);
-
-        let itemIdString = pendingItem.itemId;
-        setPendingItem(null);
-
-        spendHp(1); // Item pickup costs HP
-
-        if (step === 'obtain_item005' && itemIdString === 'item005') {
-            setStep('return_to_class');
-            setTimeout(() => {
-                showGuide([
-                    "아이템 획득에도 행동력을 1포인트 소모합니다. 상호작용은 신중히 해야 합니다!",
-                    "이제 1층 메인홀을 지나 원데이 클래스 룸(umi_class)에 있는 곽빙어에게 돌아갑시다."
-                ]);
-            }, 500);
-        }
-    };
-
     // Contract Signing
     const handleContractSigned = () => {
         setStep('hp_tutorial');
+
         setTimeout(() => {
             showGuide([
-                "매 이동에는 체력을 1포인트씩 소모합니다.",
-                "매일 100이 주어지며, 30을 소모하면 다음 일정(오전, 오후, 저녁, 새벽)으로 자동 진행됩니다.",
+                "이제부터 왼쪽 게임 메뉴를 사용할 수 있습니다.",
+                "여러 가지 앱들을 열어보면서 확인해보세요.",
+                "녹음기 기능은 아직 사용할 수 없습니다."
             ], () => {
+                setIsMenuEnabled(true);
                 setStep('hp_tutorial_chat');
                 setCurrentScript([
                     { speaker: '곽빙어', text: '빠르네. 이제 너도 정식 입소자야.', portrait: true },
@@ -297,42 +401,22 @@ const TutorialScene = ({ onComplete }) => {
         }, 500);
     };
 
-    // Present Sequence
-    const handleItemPresent = (itemId) => {
-        setShowInventoryForPresent(false);
-        if (itemId === 'item005') {
-            setCurrentScript([
-                { speaker: '곽빙어', text: '좋아요. 그럼 한잔 하고 시작할까?', portrait: true }
-            ]);
-            setStep('correct_present');
-            setShowNpcDialog(true);
-            setNpcDialogStep(0);
-        } else {
-            setCurrentScript([
-                { speaker: '곽빙어', text: '이게 아니잖아. 제대로 제시해.', portrait: true }
-            ]);
-            setStep('wrong_present');
-            setShowNpcDialog(true);
-            setNpcDialogStep(0);
-        }
-    };
+    const handleItemCollect = () => {
+        if (!pendingItem?.itemId) return;
 
-    // Drink Item (Use)
-    const handleItemUse = (itemId) => {
-        if (step === 'use_item_tutorial' && itemId === 'item005') {
-            setStep('fish_level_up');
+        const collectedItemId = pendingItem.itemId;
+        addItem(collectedItemId);
+        setPendingItem(null);
+        spendHp(1);
+
+        if (step === 'obtain_item005' && collectedItemId === 'item005') {
+            setStep('return_to_class');
             setTimeout(() => {
-                setStep('fadeout');
-
-                completeTutorial();
-
-                setTimeout(() => {
-                    setDay(1);
-                    setPeriod('morning');
-                    setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' });
-                    onComplete();
-                }, 3000);
-            }, 3000); // Wait for fish level up effect
+                showGuide([
+                    "솔피의 눈물을 획득했습니다.",
+                    "이제 1층 강의실로 돌아가 고빙어에게 말을 걸어보세요."
+                ]);
+            }, 300);
         }
     };
 
@@ -350,22 +434,24 @@ const TutorialScene = ({ onComplete }) => {
         }
     };
 
+    const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger && step !== 'contract';
+
 
     return (
         <div className="relative w-full h-screen bg-gray-900 overflow-hidden font-sans">
             {/* 1. 인트로 독백 */}
             <AnimatePresence mode="wait">
                 {step === 'intro' && (
-                    <motion.div key="intro" className="absolute inset-0 z-50">
+                    <Motion.div key="intro" className="absolute inset-0 z-50">
                         <IntroSequence onComplete={handleIntroComplete} />
-                    </motion.div>
+                    </Motion.div>
                 )}
             </AnimatePresence>
 
             {/* 2. 배경 (Map Viewer) */}
             <AnimatePresence>
                 {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
-                    <motion.div
+                    <Motion.div
                         key="map-viewer"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -395,9 +481,33 @@ const TutorialScene = ({ onComplete }) => {
                                 <span className='text-xs text-white font-bold'>곽빙어</span>
                             </div>
                         )}
-                    </motion.div>
+                    </Motion.div>
                 )}
             </AnimatePresence>
+
+            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && isMenuOpen && (
+                <IngameSidebarMenu
+                    currentFloorId={currentFloorId}
+                    currentRoomId={currentRoomId}
+                    onNavigate={handleMenuNavigate}
+                    disabledPanels={['recorder']}
+                    inventoryUseDisabled={disableItemUseInInventory}
+                />
+            )}
+
+            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
+                <ViewControls
+                    viewMode="hidden"
+                    isPhoneOpen={isMenuOpen}
+                    onTogglePhone={() => {
+                        if (!canToggleMenu) return;
+                        setIsMenuOpen((prev) => !prev);
+                    }}
+                    onToggleHidden={null}
+                    theme="basic"
+                    disabled={!canToggleMenu}
+                />
+            )}
 
             {/* 가이드 팝업 */}
             <InteractionPopup
@@ -411,7 +521,7 @@ const TutorialScene = ({ onComplete }) => {
             {/* 메신저 앱 */}
             <AnimatePresence>
                 {showMessenger && (
-                    <motion.div
+                    <Motion.div
                         key="messenger"
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
@@ -425,7 +535,7 @@ const TutorialScene = ({ onComplete }) => {
                             onComplete={() => { }}
                         />
                         <MessengerDisconnectWatcher onDisconnect={() => setMessengerDisconnected(true)} />
-                    </motion.div>
+                    </Motion.div>
                 )}
             </AnimatePresence>
 
@@ -435,7 +545,7 @@ const TutorialScene = ({ onComplete }) => {
                     {currentScript[npcDialogStep]?.portrait && (
                         <PortraitDisplay activeNpc={npcData?.bingeo} mood="neutral" isVisible={true} isLeft={false} />
                     )}
-                    <motion.div
+                    <Motion.div
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-black/90 backdrop-blur-sm border-t border-white/20 p-8 pt-6 w-full max-w-4xl text-white cursor-pointer pointer-events-auto rounded-t-3xl shadow-2xl relative"
@@ -455,20 +565,20 @@ const TutorialScene = ({ onComplete }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </div>
-                    </motion.div>
+                    </Motion.div>
                 </div>
             )}
 
             {/* 계약서 모달 */}
             {step === 'contract' && (
-                <motion.div
+                <Motion.div
                     key="contract"
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="absolute inset-0 flex items-center justify-center bg-black/80 z-50 p-8"
                 >
                     <GameStartSequence onSign={handleContractSigned} />
-                </motion.div>
+                </Motion.div>
             )}
 
             {/* 아이템 획득 팝업 */}
@@ -482,70 +592,34 @@ const TutorialScene = ({ onComplete }) => {
             )}
 
             {/* 간이 인벤토리 (강제 제시용) */}
-            {showInventoryForPresent && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-6 rounded-xl shadow-2xl z-50 overflow-hidden w-96">
-                    <h3 className="font-bold text-lg mb-4 text-center">아이템 제시하기</h3>
-                    <div className="space-y-2">
-                        {['item001', 'item002', 'item005'].map(i => {
-                            const item = ITEMS[i];
-                            if (!item) return null;
-                            return (
-                                <button
-                                    key={i}
-                                    className="w-full bg-gray-100 p-3 rounded flex items-center justify-between hover:bg-gray-200"
-                                    onClick={() => handleItemPresent(i)}
-                                >
-                                    <span className="font-bold">{item.name}</span>
-                                    <span className="text-blue-500 font-xs">제시</span>
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-            )}
 
             {/* 간이 인벤토리 (강제 사용용) */}
-            {step === 'use_item_tutorial' && (
-                <div className="absolute top-4 left-4 bg-white/90 p-4 rounded-xl shadow-2xl z-40 overflow-hidden w-64">
-                    <h3 className="font-bold text-sm mb-2">인벤토리 (가이드)</h3>
-                    <div className="space-y-2">
-                        <button
-                            className="w-full bg-green-100 p-2 text-sm rounded flex items-center justify-between border border-green-300 shadow-sm"
-                            onClick={() => handleItemUse('item005')}
-                        >
-                            <span className="font-bold text-green-800">솔피의 눈물</span>
-                            <span className="text-green-600 font-bold bg-white px-2 rounded font-xs">사용</span>
-                        </button>
-                    </div>
-                </div>
-            )}
 
 
             {/* 물고기 레벨 피드백 이펙트 */}
             {step === 'fish_level_up' && (
-                <motion.div
+                <Motion.div
                     key="fish_level_up"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1 }}
                     className="absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-8 text-center"
                 >
-                    <motion.div
+                    <Motion.div
                         animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
                         transition={{ repeat: Infinity, duration: 2 }}
                         className="text-6xl mb-6"
                     >
                         🐟
-                    </motion.div>
-                    <h2 className="text-3xl font-black text-red-500 mb-2 tracking-widest">[ SYSTEM FAILURE ]</h2>
+                    </Motion.div>
                     <h3 className="text-2xl font-bold text-white mb-8">FISH LEVEL INCREASED</h3>
                     <p className="text-white text-lg font-serif italic text-gray-400">몸 속에 기이한 기운이 퍼져나간다...</p>
-                </motion.div>
+                </Motion.div>
             )}
 
             {/* 암전 (시간 경과 / 다음 날 전환) */}
             {step === 'fadeout' && (
-                <motion.div
+                <Motion.div
                     key="fadeout"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -553,7 +627,7 @@ const TutorialScene = ({ onComplete }) => {
                     className="absolute inset-0 bg-black z-[100] flex flex-col items-center justify-center"
                 >
                     <p className="text-white text-xl font-serif">...정신이 아득해진다...</p>
-                </motion.div>
+                </Motion.div>
             )}
 
         </div>

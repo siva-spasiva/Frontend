@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Package, Info, CheckCircle, Trash2, PlayCircle, HandMetal } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import ChatLog from '../ChatLog';
 
-const InventoryApp = ({ onBack }) => {
-    const { inventoryItems, removeItem, useItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
+const InventoryApp = ({ onBack, disableConsumableUse = false }) => {
+    const { inventoryItems, removeItem, useItem: consumeItem, presentItem, isNpcPresent, activeNpcInField, presentedItem } = useGame();
     const [selectedItem, setSelectedItem] = useState(null);
     const [isReading, setIsReading] = useState(false); // Reading mode for transcripts
 
@@ -28,7 +28,7 @@ const InventoryApp = ({ onBack }) => {
             <div className="flex-1 overflow-hidden relative">
                 <AnimatePresence mode="wait">
                     {isReading && selectedItem?.type === 'transcript' ? (
-                        <motion.div
+                        <Motion.div
                             key="reader"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -50,9 +50,9 @@ const InventoryApp = ({ onBack }) => {
                             <div className="flex-1 overflow-hidden relative">
                                 <ChatLog logs={selectedItem.content} viewMode="full" />
                             </div>
-                        </motion.div>
+                        </Motion.div>
                     ) : !selectedItem ? (
-                        <motion.div
+                        <Motion.div
                             key="grid"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -61,7 +61,7 @@ const InventoryApp = ({ onBack }) => {
                         >
                             {inventoryItems && inventoryItems.length > 0 ? (
                                 inventoryItems.map((item) => (
-                                    <motion.button
+                                    <Motion.button
                                         key={item.id}
                                         onClick={() => setSelectedItem(item)}
                                         whileHover={{ scale: 1.05 }}
@@ -75,7 +75,7 @@ const InventoryApp = ({ onBack }) => {
                                         {item.type === 'key_item' && (
                                             <div className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-full ring-2 ring-white"></div>
                                         )}
-                                    </motion.button>
+                                    </Motion.button>
                                 ))
                             ) : (
                                 <div className="col-span-3 flex flex-col items-center justify-center py-20 text-gray-400 space-y-4">
@@ -83,9 +83,9 @@ const InventoryApp = ({ onBack }) => {
                                     <p className="text-sm">비어있음</p>
                                 </div>
                             )}
-                        </motion.div>
+                        </Motion.div>
                     ) : (
-                        <motion.div
+                        <Motion.div
                             key="detail"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -102,13 +102,13 @@ const InventoryApp = ({ onBack }) => {
                                 </button>
                             </div>
 
-                            <motion.div
+                            <Motion.div
                                 initial={{ scale: 0.8, rotate: -5 }}
                                 animate={{ scale: 1, rotate: 0 }}
                                 className="w-32 h-32 bg-gradient-to-br from-gray-50 to-gray-200 rounded-3xl flex items-center justify-center shadow-inner mb-6 border border-gray-100"
                             >
                                 <span className="text-6xl drop-shadow-md">{selectedItem.icon || '📦'}</span>
-                            </motion.div>
+                            </Motion.div>
 
                             <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">{selectedItem.name}</h2>
 
@@ -215,16 +215,16 @@ const InventoryApp = ({ onBack }) => {
                                     onClick={() => {
                                         if (selectedItem.type === 'transcript') {
                                             setIsReading(true);
-                                        } else if (selectedItem.consumable) {
-                                            if (useItem(selectedItem)) {
+                                        } else if (selectedItem.consumable && !disableConsumableUse) {
+                                            if (consumeItem(selectedItem)) {
                                                 setSelectedItem(null); // 사용 후 목록으로
                                             }
                                         }
                                     }}
-                                    disabled={selectedItem.type !== 'transcript' && !selectedItem.consumable}
+                                    disabled={selectedItem.type !== 'transcript' && (!selectedItem.consumable || disableConsumableUse)}
                                     className={`w-full py-3 rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-all ${selectedItem.type === 'transcript'
                                             ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
-                                            : selectedItem.consumable
+                                            : selectedItem.consumable && !disableConsumableUse
                                                 ? 'bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white shadow-teal-900/20'
                                                 : 'bg-gray-900 text-white opacity-50 cursor-not-allowed'
                                         }`}
@@ -233,7 +233,7 @@ const InventoryApp = ({ onBack }) => {
                                     <span>
                                         {selectedItem.type === 'transcript'
                                             ? '기록 보기'
-                                            : selectedItem.consumable
+                                            : selectedItem.consumable && !disableConsumableUse
                                                 ? '사용하기'
                                                 : '사용 불가'}
                                     </span>
@@ -254,7 +254,7 @@ const InventoryApp = ({ onBack }) => {
                                     </button>
                                 )}
                             </div>
-                        </motion.div>
+                        </Motion.div>
                     )}
                 </AnimatePresence>
             </div>
