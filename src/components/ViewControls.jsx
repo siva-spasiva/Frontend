@@ -1,14 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Maximize2, Minimize2, EyeOff, MessageSquare } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
+import { EyeOff, MessageSquare } from 'lucide-react';
 
 const ViewControls = ({
     viewMode,
-    onToggleViewMode,
     onToggleHidden,
     isPhoneOpen,
     onTogglePhone,
     theme,
+    disabled = false,
     children // Extra buttons
 }) => {
 
@@ -30,6 +30,8 @@ const ViewControls = ({
     };
 
     const handleMasterToggle = () => {
+        if (disabled) return;
+
         // Toggle Phone
         if (onTogglePhone) onTogglePhone();
 
@@ -46,11 +48,12 @@ const ViewControls = ({
     };
 
     return (
-        <div className="absolute bottom-10 left-10 z-50 flex flex-col space-y-4 pointer-events-auto">
+        <div className={`absolute bottom-10 left-10 z-50 flex flex-col space-y-4 pointer-events-auto ${disabled ? 'opacity-40' : ''}`}>
             {/* Master Toggle Button */}
-            <motion.button
+            <Motion.button
                 onClick={handleMasterToggle}
                 className={getToggleBtnStyle(isPhoneOpen)}
+                disabled={disabled}
                 animate={{ x: isPhoneOpen ? 400 : 0 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
@@ -60,17 +63,17 @@ const ViewControls = ({
                 ) : (
                     <MessageSquare className="w-6 h-6" /> // Icon to Show
                 )}
-            </motion.button>
+            </Motion.button>
 
             {/* Additional Buttons (NPC Toggle etc) */}
             {children && React.Children.map(children, child => (
-                <motion.div
+                <Motion.div
                     animate={{ x: isPhoneOpen ? 400 : 0 }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                 >
                     {child}
-                </motion.div>
+                </Motion.div>
             ))}
         </div>
     );
