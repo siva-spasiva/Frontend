@@ -2,7 +2,7 @@
  * API 기본 설정 및 Fetch Wrapper
  */
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 /**
  * 기본 Fetch 함수 래퍼
