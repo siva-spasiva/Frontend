@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { motion } from 'framer-motion';
 import { generateAIResponse } from '../utils/aiService';
 import { useViewMode } from '../hooks/useViewMode';
 import GameHUD from '../components/GameHUD';
 import FishEyeEffect from '../components/FishEyeEffect';
 import SectionTransitionOverlay from '../components/SectionTransitionOverlay';
 import useFishVisuals from '../hooks/useFishVisuals';
+import IngameSidebarMenu from '../components/IngameSidebarMenu';
 
-const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
+const Test03Scene = () => {
     // viewMode: 'full' (Logs + Dialog + Input), 'mini' (Dialog + Input), 'hidden' (Button only)
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
+    const [currentRoomId, setCurrentRoomId] = useState('umi_class');
 
     // History logs
     const [logs, setLogs] = useState([]);
@@ -22,7 +23,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     const [isThinking, setIsThinking] = useState(false);
 
     // Access Global Stats and Data
-    const { syncStats, npcData, mapData, isLoading, spendHp, ACTION_COSTS } = useGame();
+    const { syncStats, npcData, mapData, floorData, isLoading, spendHp, ACTION_COSTS, setCurrentLocationInfo } = useGame();
 
     // Item Presentation
     const { presentedItem, clearPresentation, setActiveNpcInField } = useGame();
@@ -38,7 +39,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
         if (!isLoading && npcData && !activeNpc) {
             setActiveNpc(npcData.npc_a);
         }
-    }, [isLoading, npcData]);
+    }, [isLoading, npcData, activeNpc]);
 
     // Sync activeNpc to GameContext for InventoryApp presentation awareness
     React.useEffect(() => {
@@ -47,16 +48,20 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     }, [activeNpc, setActiveNpcInField]);
 
     // Map Info
-    const mapInfo = mapData?.umi_class || {}; // Safe access
-
-    // Sync state to GameContext for RecorderApp
-    const { setCurrentLocationInfo } = useGame();
+    const mapInfo = mapData?.[currentRoomId] || {};
+    const currentFloorId = floorData?.find((floor) => floor.rooms.some((room) => room.id === currentRoomId))?.id || '1F';
 
     React.useEffect(() => {
-        if (mapInfo && mapInfo.namePrefix) {
-            setCurrentLocationInfo(mapInfo);
-        }
-    }, [mapInfo, setCurrentLocationInfo]);
+        setCurrentLocationInfo({
+            floorId: currentFloorId,
+            roomId: currentRoomId,
+        });
+    }, [currentFloorId, currentRoomId, setCurrentLocationInfo]);
+
+    const handleMove = (targetRoomId) => {
+        if (!targetRoomId) return;
+        setCurrentRoomId(targetRoomId);
+    };
 
 
     const handleSend = async () => {
@@ -166,10 +171,7 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+        <div
             className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
             style={{
                 backgroundImage: mapInfo.background,
@@ -186,6 +188,12 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
             {/* Section Transition Overlay */}
             <SectionTransitionOverlay />
 
+            <IngameSidebarMenu
+                currentFloorId={currentFloorId}
+                currentRoomId={currentRoomId}
+                onNavigate={handleMove}
+            />
+
             <GameHUD
                 mapInfo={mapInfo}
                 activeNpc={activeNpc}
@@ -198,14 +206,16 @@ const Test03Scene = ({ isPhoneOpen, onTogglePhone }) => {
                 viewMode={viewMode}
                 onToggleHidden={handleToggleHidden}
                 onToggleExpand={handleToggleExpand}
-                isPhoneOpen={isPhoneOpen}
-                onTogglePhone={onTogglePhone}
                 onToggleNpc={toggleNpc}
                 theme="basic"
                 presentedItem={presentedItem}
                 onClearPresentation={clearPresentation}
+                showViewControls={false}
+                locationLeftInset="340px"
+                chatLeftInset="340px"
+                chatRightInset="24px"
             />
-        </motion.div>
+        </div>
     );
 };
 

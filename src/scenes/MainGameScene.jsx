@@ -308,6 +308,9 @@ const MainGameScene = () => {
                 presentedItem={presentedItem}
                 onClearPresentation={clearPresentation}
                 showViewControls={false}
+                locationLeftInset="340px"
+                chatLeftInset="340px"
+                chatRightInset="24px"
             />
 
             {/* Navigation Confirmation Popup */}

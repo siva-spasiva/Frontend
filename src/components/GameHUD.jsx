@@ -29,6 +29,9 @@ const GameHUD = ({
     theme = 'basic',
     onToggleNpc, // Optional: for the debug button
     showViewControls = true,
+    locationLeftInset = null,
+    chatLeftInset = null,
+    chatRightInset = '40px',
 
     // Item Presentation
     presentedItem = null,
@@ -54,7 +57,7 @@ const GameHUD = ({
             <div
                 className="absolute top-8 z-10 pointer-events-none transition-all duration-300 ease-out"
                 style={{
-                    left: isPhoneOpen ? '450px' : '40px',
+                    left: locationLeftInset || (isPhoneOpen ? '450px' : '40px'),
                     transform: viewMode === 'hidden' ? 'translateY(-200px)' : 'translateY(0)',
                     opacity: viewMode === 'hidden' ? 0 : 1,
                 }}
@@ -93,6 +96,8 @@ const GameHUD = ({
                 npcName={activeNpc?.name || null}
                 onClearPresentation={onClearPresentation}
                 showControls={showViewControls}
+                leftInset={chatLeftInset}
+                rightInset={chatRightInset}
             >
                 {/* Debug / Extra Buttons */}
                 {children}

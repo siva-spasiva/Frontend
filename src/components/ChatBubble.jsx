@@ -13,8 +13,10 @@ const ChatBubble = ({
     if (!dialogContent && !isThinking) return null;
 
     // Theme Styles
-    const activeSpeakerClass = theme === 'corrupted' ? 'text-red-500' : 'text-yellow-500';
-    const thinkingTextClass = theme === 'corrupted' ? 'text-red-500/50' : 'text-yellow-500/50';
+    const speakerBadgeClass = theme === 'corrupted'
+        ? 'bg-red-900 text-red-100 border border-red-700/60'
+        : 'bg-blue-600 text-white';
+    const thinkingTextClass = theme === 'corrupted' ? 'text-red-200/70' : 'text-blue-200/80';
 
     const handleExpandClick = () => {
         if (viewMode === 'mini') {
@@ -25,16 +27,20 @@ const ChatBubble = ({
 
     return (
         <div
-            className="p-6 pb-2 cursor-pointer relative border-b border-white/5"
+            className="px-8 pt-7 pb-5 cursor-pointer relative border-b border-white/10"
             onClick={handleExpandClick}
         >
-            <div className="flex items-center mb-2">
-                <span className={`${activeSpeakerClass} font-bold text-lg mr-3`}>
-                    {dialogContent?.speaker || 'Unknown'}
-                </span>
-                {isThinking && <span className={`text-xs ${thinkingTextClass} animate-pulse`}>Thinking...</span>}
+            <div className={`absolute top-0 right-8 transform -translate-y-1/2 font-bold px-4 py-1 rounded-full text-sm shadow-lg ${speakerBadgeClass}`}>
+                {dialogContent?.speaker || 'Unknown'}
             </div>
-            <p className="text-xl text-gray-100 leading-relaxed font-medium min-h-[1.5em]">
+
+            {isThinking && (
+                <div className={`text-xs ${thinkingTextClass} animate-pulse mb-2 font-semibold`}>
+                    Thinking...
+                </div>
+            )}
+
+            <p className="text-lg leading-relaxed whitespace-pre-line text-white/90 min-h-[3rem]">
                 {isThinking ? (
                     <span className="animate-pulse opacity-50">...</span>
                 ) : (
@@ -44,8 +50,8 @@ const ChatBubble = ({
 
             {/* Hint for interaction */}
             {viewMode === 'mini' && (
-                <div className="absolute top-4 right-4 text-xs text-gray-600 opacity-0 hover:opacity-100 transition-opacity">
-                    Click to Expand History
+                <div className="absolute bottom-3 right-6 text-[11px] text-white/40 opacity-0 hover:opacity-100 transition-opacity">
+                    Click to expand history
                 </div>
             )}
         </div>

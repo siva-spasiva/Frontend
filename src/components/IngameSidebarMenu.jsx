@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell,
     CalendarDays,
+    Clock3,
+    Heart,
     Map,
     MessageCircle,
     Mic,
     Package,
     Settings,
+    Zap,
     X,
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
@@ -70,10 +72,10 @@ const SidebarSettingsPanel = ({ onBack }) => {
     );
 };
 
-const MenuButton = ({ icon: Icon, label, colorClass, active, onClick }) => (
+const MenuButton = ({ icon, label, colorClass, active, onClick }) => (
     <button onClick={onClick} className="flex flex-col items-center gap-2 group">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 ${active ? 'ring-2 ring-blue-300' : ''} ${colorClass}`}>
-            <Icon className="w-5 h-5" />
+            {React.createElement(icon, { className: 'w-5 h-5' })}
         </div>
         <span className="text-[11px] font-medium text-slate-100">{label}</span>
     </button>
@@ -147,6 +149,10 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
                         <CalendarDays className="w-3.5 h-3.5" />
                         {periodLabel}
                     </p>
+                    <p className="text-[11px] text-slate-300 mt-1 flex items-center gap-1.5">
+                        <Clock3 className="w-3 h-3" />
+                        {clockLabel}
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 mb-6">
@@ -204,36 +210,39 @@ const IngameSidebarMenu = ({ currentFloorId, currentRoomId, onNavigate }) => {
 
                 <div className="mt-4 rounded-2xl bg-slate-950/80 border border-white/15 px-3 py-3 text-white">
                     <div className="flex items-center gap-2 mb-2 text-[11px] uppercase tracking-wide text-slate-300">
-                        <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                        <Heart className="w-3.5 h-3.5 text-red-400 fill-current animate-pulse" />
                         HP
+                        {(plusHp || 0) > 0 && (
+                            <span className="ml-1 text-[10px] text-emerald-400 font-mono flex items-center gap-0.5">
+                                <Zap className="w-3 h-3" />+{plusHp}
+                            </span>
+                        )}
                     </div>
-                    <div className="w-full h-2 rounded-full bg-slate-700 overflow-hidden relative">
-                        <div className="h-full bg-gradient-to-r from-red-500 to-red-400" style={{ width: `${baseHpPercent}%` }} />
+                    <div className="w-full h-3 rounded-full bg-slate-700 overflow-hidden relative border border-white/10 shadow-inner">
+                        <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600 to-red-400" style={{ width: `${baseHpPercent}%` }} />
                         {(plusHp || 0) > 0 && (
                             <div
                                 className="h-full absolute top-0 bg-gradient-to-r from-emerald-500 to-emerald-400"
                                 style={{ left: `${baseHpPercent}%`, width: `${plusHpPercent}%` }}
                             />
                         )}
+                        {[10, 40, 70].map((boundary) => (
+                            <div
+                                key={boundary}
+                                className="absolute inset-y-0 w-px bg-white/35 z-10"
+                                style={{ left: `${boundary}%` }}
+                            />
+                        ))}
                     </div>
                     <p className="text-[11px] text-slate-300 text-right mt-1 font-mono">{hpText}</p>
                 </div>
             </aside>
 
-            <AnimatePresence>
-                {activePanel && (
-                    <motion.div
-                        key="ingame-sidebar-panel"
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -12 }}
-                        transition={{ duration: 0.2 }}
-                        className="pointer-events-auto absolute top-2 bottom-2 left-[278px] md:left-[308px] right-2 md:right-auto md:w-[390px] rounded-2xl overflow-hidden border border-white/30 shadow-2xl bg-white/95"
-                    >
-                        {renderPanel()}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {activePanel && (
+                <div className="pointer-events-auto absolute top-2 bottom-2 left-[278px] md:left-[308px] right-2 md:right-auto md:w-[390px] rounded-2xl overflow-hidden border border-white/30 shadow-2xl bg-white/95 transition-all duration-200 ease-out">
+                    {renderPanel()}
+                </div>
+            )}
         </div>
     );
 };

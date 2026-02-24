@@ -63,14 +63,14 @@ const MainLayout = () => {
   // Reset phone state when entering new phases
   React.useEffect(() => {
     // Phases where phone should be open and side-by-side
-    const splitPhases = ['test02', 'test03', 'test04', 'test05'];
+    const splitPhases = ['test02', 'test04', 'test05'];
     if (splitPhases.includes(phase)) {
       setIsPhoneOpen(true);
       setIsPhoneCentered(false); // Default to split view
     }
   }, [phase, setIsPhoneCentered]);
 
-  const isSplit = ['test02', 'test03', 'test04', 'test05'].includes(phase);
+  const isSplit = ['test02', 'test04', 'test05'].includes(phase);
 
   React.useEffect(() => {
     if (!isMusicEnabled) {
@@ -117,6 +117,7 @@ const MainLayout = () => {
         {phase === 'debug03' && <Debug03Scene key="debug03" onBack={toMainMenu} />}
         {phase === 'terminal' && <TerminalScene key="terminal" />}
         {phase === 'mainGame' && <MainGameScene key="mainGame" />}
+        {phase === 'test03' && <Test03Scene key="test03" />}
 
         {/* Unified Split Layout Group */}
         {(phase === 'mainMenu' || isSplit) && (
@@ -147,11 +148,6 @@ const MainLayout = () => {
               {phase === 'test02' && (
                 <motion.div key="test02-bg" className="absolute inset-0 z-0">
                   <Test02Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
-                </motion.div>
-              )}
-              {phase === 'test03' && (
-                <motion.div key="test03-bg" className="absolute inset-0 z-0">
-                  <Test03Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
                 </motion.div>
               )}
               {phase === 'test04' && (
