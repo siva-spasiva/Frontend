@@ -182,7 +182,7 @@ export const Ingame03HomeScreen = ({ onAppOpen, onBack }) => {
                 <AppIcon icon={fishTier >= 4 ? Fish : Map} label={fishTier >= 4 ? '해역' : 'Map'} color={mapIconColor} onClick={() => onAppOpen('map_app')} />
                 <AppIcon icon={Package} label={fishTier >= 4 ? '비늘' : 'Inventory'} color={invIconColor} onClick={() => onAppOpen('inventory')} />
                 <AppIcon icon={Mic} label={fishTier >= 4 ? '노래' : 'Recorder'} color={recIconColor} onClick={() => onAppOpen('recorder_app')} />
-                <AppIcon icon={Settings} label="Settings" color={settIconColor} onClick={() => { }} />
+                <AppIcon icon={Settings} label="Settings" color={settIconColor} onClick={() => onAppOpen('settings')} />
             </div>
 
             <div className={`mt-8 p-4 ${notifBg} rounded-xl border ${notifBorder} transition-colors duration-500`}>
@@ -259,7 +259,7 @@ export const IngameCorruptedHomeScreen = ({ onAppOpen, onBack }) => {
                     <AppIcon icon={Map} label="Map" color="bg-blue-400" onClick={() => onAppOpen('map_app')} />
                     <AppIcon icon={Package} label="Inventory" color="bg-orange-500" onClick={() => onAppOpen('inventory')} />
                     <AppIcon icon={Camera} label="Photo" color="bg-pink-400" onClick={() => { }} />
-                    <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => { }} />
+                    <AppIcon icon={Settings} label="Settings" color="bg-gray-400" onClick={() => onAppOpen('settings')} />
                 </div>
 
                 <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 opacity-60 filter blur-[0.3px]">

@@ -21,6 +21,7 @@ import TutorialScene from './scenes/TutorialScene';
 import MainGameScene from './scenes/MainGameScene';
 
 import { GameProvider } from './context/GameContext';
+import { useAudio } from './context/AudioContext';
 
 import './index.css';
 import MainMenuBg from './assets/map/mainmenu01.png';
@@ -35,7 +36,8 @@ const MainLayout = () => {
   const [phase, setPhase] = useState('mainMenu');
 
   // Access Game Context for Layout
-  const { isPhoneCentered, setIsPhoneCentered, appEvent } = useGame();
+  const { isPhoneCentered, setIsPhoneCentered, appEvent, currentDay, currentPeriod } = useGame();
+  const { playBgm, stopBgm, isMusicEnabled } = useAudio();
 
   // Phase transition functions
   const toMainMenu = () => setPhase('mainMenu');
@@ -43,6 +45,7 @@ const MainLayout = () => {
   const toMainGame = () => setPhase('mainGame');
 
   // Legacy / Test phase transitions
+  const toTest01 = () => setPhase('test01');
   const toTest02 = () => setPhase('test02');
   const toTest03 = () => setPhase('test03');
   const toTest04 = () => setPhase('test04');
@@ -68,6 +71,29 @@ const MainLayout = () => {
   }, [phase, setIsPhoneCentered]);
 
   const isSplit = ['mainGame', 'test02', 'test03', 'test04', 'test05'].includes(phase);
+
+  React.useEffect(() => {
+    if (!isMusicEnabled) {
+      stopBgm();
+      return;
+    }
+
+    if (phase === 'mainMenu' || phase === 'tutorial') {
+      playBgm('opening', { loop: true, volume: 0.6, fadeDuration: 600 });
+      return;
+    }
+
+    const inGamePhases = ['mainGame', 'test02', 'test03', 'test04', 'test05'];
+    if (inGamePhases.includes(phase)) {
+      const periodOrder = ['morning', 'afternoon', 'evening', 'night'];
+      const periodIndex = Math.max(0, periodOrder.indexOf(currentPeriod));
+      const bgmName = ((currentDay + periodIndex) % 2 === 0) ? 'overworld01' : 'overworld02';
+      playBgm(bgmName, { loop: true, volume: 0.55, fadeDuration: 600 });
+      return;
+    }
+
+    stopBgm();
+  }, [phase, currentDay, currentPeriod, isMusicEnabled, playBgm, stopBgm]);
 
   return (
     <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
@@ -208,13 +234,16 @@ const MainLayout = () => {
 
 
 import FishLevelWarning from './components/FishLevelWarning';
+import { AudioProvider } from './context/AudioContext';
 
 function App() {
   return (
-    <GameProvider>
-      <MainLayout />
-      <FishLevelWarning />
-    </GameProvider>
+    <AudioProvider>
+      <GameProvider>
+        <MainLayout />
+        <FishLevelWarning />
+      </GameProvider>
+    </AudioProvider>
   );
 }
 

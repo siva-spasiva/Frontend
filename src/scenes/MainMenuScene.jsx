@@ -6,6 +6,7 @@ import MessengerApp from '../components/apps/MessengerApp';
 import InventoryApp from '../components/apps/InventoryApp';
 import FishPhoneOverlay from '../components/FishPhoneOverlay';
 import useFishVisuals from '../hooks/useFishVisuals';
+import { useAudio } from '../context/AudioContext';
 
 // --- Components ---
 
@@ -104,7 +105,7 @@ const MenuOption = ({ icon: Icon, label, color, onClick }) => (
     </motion.button>
 );
 
-const MainMenu = ({ onAppOpen }) => {
+const MainMenu = ({ onAppOpen, onOpenSettings }) => {
     return (
         <div className="w-full h-full flex flex-col items-center p-8 bg-gray-50/50 relative overflow-hidden">
             {/* Background decorative elements */}
@@ -148,7 +149,7 @@ const MainMenu = ({ onAppOpen }) => {
                         icon={Settings}
                         label="Settings"
                         color="from-gray-700 to-gray-900"
-                        onClick={() => alert('준비 중입니다.')}
+                        onClick={onOpenSettings}
                     />
                 </motion.div>
             </div>
@@ -166,6 +167,63 @@ const MainMenu = ({ onAppOpen }) => {
     );
 };
 
+const AudioSettingsPanel = ({ onBack }) => {
+    const { isMusicEnabled, setMusicEnabled, bgmVolume, setBgmVolume, currentBgm } = useAudio();
+
+    return (
+        <div className="w-full h-full flex flex-col p-6 bg-gray-50/60">
+            <button
+                onClick={onBack}
+                className="self-start mb-5 px-3 py-1.5 rounded-xl bg-white/70 text-sm font-semibold text-gray-700 border border-gray-200 hover:bg-white"
+            >
+                ← Back
+            </button>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Audio Settings</h2>
+
+            <div className="space-y-5 rounded-2xl border border-gray-200 bg-white/80 p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-semibold text-gray-800">Music</p>
+                        <p className="text-xs text-gray-500">BGM 재생 ON/OFF</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setMusicEnabled(!isMusicEnabled)}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isMusicEnabled
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-gray-300 text-gray-700'
+                            }`}
+                    >
+                        {isMusicEnabled ? 'ON' : 'OFF'}
+                    </button>
+                </div>
+
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-gray-800">Volume</p>
+                        <p className="text-sm font-mono text-gray-600">{Math.round(bgmVolume * 100)}%</p>
+                    </div>
+
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={Math.round(bgmVolume * 100)}
+                        onChange={(event) => setBgmVolume(Number(event.target.value) / 100)}
+                        className="w-full accent-blue-600"
+                    />
+                </div>
+
+                <div className="rounded-xl bg-gray-100 px-3 py-2 text-xs text-gray-600">
+                    현재 BGM: {currentBgm || '없음'}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 
 import { IngameHomeScreen, Ingame02HomeScreen, Ingame03HomeScreen, IngameCorruptedHomeScreen } from '../components/PhoneHomeScreens';
@@ -175,7 +233,7 @@ import CreditsApp from '../components/apps/CreditsApp';
 
 
 const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase }) => {
-    // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app'
+    // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app' | 'settings'
     const [internalPhase, setInternalPhase] = useState('menu');
 
     // Context for overrides
@@ -209,6 +267,17 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
             setInternalPhase('menu');
         }
     }, [currentPhase, phoneScreenOverride]);
+
+    const getDefaultInternalPhase = () => {
+        if (currentPhase === 'mainGame') return 'ingame03_home';
+        if (currentPhase === 'test02') return 'ingame02_home';
+        if (currentPhase === 'test03') return 'ingame03_home';
+        if (currentPhase === 'test04') return 'ingame03_home';
+        if (currentPhase === 'test05') return 'ingame03_home';
+        if (currentPhase === 'start' || currentPhase === 'outside') return 'messenger';
+        if (currentPhase === 'classroom' || currentPhase === 'room001') return 'ingame03_home';
+        return 'menu';
+    };
 
     // Initialize position logic: When on Home Screen, move Phone to Left (Initialize Position)
     useEffect(() => {
@@ -259,7 +328,19 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <MainMenu onAppOpen={handleAppOpen} />
+                        <MainMenu onAppOpen={handleAppOpen} onOpenSettings={() => handleAppOpen('settings')} />
+                    </motion.div>
+                )}
+
+                {internalPhase === 'settings' && (
+                    <motion.div
+                        key="settings"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 12 }}
+                    >
+                        <AudioSettingsPanel onBack={() => setInternalPhase(getDefaultInternalPhase())} />
                     </motion.div>
                 )}
 
