@@ -212,6 +212,14 @@ export const ITEM_DEFINITIONS = {
         type: 'normal',
         icon: '💐',
     },
+    item026: {
+        id: 'item026',
+        name: '낡은 열쇠',
+        description: '낡은 열쇠. 무언가 철문에 사용할 수 있을것 같다.',
+        flavorText: '냉기가 느껴진다.',
+        type: 'key_item',
+        icon: '🗝️',
+    },
 
     // ═══ 박복어 소지 아이템 ═══
     npc_bokeo_001: {
@@ -234,11 +242,11 @@ export const ITEM_DEFINITIONS = {
     },
     npc_bokeo_003: {
         id: 'npc_bokeo_003',
-        name: '교주의 방 약도',
-        description: '박복어가 직접 그린 교주 거처의 약도. 경비 교대 시간까지 적혀 있다.',
-        flavorText: '"틀릴 수도 있어. 하지만 내가 아는 건 이게 전부야."',
+        name: '교주의 방 열쇠',
+        description: '박복어가 받은 교주방의 열쇠.',
+        flavorText: '"너를 믿는다. 이 열쇠는 너만 사용할 수 있어." — 박복어',
         type: 'key_item',
-        icon: '🗺️',
+        icon: '🗝️',
         npcOrigin: 'bokeo',
     },
 
