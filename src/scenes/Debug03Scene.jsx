@@ -3,8 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Plus, Trash2, Copy, Check, Move, Maximize2, MousePointer, Eye, EyeOff,
     Download, Database, Save, FolderOpen, Link2, Unlink, Image, Grid3X3, ChevronDown,
-    ChevronRight, Settings, AlertCircle, RefreshCw, Map
+    ChevronRight, Settings, AlertCircle, RefreshCw, Map, Lock, Unlock
 } from 'lucide-react';
+import { ITEM_DEFINITIONS } from '../../mock-backend/src/data/items.js';
+
+const ITEM_LIST = Object.values(ITEM_DEFINITIONS).map(item => ({ id: item.id, name: item.name, icon: item.icon || '📦' }));
 
 // ─── Constants ───
 const mapImages = import.meta.glob('../assets/map/*.png', { eager: true });
@@ -181,6 +184,7 @@ const Debug03Scene = ({ onBack }) => {
             x: parseFloat(z.x) || 0, y: parseFloat(z.y) || 0,
             width: parseFloat(z.width) || 10, height: parseFloat(z.height) || 10,
             label: z.label || '', message: z.message || '', itemId: z.itemId || '',
+            locked: !!z.locked, locked_key: z.locked_key || '',
         }));
         isHydratingZones.current = true;
         setZones(imported);
@@ -251,6 +255,7 @@ const Debug03Scene = ({ onBack }) => {
                     id: `zone_${nextId.current++}`, type: 'move', target: '',
                     x: +x.toFixed(1), y: +y.toFixed(1), width: +w.toFixed(1), height: +h.toFixed(1),
                     label: '', message: '', itemId: '',
+                    locked: false, locked_key: '',
                 };
                 setZones(prev => [...prev, newZone]);
                 setSelectedZoneId(newZone.id);
@@ -326,7 +331,7 @@ const Debug03Scene = ({ onBack }) => {
     const exportJSON = () => {
         const output = zones.map(z => ({
             id: z.id, type: z.type,
-            ...(z.type === 'move' ? { target: z.target } : {}),
+            ...(z.type === 'move' ? { target: z.target, locked: !!z.locked, locked_key: z.locked_key || '' } : {}),
             ...(z.itemId ? { itemId: z.itemId } : {}),
             x: `${z.x}%`, y: `${z.y}%`, width: `${z.width}%`, height: `${z.height}%`,
             label: z.label, message: z.message,
@@ -344,6 +349,7 @@ const Debug03Scene = ({ onBack }) => {
                 x: parseFloat(z.x) || 0, y: parseFloat(z.y) || 0,
                 width: parseFloat(z.width) || 10, height: parseFloat(z.height) || 10,
                 label: z.label || '', message: z.message || '', itemId: z.itemId || '',
+                locked: !!z.locked, locked_key: z.locked_key || '',
             }));
             setZones(imported);
             nextId.current = imported.length + 1;
@@ -491,7 +497,8 @@ const Debug03Scene = ({ onBack }) => {
                                             {showLabels && (
                                                 <div className="absolute -top-5 left-0 text-[10px] font-mono font-bold px-1 rounded whitespace-nowrap flex items-center gap-0.5"
                                                     style={{ backgroundColor: ZONE_BORDER[zone.type], color: '#fff' }}>
-                                                    {isMoveZone && showConnections && <Link2 className="w-2.5 h-2.5" />}
+                                                    {isMoveZone && zone.locked && <Lock className="w-2.5 h-2.5 text-amber-300" />}
+                                                    {isMoveZone && !zone.locked && showConnections && <Link2 className="w-2.5 h-2.5" />}
                                                     {zone.label || zone.id}
                                                     {isMoveZone && zone.target && <span className="opacity-70 ml-0.5">→{zone.target}</span>}
                                                 </div>
@@ -604,12 +611,53 @@ const Debug03Scene = ({ onBack }) => {
                                         ))}
                                     </div></div>
                                 {selectedZone.type === 'move' && (
-                                    <div><label className="text-[10px] text-gray-500 uppercase flex items-center gap-1"><Link2 className="w-3 h-3" />Target Room</label>
-                                        <select value={selectedZone.target} onChange={e => updateZone(selectedZone.id, { target: e.target.value })}
-                                            className="w-full mt-0.5 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                            <option value="">선택...</option>
-                                            {allRooms.map(r => <option key={r.id} value={r.id}>{r.floorId} / {r.name || r.id}</option>)}
-                                        </select></div>
+                                    <>
+                                        <div><label className="text-[10px] text-gray-500 uppercase flex items-center gap-1"><Link2 className="w-3 h-3" />Target Room</label>
+                                            <select value={selectedZone.target} onChange={e => updateZone(selectedZone.id, { target: e.target.value })}
+                                                className="w-full mt-0.5 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                <option value="">선택...</option>
+                                                {allRooms.map(r => <option key={r.id} value={r.id}>{r.floorId} / {r.name || r.id}</option>)}
+                                            </select></div>
+                                        {/* Locked 설정 */}
+                                        <div className={`border rounded-lg p-2 space-y-2 ${selectedZone.locked ? 'border-amber-500/40 bg-amber-500/5' : 'border-gray-700/50'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] text-gray-500 uppercase flex items-center gap-1">
+                                                    {selectedZone.locked ? <Lock className="w-3 h-3 text-amber-400" /> : <Unlock className="w-3 h-3" />}
+                                                    잠금
+                                                </label>
+                                                <button onClick={() => updateZone(selectedZone.id, { locked: !selectedZone.locked, locked_key: selectedZone.locked ? '' : selectedZone.locked_key })}
+                                                    className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${selectedZone.locked ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-gray-800 text-gray-500 hover:bg-gray-700'}`}>
+                                                    {selectedZone.locked ? '🔒 ON' : '🔓 OFF'}
+                                                </button>
+                                            </div>
+                                            {selectedZone.locked && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-gray-500 uppercase">필요 아이템</label>
+                                                    <select value={ITEM_LIST.some(it => it.id === selectedZone.locked_key) ? selectedZone.locked_key : '__custom__'}
+                                                        onChange={e => { if (e.target.value !== '__custom__') updateZone(selectedZone.id, { locked_key: e.target.value }); }}
+                                                        className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500">
+                                                        <option value="">없음 (선택...)</option>
+                                                        {ITEM_LIST.map(it => (
+                                                            <option key={it.id} value={it.id}>{it.icon} {it.name} ({it.id})</option>
+                                                        ))}
+                                                        <option value="__custom__">✏️ 직접 입력...</option>
+                                                    </select>
+                                                    {(!ITEM_LIST.some(it => it.id === selectedZone.locked_key) || selectedZone.locked_key === '') && (
+                                                        <input value={selectedZone.locked_key || ''}
+                                                            onChange={e => updateZone(selectedZone.id, { locked_key: e.target.value })}
+                                                            placeholder="아이템 ID 직접 입력"
+                                                            className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:ring-1 focus:ring-amber-500" />
+                                                    )}
+                                                    {selectedZone.locked_key && ITEM_DEFINITIONS[selectedZone.locked_key] && (
+                                                        <div className="text-[10px] text-amber-300/70 flex items-center gap-1 px-1">
+                                                            <span>{ITEM_DEFINITIONS[selectedZone.locked_key].icon}</span>
+                                                            <span>{ITEM_DEFINITIONS[selectedZone.locked_key].name}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                                 {(selectedZone.type === 'item' || selectedZone.type === 'item_dot' || selectedZone.type === 'inspect') && (
                                     <div><label className="text-[10px] text-gray-500 uppercase">Item ID</label>
@@ -710,7 +758,8 @@ const Debug03Scene = ({ onBack }) => {
                                     className={`w-full text-left px-1.5 py-1 rounded text-[11px] flex items-center gap-1.5 transition-colors ${z.id === selectedZoneId ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-800'}`}>
                                     <div className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: ZONE_BORDER[z.type] }} />
                                     <span className="truncate font-mono flex-1">{z.label || z.id}</span>
-                                    {z.type === 'move' && z.target && <Link2 className="w-2.5 h-2.5 text-blue-400 shrink-0" />}
+                                    {z.type === 'move' && z.locked && <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />}
+                                    {z.type === 'move' && z.target && !z.locked && <Link2 className="w-2.5 h-2.5 text-blue-400 shrink-0" />}
                                     <span className="text-gray-600 text-[9px]">{z.type}</span>
                                 </button>
                             ))}
