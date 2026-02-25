@@ -21,10 +21,11 @@ const MainGameScene = () => {
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
-    // Active Room State - Starts in Warehouse Main
-    const [currentRoomId, setCurrentRoomId] = useState('storage_main');
+    // GameContext에서 현재 진행 상태를 받아옴 (튜토리얼 완료 시 설정된 위치 등)
+    const { syncStats, npcData, mapData, floorData, scheduleData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
-    const { syncStats, npcData, mapData, floorData, scheduleData, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+    // Active Room State - Context에서 초기 위치를 받아서 시작
+    const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
 
     const handleMove = (targetId) => {
         console.log("Moving to:", targetId);
@@ -97,7 +98,7 @@ const MainGameScene = () => {
     const [isThinking, setIsThinking] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-    
+
     // NPC Session State -> Free chat count logic
     const [freeChatCount, setFreeChatCount] = useState(0);
 
@@ -151,7 +152,7 @@ const MainGameScene = () => {
         } else {
             setActiveNpc(null);
         }
-        
+
         // Reset chat session on move
         setFreeChatCount(0);
         // Reset eavesdrop on move
@@ -241,11 +242,11 @@ const MainGameScene = () => {
         try {
             // Default to NPC A if no active NPC, or use active NPC
             const targetNpc = activeNpc || npcData?.npc_a;
-            
+
             if (!targetNpc) {
-                 setDialogContent({ speaker: 'System', text: '대화할 상대가 없습니다.', type: 'system' });
-                 setIsThinking(false);
-                 return;
+                setDialogContent({ speaker: 'System', text: '대화할 상대가 없습니다.', type: 'system' });
+                setIsThinking(false);
+                return;
             }
 
             const data = await generateAIResponse(userMsg, {
@@ -284,11 +285,11 @@ const MainGameScene = () => {
 
     const toggleNpc = () => {
         if (!npcsInRoom || npcsInRoom.length === 0) return;
-        
+
         const currentIndex = npcsInRoom.findIndex(id => npcData[id]?.id === activeNpc?.id);
         const nextIndex = (currentIndex + 1) % npcsInRoom.length;
         setActiveNpc(npcData[npcsInRoom[nextIndex]]);
-        
+
         // Reset free chat session when manually switching NPC target
         setFreeChatCount(0);
     };
@@ -576,20 +577,20 @@ const MainGameScene = () => {
         <div className="w-full h-full relative bg-black overflow-hidden">
             <MapContainer aspectRatio={16 / 9}>
                 <div
-            className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
-            style={{
-                backgroundImage: mapInfo.background,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: mapFilter !== 'none' ? mapFilter : undefined,
-                transform: mapTransform !== 'none' ? mapTransform : undefined,
-                transformOrigin: 'center center',
-            }}
+                    className="w-full h-full relative bg-gray-900 text-white overflow-hidden"
+                    style={{
+                        backgroundImage: mapInfo.background,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        filter: mapFilter !== 'none' ? mapFilter : undefined,
+                        transform: mapTransform !== 'none' ? mapTransform : undefined,
+                        transformOrigin: 'center center',
+                    }}
                 >
-            {/* Fish Eye Effect Overlay */}
-            <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
+                    {/* Fish Eye Effect Overlay */}
+                    <FishEyeEffect fishTier={fishTier} mapEffects={mapEffects} waveFilterId={waveFilterId} />
 
-            {/* Interactive Layer */}
+                    {/* Interactive Layer */}
                     <MapInteractiveLayer
                         mapInfo={mapInfo}
                         onInteract={handleInteraction}
@@ -604,234 +605,234 @@ const MainGameScene = () => {
                         onSidebarVisibleChange={handleSidebarVisibleChange}
                     />
 
-            {/* NPC Interaction Panel */}
-            {npcsInRoom.length > 0 && !isChatActive && eavesdropState !== 'preview' && eavesdropState !== 'choice' && eavesdropState !== 'done' && (
-                <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
-                    <span className="text-xs text-gray-400 mb-1">
-                        현재 방: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
-                    </span>
+                    {/* NPC Interaction Panel */}
+                    {npcsInRoom.length > 0 && !isChatActive && eavesdropState !== 'preview' && eavesdropState !== 'choice' && eavesdropState !== 'done' && (
+                        <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
+                            <span className="text-xs text-gray-400 mb-1">
+                                현재 방: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
+                            </span>
 
-                    {/* 1:1 대화하기 */}
-                    <button
-                        onClick={handleStartChatClick}
-                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
-                    >
-                        💬 {activeNpc?.name}와 대화하기
-                        <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
-                    </button>
-
-                    {/* NPC 전환 */}
-                    {npcsInRoom.length > 1 && (
-                        <>
+                            {/* 1:1 대화하기 */}
                             <button
-                                onClick={toggleNpc}
-                                className="w-full py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 transition-colors"
+                                onClick={handleStartChatClick}
+                                className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
                             >
-                                대상 변경
+                                💬 {activeNpc?.name}와 대화하기
+                                <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
 
-                            {/* 엿듣기 */}
-                            <button
-                                onClick={handleEavesdropClick}
-                                className="w-full py-2 bg-purple-700 hover:bg-purple-600 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
-                            >
-                                👂 엿듣기
-                                <span className="text-xs text-purple-200">({ACTION_COSTS.eavesdrop} HP)</span>
-                            </button>
-                        </>
+                            {/* NPC 전환 */}
+                            {npcsInRoom.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={toggleNpc}
+                                        className="w-full py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 transition-colors"
+                                    >
+                                        대상 변경
+                                    </button>
+
+                                    {/* 엿듣기 */}
+                                    <button
+                                        onClick={handleEavesdropClick}
+                                        className="w-full py-2 bg-purple-700 hover:bg-purple-600 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        👂 엿듣기
+                                        <span className="text-xs text-purple-200">({ACTION_COSTS.eavesdrop} HP)</span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     )}
-                </div>
-            )}
 
-            <GameHUD
-                mapInfo={mapInfo}
-                activeNpc={activeNpc}
-                secondaryNpc={npcsInRoom.length > 1 ? secondaryNpc : undefined}
-                logs={logs}
-                dialogContent={dialogContent}
-                isThinking={isThinking}
-                onSend={eavesdropState === 'chatting' ? handleSend : undefined}
-                inputText={eavesdropState === 'chatting' ? inputText : ''}
-                setInputText={eavesdropState === 'chatting' ? setInputText : () => {}}
-                viewMode={eavesdropState === 'chatting' ? viewMode : (isChatActive ? 'hidden' : viewMode)}
-                onToggleHidden={handleToggleHidden}
-                onToggleExpand={handleToggleExpand}
-                isPhoneOpen={false}
-                theme="corrupted"
-                onToggleNpc={npcsInRoom.length > 1 && !isChatActive ? toggleNpc : undefined}
-                presentedItem={presentedItem}
-                onClearPresentation={clearPresentation}
-                showViewControls={true}
-                isSidebarVisible={isSidebarVisible}
-                chatRightInset="24px"
-            />
+                    <GameHUD
+                        mapInfo={mapInfo}
+                        activeNpc={activeNpc}
+                        secondaryNpc={npcsInRoom.length > 1 ? secondaryNpc : undefined}
+                        logs={logs}
+                        dialogContent={dialogContent}
+                        isThinking={isThinking}
+                        onSend={eavesdropState === 'chatting' ? handleSend : undefined}
+                        inputText={eavesdropState === 'chatting' ? inputText : ''}
+                        setInputText={eavesdropState === 'chatting' ? setInputText : () => { }}
+                        viewMode={eavesdropState === 'chatting' ? viewMode : (isChatActive ? 'hidden' : viewMode)}
+                        onToggleHidden={handleToggleHidden}
+                        onToggleExpand={handleToggleExpand}
+                        isPhoneOpen={false}
+                        theme="corrupted"
+                        onToggleNpc={npcsInRoom.length > 1 && !isChatActive ? toggleNpc : undefined}
+                        presentedItem={presentedItem}
+                        onClearPresentation={clearPresentation}
+                        showViewControls={true}
+                        isSidebarVisible={isSidebarVisible}
+                        chatRightInset="24px"
+                    />
 
-            {/* Navigation Confirmation Popup */}
-            <NavigationConfirmation
-                isOpen={!!pendingMove}
-                targetLabel={pendingMove?.label}
-                onConfirm={confirmMove}
-                onCancel={cancelMove}
-            />
+                    {/* Navigation Confirmation Popup */}
+                    <NavigationConfirmation
+                        isOpen={!!pendingMove}
+                        targetLabel={pendingMove?.label}
+                        onConfirm={confirmMove}
+                        onCancel={cancelMove}
+                    />
 
-            {/* Section Transition Overlay */}
-            <SectionTransitionOverlay />
+                    {/* Section Transition Overlay */}
+                    <SectionTransitionOverlay />
 
-            {/* HP Boundary Warning Modal */}
-            <HpWarningModal
-                isOpen={!!pendingHpWarning}
-                warning={pendingHpWarning}
-                onConfirm={confirmHpWarning}
-                onCancel={cancelHpWarning}
-            />
+                    {/* HP Boundary Warning Modal */}
+                    <HpWarningModal
+                        isOpen={!!pendingHpWarning}
+                        warning={pendingHpWarning}
+                        onConfirm={confirmHpWarning}
+                        onCancel={cancelHpWarning}
+                    />
 
-            {/* Item Pickup Modal */}
-            <ItemPickupModal
-                isOpen={!!pendingItem}
-                item={pendingItem ? ITEMS[pendingItem] : null}
-                onClose={resolveItem}
-                onCollect={() => {
-                    if (pendingItem) {
-                        addItem(pendingItem);
-                        resolveItem();
-                    }
-                }}
-            />
+                    {/* Item Pickup Modal */}
+                    <ItemPickupModal
+                        isOpen={!!pendingItem}
+                        item={pendingItem ? ITEMS[pendingItem] : null}
+                        onClose={resolveItem}
+                        onCollect={() => {
+                            if (pendingItem) {
+                                addItem(pendingItem);
+                                resolveItem();
+                            }
+                        }}
+                    />
 
-            {/* Locked Requirement Check Modal */}
-            <RequirementModal
-                isOpen={!!pendingRequirement}
-                requirement={pendingRequirement}
-                onClose={resolveRequirement}
-            />
+                    {/* Locked Requirement Check Modal */}
+                    <RequirementModal
+                        isOpen={!!pendingRequirement}
+                        requirement={pendingRequirement}
+                        onClose={resolveRequirement}
+                    />
 
-            {/* === Eavesdrop / Intercept Chat UI === */}
-            {(eavesdropState === 'preview' || eavesdropState === 'choice' || eavesdropState === 'intercepting' || eavesdropState === 'listening' || eavesdropState === 'done') && (
-                <div className="absolute inset-0 z-30 flex flex-col pointer-events-none">
-                    {/* Eavesdrop Logs */}
-                    <div className="flex-1" />
-                    <div className="pointer-events-auto max-h-[60%] flex flex-col" style={{ marginLeft: '340px', marginRight: '24px', marginBottom: '24px' }}>
-                        {/* Log area */}
-                        <div className="flex-1 overflow-y-auto bg-gradient-to-t from-gray-900/95 to-gray-900/70 rounded-t-xl p-4 backdrop-blur-sm" style={{ maxHeight: '300px' }}>
-                            {eavesdropLogs.map(log => (
-                                <div key={log.id} className={`mb-2 px-3 py-2 rounded-lg ${log.type === 'eavesdrop_preview' || log.type === 'eavesdrop_listen' ? 'bg-purple-900/30 border-l-2 border-purple-500 italic' : log.type === 'user' ? 'bg-blue-900/30 text-right' : 'bg-gray-800/50'}`}>
-                                    <span className="text-xs text-gray-400 font-bold">{log.speaker}</span>
-                                    <p className="text-sm text-white/90">{log.text}</p>
+                    {/* === Eavesdrop / Intercept Chat UI === */}
+                    {(eavesdropState === 'preview' || eavesdropState === 'choice' || eavesdropState === 'intercepting' || eavesdropState === 'listening' || eavesdropState === 'done') && (
+                        <div className="absolute inset-0 z-30 flex flex-col pointer-events-none">
+                            {/* Eavesdrop Logs */}
+                            <div className="flex-1" />
+                            <div className="pointer-events-auto max-h-[60%] flex flex-col" style={{ marginLeft: '340px', marginRight: '24px', marginBottom: '24px' }}>
+                                {/* Log area */}
+                                <div className="flex-1 overflow-y-auto bg-gradient-to-t from-gray-900/95 to-gray-900/70 rounded-t-xl p-4 backdrop-blur-sm" style={{ maxHeight: '300px' }}>
+                                    {eavesdropLogs.map(log => (
+                                        <div key={log.id} className={`mb-2 px-3 py-2 rounded-lg ${log.type === 'eavesdrop_preview' || log.type === 'eavesdrop_listen' ? 'bg-purple-900/30 border-l-2 border-purple-500 italic' : log.type === 'user' ? 'bg-blue-900/30 text-right' : 'bg-gray-800/50'}`}>
+                                            <span className="text-xs text-gray-400 font-bold">{log.speaker}</span>
+                                            <p className="text-sm text-white/90">{log.text}</p>
+                                        </div>
+                                    ))}
+                                    {isEavesdropThinking && <div className="text-xs text-purple-300 animate-pulse px-3">생각 중...</div>}
                                 </div>
-                            ))}
-                            {isEavesdropThinking && <div className="text-xs text-purple-300 animate-pulse px-3">생각 중...</div>}
+
+                                {/* Dialog Box */}
+                                {eavesdropDialogContent && (
+                                    <div className="bg-black/90 backdrop-blur-sm border-t border-white/20 px-6 py-4 rounded-b-xl">
+                                        <span className="text-xs text-purple-300 font-bold">{eavesdropDialogContent.speaker}</span>
+                                        <p className="text-base text-white/90 mt-1">{eavesdropDialogContent.text}</p>
+                                    </div>
+                                )}
+
+                                {/* Choice Buttons */}
+                                {eavesdropState === 'choice' && (
+                                    <div className="flex gap-3 mt-3">
+                                        <button
+                                            onClick={handleInterceptChoice}
+                                            className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
+                                        </button>
+                                        <button
+                                            onClick={handleListenChoice}
+                                            className="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            👂 엿듣기 계속 ({ACTION_COSTS.eavesdropContinue} HP)
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Intercept Input */}
+                                {eavesdropState === 'intercepting' && (
+                                    <div className="flex gap-2 mt-2 bg-black/80 p-3 rounded-xl">
+                                        <input
+                                            type="text"
+                                            value={eavesdropInputText}
+                                            onChange={(e) => setEavesdropInputText(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
+                                            placeholder={`대화에 끼어들기... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
+                                            className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
+                                            disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={handleInterceptSend}
+                                            disabled={isEavesdropThinking || !eavesdropInputText.trim()}
+                                            className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
+                                        >
+                                            전송
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Listening progress */}
+                                {eavesdropState === 'listening' && (
+                                    <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
+                                        <span className="text-sm text-purple-300">엿듣는 중... ({eavesdropAutoIndex}/10)</span>
+                                    </div>
+                                )}
+
+                                {/* Done */}
+                                {eavesdropState === 'done' && (
+                                    <div className="flex justify-center mt-3">
+                                        <button
+                                            onClick={handleCloseEavesdrop}
+                                            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors"
+                                        >
+                                            닫기
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+                    )}
 
-                        {/* Dialog Box */}
-                        {eavesdropDialogContent && (
-                            <div className="bg-black/90 backdrop-blur-sm border-t border-white/20 px-6 py-4 rounded-b-xl">
-                                <span className="text-xs text-purple-300 font-bold">{eavesdropDialogContent.speaker}</span>
-                                <p className="text-base text-white/90 mt-1">{eavesdropDialogContent.text}</p>
-                            </div>
-                        )}
-
-                        {/* Choice Buttons */}
-                        {eavesdropState === 'choice' && (
-                            <div className="flex gap-3 mt-3">
-                                <button
-                                    onClick={handleInterceptChoice}
-                                    className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                >
-                                    🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
-                                </button>
-                                <button
-                                    onClick={handleListenChoice}
-                                    className="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                >
-                                    👂 엿듣기 계속 ({ACTION_COSTS.eavesdropContinue} HP)
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Intercept Input */}
-                        {eavesdropState === 'intercepting' && (
-                            <div className="flex gap-2 mt-2 bg-black/80 p-3 rounded-xl">
-                                <input
-                                    type="text"
-                                    value={eavesdropInputText}
-                                    onChange={(e) => setEavesdropInputText(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
-                                    placeholder={`대화에 끼어들기... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
-                                    className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
-                                    disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={handleInterceptSend}
-                                    disabled={isEavesdropThinking || !eavesdropInputText.trim()}
-                                    className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
-                                >
-                                    전송
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Listening progress */}
-                        {eavesdropState === 'listening' && (
-                            <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
-                                <span className="text-sm text-purple-300">엿듣는 중... ({eavesdropAutoIndex}/10)</span>
-                            </div>
-                        )}
-
-                        {/* Done */}
-                        {eavesdropState === 'done' && (
-                            <div className="flex justify-center mt-3">
-                                <button
-                                    onClick={handleCloseEavesdrop}
-                                    className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors"
-                                >
-                                    닫기
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* 1:1 Chat end button (when chatting) */}
-            {eavesdropState === 'chatting' && freeChatCount <= 0 && (
-                <div className="absolute bottom-4 right-4 z-30">
-                    <button
-                        onClick={handleEndChat}
-                        className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                    >
-                        대화 종료
-                    </button>
-                </div>
-            )}
-
-            {/* HP Warning Modals for Eavesdrop Actions */}
-            {hpWarningConfig && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className="text-yellow-400 text-lg">⚠️</span>
-                            <span className="text-sm font-bold text-yellow-300">{hpWarningConfig.title}</span>
-                        </div>
-                        <p className="text-sm text-gray-300 mb-1">{hpWarningConfig.desc}</p>
-                        <p className="text-sm text-yellow-300 font-bold mb-4">소모 HP: {hpWarningConfig.cost}</p>
-                        <div className="flex gap-2">
+                    {/* 1:1 Chat end button (when chatting) */}
+                    {eavesdropState === 'chatting' && freeChatCount <= 0 && (
+                        <div className="absolute bottom-4 right-4 z-30">
                             <button
-                                onClick={() => setEavesdropState(null)}
-                                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
+                                onClick={handleEndChat}
+                                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                             >
-                                취소
-                            </button>
-                            <button
-                                onClick={hpWarningConfig.onConfirm}
-                                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
-                            >
-                                확인
+                                대화 종료
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
+                    )}
+
+                    {/* HP Warning Modals for Eavesdrop Actions */}
+                    {hpWarningConfig && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-yellow-400 text-lg">⚠️</span>
+                                    <span className="text-sm font-bold text-yellow-300">{hpWarningConfig.title}</span>
+                                </div>
+                                <p className="text-sm text-gray-300 mb-1">{hpWarningConfig.desc}</p>
+                                <p className="text-sm text-yellow-300 font-bold mb-4">소모 HP: {hpWarningConfig.cost}</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEavesdropState(null)}
+                                        className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
+                                    >
+                                        취소
+                                    </button>
+                                    <button
+                                        onClick={hpWarningConfig.onConfirm}
+                                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
+                                    >
+                                        확인
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </MapContainer>
         </div>
