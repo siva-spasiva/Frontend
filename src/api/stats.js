@@ -1,43 +1,43 @@
 import { apiClient } from './client';
 
-/**
- * 게임의 현재 모든 통계 정보를 가져옵니다.
- */
-export const fetchGameStats = async (userId = 'user_dev_session') => {
-    return apiClient(`/api/stats?userId=${userId}`);
-};
-
-/**
- * 플레이어 또는 특정 NPC의 스탯을 업데이트합니다.
- * @param {object} updates - 변경할 스탯 { key: value }
- * @param {string|null} npcId - NPC ID (선택 사항)
- * @param {string} userId - 사용자 ID (선택)
- */
-export const updateGameStats = async (updates, npcId = null, userId = 'user_dev_session') => {
-    const body = { updates, userId };
-    if (npcId) {
-        body.npcId = npcId;
+const withFallback = async (primary, fallback) => {
+    try {
+        return await primary();
+    } catch (error) {
+        if (!fallback) throw error;
+        return fallback();
     }
-    return apiClient('/api/stats', {
-        method: 'POST',
-        body: JSON.stringify(body),
-    });
 };
 
-/**
- * NPC 데이터, 맵 데이터 등 정적 데이터를 가져옵니다.
- */
+export const fetchGameStats = async (userId = 'user_dev_session') => {
+    return withFallback(
+        () => apiClient('/api/v1/stats', { auth: true }),
+        () => apiClient(`/api/stats?userId=${userId}`),
+    );
+};
+
+export const updateGameStats = async (updates, npcId = null, userId = 'user_dev_session') => {
+    return withFallback(
+        () => apiClient('/api/v1/stats', {
+            method: 'POST',
+            auth: true,
+            body: JSON.stringify({ updates }),
+        }),
+        () => {
+            const body = { updates, userId };
+            if (npcId) body.npcId = npcId;
+            return apiClient('/api/stats', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            });
+        },
+    );
+};
+
 export const fetchStaticGameData = async () => {
     return apiClient('/api/data/static');
 };
 
-/**
- * NPC ↔ Player 간 아이템 전달
- * @param {string} npcId - NPC ID
- * @param {string} itemId - 아이템 ID
- * @param {'fromNpc'|'toNpc'} direction - 전달 방향
- * @param {string} userId - 사용자 ID
- */
 export const transferItem = async (npcId, itemId, direction = 'fromNpc', userId = 'user_dev_session') => {
     return apiClient('/api/stats/transfer-item', {
         method: 'POST',
@@ -45,49 +45,39 @@ export const transferItem = async (npcId, itemId, direction = 'fromNpc', userId 
     });
 };
 
-/**
- * 튜토리얼 완료 상태를 가져옵니다.
- */
 export const fetchTutorialStatus = async (userId = 'user_dev_session') => {
     return apiClient(`/api/tutorial/status?userId=${userId}`);
 };
 
-/**
- * 튜토리얼을 완료 처리합니다.
- */
 export const completeTutorialAPI = async (userId = 'user_dev_session') => {
     return apiClient('/api/tutorial/complete', {
         method: 'POST',
         body: JSON.stringify({ userId }),
     });
 };
-// Actions
+
 export const spendHpBackend = async (amount) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/action/spendHp`, {
+    return withFallback(
+        () => apiClient('/api/v1/stats/hp/spend', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: 'default_user', amount })
-        });
-        if (!response.ok) throw new Error('Failed to spend HP');
-        return await response.json();
-    } catch (error) {
-        console.error("spendHp API Error:", error);
-        throw error;
-    }
+            auth: true,
+            body: JSON.stringify({ hp: amount }),
+        }),
+        () => apiClient('/action/spendHp', {
+            method: 'POST',
+            body: JSON.stringify({ userId: 'default_user', amount }),
+        }),
+    );
 };
 
 export const restBackend = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/action/rest`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: 'default_user' })
-        });
-        if (!response.ok) throw new Error('Failed to rest');
-        return await response.json();
-    } catch (error) {
-        console.error("rest API Error:", error);
-        throw error;
-    }
+    return apiClient('/action/rest', {
+        method: 'POST',
+        body: JSON.stringify({ userId: 'default_user' }),
+    });
 };
+
+export const updateLocationStats = async (floorId, roomId) => {
+    return updateGameStats({ floor_id: floorId, room_id: roomId });
+};
+

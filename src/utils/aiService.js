@@ -17,9 +17,25 @@ export const generateAIResponse = async (userPrompt, config = {}) => {
 
         const data = await sendChatMessage(userPrompt, npcId, userId, presentedItem);
 
-        // data structure: { response, thought, updatedStats, currentStats }
-        console.log("Received data from backend:", data);
+        // v1 response may include hp object instead of updatedStats.
+        if (data?.hp && !data?.updatedStats) {
+            const mappedStats = {
+                hp: data.hp.total_hp,
+                sessionHp: data.hp.session_hp,
+                plusHp: data.hp.plus_hp,
+                currentDay: data.hp.current_day,
+                currentPeriod: data.hp.current_session,
+            };
+            if (data.hp.floor_id !== undefined) mappedStats.floor_id = data.hp.floor_id;
+            if (data.hp.room_id !== undefined) mappedStats.room_id = data.hp.room_id;
 
+            return {
+                ...data,
+                updatedStats: mappedStats,
+            };
+        }
+
+        console.log("Received data from backend:", data);
         return data;
 
     } catch (error) {

@@ -1,32 +1,67 @@
-/**
- * API 기본 설정 및 Fetch Wrapper
- */
+import { ensureAccessToken, refreshAccessToken } from './auth';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 /**
- * 기본 Fetch 함수 래퍼
- * @param {string} endpoint - API 엔드포인트 (예: '/api/stats')
- * @param {object} options - fetch 옵션
- * @returns {Promise<any>} - 파싱된 JSON 응답
+ * Generic API client.
+ * @param {string} endpoint
+ * @param {object} options
+ * @param {boolean} options.auth - add bearer token automatically
+ * @param {boolean} options.retryOnAuthError - retry once on 401 using refresh token
+ * @returns {Promise<any>}
  */
 export const apiClient = async (endpoint, options = {}) => {
+    const {
+        auth = false,
+        retryOnAuthError = true,
+        ...fetchOptions
+    } = options;
+
     const url = `${API_BASE_URL}${endpoint}`;
 
     const defaultHeaders = {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
     };
 
-    const config = {
-        ...options,
+    let authHeaders = {};
+    if (auth) {
+        try {
+            const accessToken = await ensureAccessToken();
+            if (accessToken) {
+                authHeaders = { Authorization: `Bearer ${accessToken}` };
+            }
+        } catch (error) {
+            console.error('Failed to get access token:', error);
+        }
+    }
+
+    const baseConfig = {
+        ...fetchOptions,
         headers: {
             ...defaultHeaders,
-            ...options.headers,
+            ...authHeaders,
+            ...(fetchOptions.headers || {}),
         },
     };
 
     try {
-        const response = await fetch(url, config);
+        let response = await fetch(url, baseConfig);
+
+        if (auth && response.status === 401 && retryOnAuthError) {
+            try {
+                const refreshed = await refreshAccessToken();
+                response = await fetch(url, {
+                    ...baseConfig,
+                    headers: {
+                        ...baseConfig.headers,
+                        Authorization: `Bearer ${refreshed}`,
+                    },
+                });
+            } catch (refreshError) {
+                console.error('Failed to refresh token:', refreshError);
+            }
+        }
 
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
@@ -38,3 +73,4 @@ export const apiClient = async (endpoint, options = {}) => {
         throw error;
     }
 };
+

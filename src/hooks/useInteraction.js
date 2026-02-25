@@ -62,6 +62,7 @@ export const useInteraction = ({
                 setPendingMove({
                     target: zone.target,
                     label: zone.label,
+                    zone,
                 });
 
                 responseText = `[${zone.label}] (으)로 이동하시겠습니까?`;
@@ -205,7 +206,7 @@ export const useInteraction = ({
         setDialogContent({ speaker: 'System', text: '행동을 취소했습니다.', type: 'system' });
     }, []);
 
-    const confirmMove = useCallback(() => {
+    const confirmMove = useCallback(async () => {
         if (pendingMove && onMove) {
             addLog({
                 id: `${Date.now()}_move_confirm`,
@@ -213,7 +214,12 @@ export const useInteraction = ({
                 text: `[${pendingMove.label}] (으)로 이동합니다.`,
                 type: 'system_action',
             });
-            onMove(pendingMove.target);
+            const result = await onMove(pendingMove.target, pendingMove.zone);
+
+            if (result === false) {
+                setPendingMove(null);
+                return;
+            }
             setPendingMove(null);
             setDialogContent(null);
         }
@@ -265,6 +271,7 @@ export const useInteraction = ({
         pendingItem,
         resolveItem,
         pendingRequirement,
+        setPendingRequirement,
         resolveRequirement,
         pendingInfoPopup,
         resolveInfoPopup,
