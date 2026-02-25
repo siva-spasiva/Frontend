@@ -7,10 +7,12 @@ mock-backend 엔드포인트(`/api/...`)에서 실서버 API(`/api/v1/...`)로 �
 | 엔드포인트 | 결과 |
 |---|---|
 | `POST /api/v1/users/login` | ✅ body 없이 호출 → `{ access_token, token_type, refresh_token }` |
-| `GET /api/v1/stats/static` | ✅ `{ fishLevel:0, total_hp:100, session_hp:30, plus_hp:0, current_session:"morning", current_day:0 }` |
-| `GET /api/v1/stats` | ✅ 동일 구조 |
+| `GET /api/v1/stats/static` | ✅ `{ fishLevel:0, total_hp:100, session_hp:30, plus_hp:0, current_session:"morning", current_day:0, floor_id:null, room_id:null }` |
+| `GET /api/v1/stats` | ✅ `{ fishLevel, total_hp, session_hp, plus_hp, current_session, current_session_index, current_day, floor_id, room_id }` |
+| `POST /api/v1/stats` | ✅ `{ updates }`로 `current_day/current_session/floor_id/room_id` 갱신 가능 |
 | `GET /api/v1/inventory` | ✅ `{ user_id, items:[], record_files:[] }` |
 | `GET /api/v1/map/` | ✅ 8개 층 전체 데이터 반환 (2F,1F,B1,B2,B3,B4,DEBUG,B5) — `background`는 파일명만 |
+| `GET /api/v1/map/{floor_id}/room/{room_id}` | ✅ Auth 필요, 응답 형태 `{ room, eavesdrop }` |
 
 ---
 
@@ -136,11 +138,61 @@ login() → fetchStaticStats() → fetchStats() → fetchInventory()
 
 ---
 
+### Phase 5: 액티브 NPC 판정 로직 변경 (신규)
+
+요구사항(2026-02-25 반영):
+1. 게임 시작 시 `current_day` 조회 후 `0`이면 튜토리얼 진입
+2. `current_day >= 1`이면 본편 로직으로 진입하고, 백엔드가 주는 현재 위치(`floor_id`, `room_id`) 기준으로 진행
+3. 플레이어 이동 시 위치를 백엔드에 즉시 반영하고, 해당 방 상세 조회로 NPC 상호작용 상태를 결정
+
+#### [MODIFY] [GameContext.jsx](file:///d:/GitHub/Frontend_sv/src/context/GameContext.jsx)
+
+초기 진입 분기:
+```
+login()
+  -> fetchStaticStats()
+  -> fetchStats()
+      if current_day === 0:
+        tutorial
+      else:
+        mainGame
+```
+
+- `stats` 응답의 `floor_id`, `room_id`를 `currentLocationInfo` 초기값으로 사용
+- 튜토리얼 완료 시점에 `current_day`를 `1` 이상으로 확정 저장
+
+#### [MODIFY] [MainGameScene.jsx](file:///d:/GitHub/Frontend_sv/src/scenes/MainGameScene.jsx)
+
+이동/판정 흐름:
+```
+onMove(targetFloorId, targetRoomId)
+  -> POST /api/v1/stats { updates: { floor_id, room_id } }
+  -> GET  /api/v1/map/{floor_id}/room/{room_id}
+  -> 응답 기반 버튼 활성화
+```
+
+버튼 활성화 규칙:
+- `room.eavesdrop` 가능(2인 이상 대화 맥락 존재) → `미리듣기/끼어들기` 활성화
+- `room.eavesdrop` 없음 + 단일 NPC 응답 필드 존재 시(백엔드 확장 필드) → `대화하기` 활성화
+- 둘 다 없으면 NPC 상호작용 버튼 비활성화
+
+#### API 확인 메모
+
+- OpenAPI 상 `GET /api/v1/map/{floor_id}/room/{room_id}` 설명은 day/session 기반 NPC 판정을 암시
+- 실제 응답은 현재 `{ room, eavesdrop }` 형태를 반환함
+- 따라서 단일 NPC 직접 식별 필드(`single_npc` 등)가 없다면:
+  - 단기: 기존 프론트 스케줄 fallback 유지 (feature flag)
+  - 중기: 백엔드에 `single_npc` 또는 `npc_ids` 명시 필드 추가 요청
+
+---
+
 ## Verification Plan
 
 1. `GET /api/v1/health` 200 OK 확인
 2. 앱 시작 → 콘솔에서 로그인 토큰 발급 확인
-3. 초기 데이터(stats/inventory/로컬 맵) 로딩 확인
-4. 맵 렌더링 및 상호작용 정상 동작
-5. NPC 대화 `POST /api/v1/chat` 정상 응답
-6. HP 소모 `POST /api/v1/stats/hp/spend` 정상 동작
+3. 앱 시작 분기 확인: `current_day=0`이면 Tutorial, `>=1`이면 MainGame
+4. 초기 데이터(stats/inventory/맵) 로딩 + `floor_id/room_id` 초기 위치 반영 확인
+5. 이동 시 `POST /api/v1/stats`로 위치 갱신되는지 확인
+6. 이동 직후 `GET /api/v1/map/{floor_id}/room/{room_id}` 응답으로 버튼 상태(대화/미리듣기/끼어들기) 전환 확인
+7. NPC 대화 `POST /api/v1/chat` 정상 응답
+8. HP 소모 `POST /api/v1/stats/hp/spend` 정상 동작
