@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
-import { generateAIResponse } from '../utils/aiService';
 import IntroSequence from './IntroSequence';
 import GameStartSequence from './GameStartSequence';
 import ItemPickupModal from '../components/ItemPickupModal';
@@ -22,7 +21,7 @@ const TutorialScene = ({ onComplete }) => {
     const [step, setStep] = useState('intro');
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
-        completeTutorial, mapData, npcData, spendHp,
+        completeTutorial, mapData, npcData,
         inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField
     } = useGame();
 
@@ -53,14 +52,12 @@ const TutorialScene = ({ onComplete }) => {
     // Ingame menu state (left HUD button)
     const [isMenuEnabled, setIsMenuEnabled] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
-    const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
     // === AI Chat State (for npc_chatting step) ===
     const [chatLogs, setChatLogs] = useState([]);
     const [chatDialogContent, setChatDialogContent] = useState(null);
     const [chatInputText, setChatInputText] = useState('');
     const [isChatThinking, setIsChatThinking] = useState(false);
-    const [chatTurnCount, setChatTurnCount] = useState(0);
     const MAX_CHAT_TURNS = 10;
     const [showNpcChatHpWarning, setShowNpcChatHpWarning] = useState(false);
     const [chatViewMode, setChatViewMode] = useState('mini');
@@ -242,10 +239,6 @@ const TutorialScene = ({ onComplete }) => {
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         setIsSidebarPanelOpen(!!panelState?.isOpen);
-    }, []);
-
-    const handleSidebarVisibleChange = useCallback((visible) => {
-        setIsSidebarVisible(visible);
     }, []);
 
     const blockMoveByBingeo = () => {
@@ -473,7 +466,6 @@ const TutorialScene = ({ onComplete }) => {
             text: '잘 왔어. 음료는 챙겼지? 이것저것 물어볼 게 있으면 말해봐.',
             type: 'active_npc'
         });
-        setChatTurnCount(0);
         setChatViewMode('mini');
     };
 
@@ -635,7 +627,6 @@ const TutorialScene = ({ onComplete }) => {
                     inventoryUseDisabled={disableItemUseInInventory}
                     inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                     onPanelStateChange={handleSidebarPanelStateChange}
-                    onSidebarVisibleChange={handleSidebarVisibleChange}
                 />
             )}
 
