@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
-import { generateAIResponse } from '../utils/aiService';
+import { sendChatMessage } from '../api/chat';
 import { fetchRoom } from '../api/map';
 import { startConversation, replyConversation, eavesdropMore } from '../api/chat';
 import { updateLocationStats } from '../api/stats';
@@ -68,7 +68,7 @@ const MainGameScene = () => {
     const [inputText, setInputText] = useState('');
 
     // GameContext?먯꽌 ?꾩옱 吏꾪뻾 ?곹깭瑜?諛쏆븘??(?쒗넗由ъ뼹 ?꾨즺 ???ㅼ젙???꾩튂 ??
-    const { syncStats, npcData, mapData, floorData, scheduleData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+    const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     // Active Room State - Context?먯꽌 珥덇린 ?꾩튂瑜?諛쏆븘???쒖옉
     const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
@@ -77,6 +77,7 @@ const MainGameScene = () => {
     const [roomTopic, setRoomTopic] = useState(null);
     const [roomSingleNpc, setRoomSingleNpc] = useState(null);
     const [roomPayload, setRoomPayload] = useState(null);
+    const [pendingEavesdropTarget, setPendingEavesdropTarget] = useState(null); // { floorId, roomId, payload }
     const [eavesdropNpcIds, setEavesdropNpcIds] = useState([]);
     const [eavesdropTopic, setEavesdropTopic] = useState(null);
     const [eavesdropHistory, setEavesdropHistory] = useState([]);
@@ -233,10 +234,29 @@ const MainGameScene = () => {
         }
     };
 
+    // === executeMove: 실제 이동 로직 (위치 갱신 + room payload 적용) ===
+    async function executeMove(targetId, targetFloorId, targetRoomPayload) {
+        setCurrentRoomId(targetId);
+        setCurrentLocationInfo({ floorId: targetFloorId, roomId: targetId });
+
+        try {
+            await updateLocationStats(targetFloorId, targetId);
+        } catch (error) {
+            console.warn('Failed to sync location stats:', error);
+        }
+
+        if (targetRoomPayload) {
+            applyRoomPayload(targetRoomPayload);
+        } else {
+            applyRoomPayload(null);
+        }
+    }
+
+    // === handleMove: 이동 요청 처리 (엿듣기 분기 포함) ===
     async function handleMove(targetId, moveZone = null) {
         const targetFloorId = findFloorIdByRoom(targetId);
         if (!targetFloorId) {
-            setDialogContent({ speaker: 'System', text: '?대룞?????녿뒗 ?꾩튂??', type: 'system' });
+            setDialogContent({ speaker: 'System', text: '이동할 수 없는 위치입니다.', type: 'system' });
             return false;
         }
 
@@ -252,71 +272,36 @@ const MainGameScene = () => {
             setPendingRequirement(requirement);
             setDialogContent({
                 speaker: 'System',
-                text: requirement.message || '?좉꺼?덈떎.',
+                text: requirement.message || '잠겼습니다.',
                 type: 'system',
             });
             return false;
         }
 
-        setCurrentRoomId(targetId);
-        setCurrentLocationInfo({
-            floorId: targetFloorId,
-            roomId: targetId,
-        });
+        // 클릭 조회 = 1HP (프론트가 전달)
+        if (spendHp) spendHp(ACTION_COSTS.move || 1);
 
-        try {
-            await updateLocationStats(targetFloorId, targetId);
-        } catch (error) {
-            console.warn('Failed to sync location stats:', error);
-        }
-
-        if (!targetRoomPayload) {
-            try {
-                targetRoomPayload = await fetchRoom(targetFloorId, targetId);
-            } catch (error) {
-                console.warn('Room fetch failed after move:', error);
-            }
-        }
-
-        if (targetRoomPayload) {
+        // NPC 2명 이상 → 이동 보류, 방 밖에서 엿듣기 프리뷰
+        const npcs = normalizeNpcIds(targetRoomPayload);
+        if (npcs.length >= 2) {
+            setPendingEavesdropTarget({ floorId: targetFloorId, roomId: targetId, payload: targetRoomPayload });
+            // room payload를 임시 적용 (버튼 표시용, 위치는 변경 안 함)
             applyRoomPayload(targetRoomPayload);
-            const npcs = normalizeNpcIds(targetRoomPayload);
-            if (npcs.length >= 2) {
-                await openEavesdropPreview(targetRoomPayload, npcs);
-            }
-        } else {
-            applyRoomPayload(null);
+            await openEavesdropPreview(targetRoomPayload, npcs);
+            return true; // 이동은 나중에 (끼어들기 시)
         }
 
+        // NPC 0~1명 → 바로 이동
+        await executeMove(targetId, targetFloorId, targetRoomPayload);
         return true;
     }
 
     // Active NPC State - Prefer backend room payload, fallback to local schedule
     const [activeNpc, setActiveNpc] = useState(null);
-    const scheduledNpcIds = React.useMemo(() => {
-        if (!scheduleData || !currentRoomId) return [];
-
-        const ids = [];
-        for (const npcId in scheduleData) {
-            const npcSchedule = scheduleData[npcId];
-            if (!npcSchedule) continue;
-            const daySchedule = npcSchedule[currentDay] ?? npcSchedule.default;
-            if (!daySchedule) continue;
-
-            if (daySchedule[currentPeriod] === currentRoomId) {
-                ids.push(npcId);
-            }
-        }
-
-        return ids;
-    }, [scheduleData, currentRoomId, currentDay, currentPeriod]);
 
     const npcsInRoom = React.useMemo(() => {
-        if (roomApiNpcIds.length > 0) {
-            return roomApiNpcIds;
-        }
-        return scheduledNpcIds;
-    }, [roomApiNpcIds, scheduledNpcIds]);
+        return roomApiNpcIds;
+    }, [roomApiNpcIds]);
 
     const [isThinking, setIsThinking] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
@@ -326,7 +311,7 @@ const MainGameScene = () => {
     const [freeChatCount, setFreeChatCount] = useState(0);
 
     // === Eavesdrop / Intercept System ===
-    // eavesdropState: null | 'hp_warning_chat' | 'chatting' | 'hp_warning_eavesdrop' | 'preview' | 'choice' | 'hp_warning_intercept' | 'intercepting' | 'hp_warning_listen' | 'listening' | 'done'
+    // eavesdropState: null | 'hp_warning_chat' | 'chatting' | 'preview' | 'choice' | 'intercepting' | 'listening' | 'done'
     const [eavesdropState, setEavesdropState] = useState(null);
     const [eavesdropLogs, setEavesdropLogs] = useState([]);
     const [eavesdropDialogContent, setEavesdropDialogContent] = useState(null);
@@ -416,25 +401,17 @@ const MainGameScene = () => {
     const handleSend = async () => {
         if (!inputText.trim()) return;
 
-        // Check HP Cost
-        if (freeChatCount === 0) {
-            if (spendHp && ACTION_COSTS) {
-                const ok = spendHp(ACTION_COSTS.npcChat);
-                if (!ok) {
-                    setDialogContent({
-                        speaker: 'System',
-                        text: '泥대젰??遺議깊븯??留먯쓣 嫄????녿떎...',
-                        type: 'system'
-                    });
-                    return;
-                }
-                // Paid! Give 10 free chats for the ensuing conversation
-                setFreeChatCount(10);
-            }
-        } else {
-            // Use one free chat
-            setFreeChatCount(prev => prev - 1);
+        // HP 차감은 백엔드 chat API에서 자동 처리
+        // freeChatCount는 handleConfirmStartChat에서 설정됨 (세션 턴 카운트)
+        if (freeChatCount <= 0) {
+            setDialogContent({
+                speaker: 'System',
+                text: '대화 세션이 종료되었습니다.',
+                type: 'system'
+            });
+            return;
         }
+        setFreeChatCount(prev => prev - 1);
 
         const userMsg = inputText;
         setInputText(''); // Clear input
@@ -489,20 +466,26 @@ const MainGameScene = () => {
                 return;
             }
 
-            const data = await generateAIResponse(userMsg, {
-                npcId: targetNpc.id,
-                presentedItem: presentedItem || undefined,
-            });
+            const data = await sendChatMessage(
+                userMsg,
+                targetNpc.id,
+                undefined,
+                presentedItem || null,
+            );
+
+            // 백엔드 응답에서 대화 텍스트 추출
+            const responseText = data.response || data.message || data.reply || JSON.stringify(data);
 
             setDialogContent({
                 speaker: targetNpc.name,
-                text: data.response,
+                text: responseText,
                 type: 'active_npc'
             });
 
-            // Update Stats locally since backend already processed it
-            if (data.updatedStats) {
-                syncStats(data.updatedStats);
+            // 백엔드가 반환한 stats로 로컬 동기화 (HP 등)
+            const updatedStats = data.updatedStats || data.hp || data.stats;
+            if (updatedStats) {
+                syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
             }
 
             // Clear presented item after it's been sent with the message
@@ -566,19 +549,14 @@ const MainGameScene = () => {
         setEavesdropState('hp_warning_chat');
     };
 
-    const handleConfirmStartChat = async () => {
+    const handleConfirmStartChat = () => {
+        // HP 차감은 백엔드 chat API에서 자동 처리 (프론트 spendHp 제거)
         setEavesdropState(null);
-        const ok = await spendHp(ACTION_COSTS.npcChat);
-        if (!ok) {
-            setDialogContent({ speaker: 'System', text: '泥대젰??遺議깊븯??留먯쓣 嫄????녿떎...', type: 'system' });
-            if (viewMode === 'hidden') setViewMode('mini');
-            return;
-        }
         setFreeChatCount(MAX_INTERCEPT_TURNS);
         setEavesdropState('chatting');
         setDialogContent({
             speaker: activeNpc.name,
-            text: '臾댁뒯 ?쇱씠??',
+            text: '무슨 일이야?',
             type: 'active_npc'
         });
         if (viewMode === 'hidden') setViewMode('mini');
@@ -601,20 +579,24 @@ const MainGameScene = () => {
         );
     };
 
-    const handleConfirmEavesdrop = handleEavesdropClick;
 
-    const handleInterceptChoice = () => {
+    const handleInterceptChoice = async () => {
+        // 끼어들기: 방 입장 후 3인 대화 시작 (이동 HP 추가 차감 없음)
+        if (pendingEavesdropTarget) {
+            const { floorId, roomId, payload } = pendingEavesdropTarget;
+            await executeMove(roomId, floorId, payload);
+            setPendingEavesdropTarget(null);
+        }
         setEavesdropState('intercepting');
         setInterceptTurnCount(0);
         setEavesdropDialogContent({
             speaker: 'System',
-            text: '??? ?????. ?? ????.',
+            text: '대화에 끼어들었습니다. 대화를 시작하세요.',
             type: 'system'
         });
         if (viewMode === 'hidden') setViewMode('mini');
     };
 
-    const handleConfirmIntercept = handleInterceptChoice;
 
     const handleInterceptSend = async () => {
         if (!eavesdropInputText.trim() || isEavesdropThinking) return;
@@ -751,21 +733,12 @@ const MainGameScene = () => {
         setIsEavesdropThinking(false);
         setEavesdropHistory((prev) => [...prev, turn]);
 
-        eavesdropAutoRef.current = setTimeout(() => {
-            runAutoEavesdrop(index + 1, updatedLogs, pendingTurns, activeNpcIds);
-        }, 1200);
-    };
-
-    // End eavesdrop session
-    const handleCloseEavesdrop = () => {
-        setEavesdropState(null);
-        setEavesdropLogs([]);
-        setEavesdropDialogContent(null);
-        setInterceptTurnCount(0);
-        if (eavesdropAutoRef.current) {
-            clearTimeout(eavesdropAutoRef.current);
-            eavesdropAutoRef.current = null;
-        }
+    // 떠나기: 엿듣기 세션 종료, 이동 취소 (방 밖 유지)
+    const handleLeaveEavesdrop = () => {
+        handleCloseEavesdrop();
+        setPendingEavesdropTarget(null);
+        // room payload 초기화 (원래 방 상태로)
+        applyRoomPayload(null);
     };
 
     // End 1:1 chat session
@@ -773,7 +746,7 @@ const MainGameScene = () => {
         if (activeNpc) markNpcChatCompleted(activeNpc.id);
         setFreeChatCount(0);
         setEavesdropState(null);
-        setDialogContent({ speaker: 'System', text: '??붽? 醫낅즺?섏뿀?듬땲??', type: 'system' });
+        setDialogContent({ speaker: 'System', text: '대화가 종료되었습니다.', type: 'system' });
     };
 
     // HP Warning modal helper
@@ -837,6 +810,12 @@ const MainGameScene = () => {
                                 ?뮠 {activeNpc?.name}? ??뷀븯湲?
                                 <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
+                                        <button
+                                            onClick={handleLeaveEavesdrop}
+                                            className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            떠나기
+                                        </button>
 
                             {/* NPC ?꾪솚 */}
                             {npcsInRoom.length > 1 && (

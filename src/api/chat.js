@@ -86,3 +86,15 @@ export const eavesdropMore = async ({ dayIndex, sessionIndex, roomId }) => {
     });
 };
 
+export const endSession = async ({ dayIndex, sessionIndex, npcId = null }) => {
+    return apiClient('/api/v1/end-session', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({
+            day_index: dayIndex,
+            session_index: sessionIndex,
+            npc_id: npcId,
+        }),
+    });
+};
+

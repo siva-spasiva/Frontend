@@ -1,198 +1,73 @@
-# 실 백엔드 API 연동 리팩토링
+# 엿듣기 로직 재설계
 
-mock-backend 엔드포인트(`/api/...`)에서 실서버 API(`/api/v1/...`)로 전환합니다.
+## 문제
 
-## 실서버 API 직접 검증 결과
+현재 엿듣기가 **방 입장 후** 발동됨. 올바른 흐름은 **방 밖에서** 엿듣기가 발동되어야 함.
 
-| 엔드포인트 | 결과 |
-|---|---|
-| `POST /api/v1/users/login` | ✅ body 없이 호출 → `{ access_token, token_type, refresh_token }` |
-| `GET /api/v1/stats/static` | ✅ `{ fishLevel:0, total_hp:100, session_hp:30, plus_hp:0, current_session:"morning", current_day:0, floor_id:null, room_id:null }` |
-| `GET /api/v1/stats` | ✅ `{ fishLevel, total_hp, session_hp, plus_hp, current_session, current_session_index, current_day, floor_id, room_id }` |
-| `POST /api/v1/stats` | ✅ `{ updates }`로 `current_day/current_session/floor_id/room_id` 갱신 가능 |
-| `GET /api/v1/inventory` | ✅ `{ user_id, items:[], record_files:[] }` |
-| `GET /api/v1/map/` | ✅ 8개 층 전체 데이터 반환 (2F,1F,B1,B2,B3,B4,DEBUG,B5) — `background`는 파일명만 |
-| `GET /api/v1/map/{floor_id}/room/{room_id}` | ✅ Auth 필요, 응답 형태 `{ room, eavesdrop }` |
+## HP 소모 규칙
 
----
+| 행동                       | HP    | 처리 주체                      | 비고                                                     |
+| -------------------------- | ----- | ------------------------------ | -------------------------------------------------------- |
+| 클릭 조회 (move/item/info) | 1     | **프론트**가 [spendHp(1)](file:///d:/Github/Frontend/src/context/GameContext.jsx#392-431) 전달 | 모든 인터랙션 클릭                                       |
+| 1:1 대화                   | 10    | **백엔드** chat API가 차감     | 프론트는 사전 알림만                                     |
+| 엿듣기/끼어들기            | 1~10  | **백엔드** chat API가 차감     |                                                          |
+| 끼어들기로 방 입장         | **0** | —                              | 엿듣기에서 이미 1HP 소모했으므로 이동 HP 중복 차감 안 함 |
 
-## Proposed Changes
+## 올바른 흐름
 
-### Phase 1: 인증 인프라
-
-#### [NEW] [.env](file:///d:/GitHub/Frontend_sv/.env)
-```
-VITE_API_BASE_URL=https://unrescinded-recreatively-joselyn.ngrok-free.dev
-```
-
-#### [MODIFY] [client.js](file:///d:/GitHub/Frontend_sv/src/api/client.js)
-- Bearer 토큰 자동 주입 + `ngrok-skip-browser-warning` 헤더
-- **401 시 자동 refresh + 재시도** (1회)
-- 토큰: `auth.js`의 `getAccessToken()`에서 가져옴
-
-#### [NEW] [auth.js](file:///d:/GitHub/Frontend_sv/src/api/auth.js)
-- `login()` → `POST /api/v1/users/login` (body 없음)
-- `refreshToken()` → `POST /api/v1/users/refresh`
-- 토큰 저장: `sessionStorage`
-- `getAccessToken()` / `getRefreshToken()` / `setTokens()` / `clearTokens()`
-
----
-
-### Phase 2: API 어댑터 교체
-
-#### [MODIFY] [stats.js](file:///d:/GitHub/Frontend_sv/src/api/stats.js)
-
-```diff
-- fetchGameStats()      → GET /api/stats
-+ fetchGameStats()      → GET /api/v1/stats
-
-- fetchStaticGameData() → GET /api/data/static
-+ fetchStaticStats()    → GET /api/v1/stats/static
-
-- spendHpBackend(amount)  → POST /action/spendHp  { userId, amount }
-+ spendHpAPI(hp)          → POST /api/v1/stats/hp/spend  { hp }
-  응답: { success, total_hp, session_hp, plus_hp, current_session, current_day, session_depleted }
-
-- updateGameStats()     → POST /api/stats
-+ updateStats(updates)  → POST /api/v1/stats  { updates }
-
-  [DELETE] restBackend, fetchTutorialStatus, completeTutorialAPI, transferItem
+```mermaid
+flowchart TD
+    A["플레이어가 move 오브젝트 클릭"] --> B["fetchRoom(targetFloorId, targetRoomId)"]
+    B --> C{NPC 2명 이상?}
+    C -- 아니오 --> D["일반 이동 (방 입장)"]
+    C -- 예 --> E["엿듣기 프리뷰 자동 재생\n(방 밖에서, 위치 이동 없음)"]
+    E --> F{선택}
+    F -- "끼어들기" --> G["실제 방 입장\n+ 3인 대화 (나,A,B x 10턴)"]
+    F -- "계속 엿듣기" --> H["방 밖 유지\n+ A,B,A,B... x 10회"]
+    F -- "떠나기" --> I["이동 취소, 원래 위치 유지"]
 ```
 
-#### [MODIFY] [chat.js](file:///d:/GitHub/Frontend_sv/src/api/chat.js)
-```diff
-- sendChatMessage(message, npcId, userId, presentedItem) → POST /api/chat
-+ sendChatMessage(message, npcId, itemId?)               → POST /api/v1/chat  { message, npcId, item_id? }
+## 핵심 변경
+
+### handleMove 수정
+
+**현재**: fetchRoom → 이동 → applyRoomPayload → 2인 이상이면 엿듣기  
+**변경**: fetchRoom → **2인 이상이면 이동 보류 + 엿듣기 프리뷰** → 선택에 따라 이동/유지
+
 ```
-신규 함수 추가:
-- `startConversation(npcIds, topic?, numTurns?)` → `POST /api/v1/conversation/start` (엿듣기 프리뷰)
-- `replyConversation(topic, npcIds, userMessage, history?)` → `POST /api/v1/conversation/reply` (끼어들기)
-- `endSession(dayIndex, sessionIndex, npcId?)` → `POST /api/v1/end-session`
-
-#### [NEW] [inventory.js](file:///d:/GitHub/Frontend_sv/src/api/inventory.js)
-- `fetchInventory()` → `GET /api/v1/inventory`
-- `addItemAPI(itemId)` → `POST /api/v1/inventory/add { item_id }`
-- `useItemAPI(itemId)` → `POST /api/v1/inventory/use { item_id }`
-- `exploreZone(floorId, roomId, activeZoneId)` → `POST /api/v1/inventory/explore`
-
----
-
-### Phase 3: 정적 데이터 — 서버/로컬 혼합 전략
-
-**서버에서 조회 (API 존재):**
-
-#### [NEW] [api/map.js](file:///d:/GitHub/Frontend_sv/src/api/map.js)
-- `fetchAllMaps()` → `GET /api/v1/map/` → 전체 층/방/activeZone 데이터
-- 응답의 `background` 필드는 파일명만 → 프론트에서 `url(/src/assets/map/...)` resolve
-- `fetchRoom(floorId, roomId)` → `GET /api/v1/map/{floor_id}/room/{room_id}` (방 방문 시 NPC 미리듣기)
-
-**프론트 로컬 유지 (서버 엔드포인트 없음):**
-
-#### [NEW] [data/npcData.js](file:///d:/GitHub/Frontend_sv/src/data/npcData.js)
-- [mock-backend/src/data/gameData.js](file:///d:/GitHub/Frontend_sv/mock-backend/src/data/gameData.js)에서 NPC_DATA 추출 (prompts/apiConfig 제거, 포트레이트 정보만)
-- 포트레이트 경로를 프론트 `src/assets/portrait/` 기준으로 resolve
-
-#### [NEW] [data/npcSchedule.js](file:///d:/GitHub/Frontend_sv/src/data/npcSchedule.js)
-- `mock-backend/src/data/npcSchedule.js`의 NPC_SCHEDULE 그대로 이전
-
-#### [NEW] [data/items.js](file:///d:/GitHub/Frontend_sv/src/data/items.js)
-- `mock-backend/src/data/items.js`의 `ITEM_DEFINITIONS` 그대로 이전
-- 아이콘/consumable/effect 등 프론트 렌더링에 필요한 정보 보존
-- 서버 inventory API가 `ItemDetail` 반환 시 서버 데이터 우선 사용으로 전환 가능
-
----
-
-### Phase 4: GameContext & MainGameScene 리팩토링
-
-#### [MODIFY] [GameContext.jsx](file:///d:/GitHub/Frontend_sv/src/context/GameContext.jsx)
-
-**초기화 흐름:**
-```
-login() → fetchStaticStats() → fetchStats() → fetchInventory()
-                                                + 로컬 정적 데이터 로드(npc/map/schedule/items)
+handleMove(targetId):
+  1. fetchRoom(floorId, targetId)
+  2. 요구사항 체크 (열쇠 등)
+  3. spendHp(1)  ← 이동 클릭 = 1HP (프론트 전달)
+  4. NPC 2명 이상?
+     YES → 이동 보류
+           → pendingMoveTarget = { floorId, roomId, payload } 저장
+           → openEavesdropPreview (방 밖)
+           → return (실제 이동은 나중에)
+     NO  → executeMove() 바로 실행
 ```
 
-**주요 변경:**
-- `initGame()`에 `login()` 호출 추가
-- `fetchStaticData()` → 로컬 `data/` 모듈에서 import (서버 미제공)
-- `spendHp()` → `spendHpAPI()` 호출, 응답 매핑 변경
-- `addItem()` / `useItem()` → 서버 inventory API 연동
-- 튜토리얼 관련 API 함수 제거
+### 엿듣기 선택 분기
 
-**스탯 매핑:**
+| 선택        | 위치 변경      | HP 추가 | 동작                                                           |
+| ----------- | -------------- | ------- | -------------------------------------------------------------- |
+| 끼어들기    | **방 입장**    | **0** (중복 방지) | `executeMove()` 후 3인 대화 (나,A,B) 10턴 |
+| 계속 엿듣기 | **방 밖 유지** | 백엔드 처리 | A,B,A,B... 10회                                      |
+| 떠나기      | **방 밖 유지** | 0 | pendingMoveTarget 클리어                                  |
 
-| 서버 필드 | 프론트 stats 필드 | 비고 |
-|---|---|---|
-| `total_hp` | `hp` | 기존 hp 대체 |
-| `session_hp` | `sessionHp` | 신규 |
-| `plus_hp` | `plusHp` | 동일 |
-| `current_session` | `currentPeriod` | "morning" 등 |
-| `current_day` | `currentDay` | 동일 |
-| `fishLevel` | `fishLevel` | 동일 |
+### 파일 변경
 
-#### [MODIFY] [MainGameScene.jsx](file:///d:/GitHub/Frontend_sv/src/scenes/MainGameScene.jsx)
-- `generateAIResponse()` → `sendChatMessage()` 직접 호출로 단순화
-- 엿듣기 → `startConversation()` API 활용
-- 끼어들기 → `replyConversation()` API 활용
-- 대화/엿듣기 종료 → `endSession()` API 호출
+#### [MODIFY] [MainGameScene.jsx](file:///d:/Github/Frontend/src/scenes/MainGameScene.jsx)
 
----
+1. **[handleMove](file:///d:/Github/Frontend/src/scenes/MainGameScene.jsx#236-293) 수정** — NPC 2인 이상 시 이동 보류, `pendingEavesdropTarget` 저장
+2. **`executeMove` 신규** — 실제 이동 로직을 분리 (위치 갱신 + applyRoomPayload)
+3. **[handleInterceptChoice](file:///d:/Github/Frontend/src/scenes/MainGameScene.jsx#598-608) 수정** — `executeMove` 호출 후 3인 대화 시작
+4. **[handleListenChoice](file:///d:/Github/Frontend/src/scenes/MainGameScene.jsx#687-690) 수정** — 위치 이동 없이 A,B 대화 계속
+5. **엿듣기 UI에 "떠나기" 버튼 추가**
+6. **`scheduledNpcIds` useMemo 제거** — 서버 API 전용으로 전환
 
-### Phase 5: 액티브 NPC 판정 로직 변경 (신규)
+## 검증
 
-요구사항(2026-02-25 반영):
-1. 게임 시작 시 `current_day` 조회 후 `0`이면 튜토리얼 진입
-2. `current_day >= 1`이면 본편 로직으로 진입하고, 백엔드가 주는 현재 위치(`floor_id`, `room_id`) 기준으로 진행
-3. 플레이어 이동 시 위치를 백엔드에 즉시 반영하고, 해당 방 상세 조회로 NPC 상호작용 상태를 결정
-
-#### [MODIFY] [GameContext.jsx](file:///d:/GitHub/Frontend_sv/src/context/GameContext.jsx)
-
-초기 진입 분기:
-```
-login()
-  -> fetchStaticStats()
-  -> fetchStats()
-      if current_day === 0:
-        tutorial
-      else:
-        mainGame
-```
-
-- `stats` 응답의 `floor_id`, `room_id`를 `currentLocationInfo` 초기값으로 사용
-- 튜토리얼 완료 시점에 `current_day`를 `1` 이상으로 확정 저장
-
-#### [MODIFY] [MainGameScene.jsx](file:///d:/GitHub/Frontend_sv/src/scenes/MainGameScene.jsx)
-
-이동/판정 흐름:
-```
-onMove(targetFloorId, targetRoomId)
-  -> POST /api/v1/stats { updates: { floor_id, room_id } }
-  -> GET  /api/v1/map/{floor_id}/room/{room_id}
-  -> 응답 기반 버튼 활성화
-```
-
-버튼 활성화 규칙:
-- `room.eavesdrop` 가능(2인 이상 대화 맥락 존재) → `미리듣기/끼어들기` 활성화
-- `room.eavesdrop` 없음 + 단일 NPC 응답 필드 존재 시(백엔드 확장 필드) → `대화하기` 활성화
-- 둘 다 없으면 NPC 상호작용 버튼 비활성화
-
-#### API 확인 메모
-
-- OpenAPI 상 `GET /api/v1/map/{floor_id}/room/{room_id}` 설명은 day/session 기반 NPC 판정을 암시
-- 실제 응답은 현재 `{ room, eavesdrop }` 형태를 반환함
-- 따라서 단일 NPC 직접 식별 필드(`single_npc` 등)가 없다면:
-  - 단기: 기존 프론트 스케줄 fallback 유지 (feature flag)
-  - 중기: 백엔드에 `single_npc` 또는 `npc_ids` 명시 필드 추가 요청
-
----
-
-## Verification Plan
-
-1. `GET /api/v1/health` 200 OK 확인
-2. 앱 시작 → 콘솔에서 로그인 토큰 발급 확인
-3. 앱 시작 분기 확인: `current_day=0`이면 Tutorial, `>=1`이면 MainGame
-4. 초기 데이터(stats/inventory/맵) 로딩 + `floor_id/room_id` 초기 위치 반영 확인
-5. 이동 시 `POST /api/v1/stats`로 위치 갱신되는지 확인
-6. 이동 직후 `GET /api/v1/map/{floor_id}/room/{room_id}` 응답으로 버튼 상태(대화/미리듣기/끼어들기) 전환 확인
-7. NPC 대화 `POST /api/v1/chat` 정상 응답
-8. HP 소모 `POST /api/v1/stats/hp/spend` 정상 동작
+- Build 성공 확인
+- 2인 NPC 방 이동 시: 엿듣기 프리뷰 → 끼어들기/계속/떠나기 흐름
+- 1인/0인 NPC 방: 일반 이동

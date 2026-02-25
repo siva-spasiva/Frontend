@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, fetchStaticGameData, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend } from '../api/stats';
+import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend } from '../api/stats';
+import { login as apiLogin } from '../api/auth';
+import { fetchAllMaps } from '../api/map';
+import { fetchInventory } from '../api/inventory';
+import NPC_DATA from '../data/npcData';
+import NPC_SCHEDULE from '../data/npcSchedule';
+import { ITEM_DEFINITIONS } from '../data/items';
 
 // Fish Level Tier 유틸리티
 const getFishTier = (fishLevel) => {
@@ -81,9 +87,21 @@ export const GameProvider = ({ children }) => {
     // Fetch Initial Stats and Data
     useEffect(() => {
         const initGame = async () => {
-            const [statsRes, dataRes, tutorialRes] = await Promise.all([
-                fetchStats(), 
-                fetchStaticData(),
+            // 1. 로그인 (토큰 발급)
+            try {
+                await apiLogin();
+                console.log('[Init] Login successful');
+            } catch (err) {
+                console.warn('[Init] Login failed, will retry on API calls:', err);
+            }
+
+            // 2. 로컬 정적 데이터 로드 (서버 미제공)
+            loadLocalStaticData();
+
+            // 3. 서버 데이터 fetch (stats + 맵 + 인벤토리 + 튜토리얼)
+            const [, , tutorialRes] = await Promise.all([
+                fetchStats(),
+                fetchMapData(),
                 fetchTutorialStatus().catch(() => ({ isCompleted: false }))
             ]);
             if (tutorialRes && tutorialRes.isCompleted !== undefined) {
@@ -141,22 +159,82 @@ export const GameProvider = ({ children }) => {
         prevFishTierRef.current = currentTier;
     }, [stats.fishLevel]);
 
+    /**
+     * 서버 stats → 프론트 stats 매핑
+     */
+    const mapServerStats = (data) => {
+        return {
+            fishLevel: data.fishLevel ?? data.fish_level ?? 0,
+            umiLevel: data.umiLevel ?? data.umi_level ?? 0,
+            hp: data.total_hp ?? data.hp ?? 100,
+            sessionHp: data.session_hp ?? 30,
+            plusHp: data.plus_hp ?? data.plusHp ?? 0,
+            trust: data.trust ?? 10,
+            currentDay: data.current_day ?? data.currentDay ?? 0,
+            currentPeriod: data.current_session ?? data.currentPeriod ?? 'morning',
+            npcStats: data.npcStats ?? {},
+            inventory: data.inventory ?? ['smartphone', 'id_card', 'police_badge'],
+            floorId: data.floor_id ?? null,
+            roomId: data.room_id ?? null,
+        };
+    };
+
     const fetchStats = async () => {
         try {
             const data = await fetchGameStats();
-            console.log("Fetched Stats:", data);
-            setStats(data);
+            console.log('Fetched Stats (raw):', data);
+            const mapped = mapServerStats(data);
+            console.log('Fetched Stats (mapped):', mapped);
+            setStats(mapped);
         } catch (error) {
-            console.error("Failed to fetch game stats:", error);
+            console.error('Failed to fetch game stats:', error);
         }
     };
 
-    const fetchStaticData = async () => {
+    /**
+     * 로컬 정적 데이터 로드 (NPC, 스케줄, 아이템)
+     */
+    const loadLocalStaticData = () => {
+        setGameData(prev => ({
+            ...prev,
+            npcData: NPC_DATA,
+            scheduleData: NPC_SCHEDULE,
+            itemData: ITEM_DEFINITIONS,
+        }));
+    };
+
+    /**
+     * 서버에서 맵 데이터 fetch
+     */
+    const fetchMapData = async () => {
         try {
-            const data = await fetchStaticGameData();
-            setGameData(data); // Expecting { npcData, mapData, floorData }
+            const mapResponse = await fetchAllMaps();
+            // 서버 맵 응답을 기존 구조로 변환
+            const MAP_ROOT = '/src/assets/map/';
+            const resolvedFloorData = (Array.isArray(mapResponse) ? mapResponse : []).map(floor => ({
+                ...floor,
+                mapImage: floor.mapImage ? `${MAP_ROOT}${floor.mapImage}` : null,
+                rooms: (floor.rooms || []).map(room => ({
+                    ...room,
+                    background: room.background
+                        ? (room.background.startsWith('url(') ? room.background : `url(${MAP_ROOT}${room.background})`)
+                        : null,
+                })),
+            }));
+            const resolvedMapData = {};
+            resolvedFloorData.forEach(floor => {
+                (floor.rooms || []).forEach(room => {
+                    if (room.id) resolvedMapData[room.id] = room;
+                });
+            });
+            setGameData(prev => ({
+                ...prev,
+                mapData: resolvedMapData,
+                floorData: resolvedFloorData,
+            }));
+            console.log('[Init] Map data loaded:', resolvedFloorData.length, 'floors');
         } catch (error) {
-            console.error("Failed to fetch static game data:", error);
+            console.error('Failed to fetch map data:', error);
         }
     };
 
