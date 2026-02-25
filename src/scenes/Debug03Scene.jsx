@@ -16,15 +16,12 @@ const MAP_LIST = Object.entries(mapImages).map(([path, mod]) => {
     return { filename, src: mod.default, label: filename.replace('.png', '') };
 });
 
-const ZONE_TYPES = ['move', 'info', 'item', 'item_dot', 'npc', 'trigger', 'inspect'];
+const ZONE_TYPES = ['move', 'info', 'item'];
 const ZONE_COLORS = {
     move: 'rgba(59,130,246,0.35)', info: 'rgba(234,179,8,0.35)', item: 'rgba(34,197,94,0.35)',
-    item_dot: 'rgba(251,191,36,0.35)', npc: 'rgba(168,85,247,0.35)', trigger: 'rgba(239,68,68,0.35)',
-    inspect: 'rgba(236,72,153,0.35)',
 };
 const ZONE_BORDER = {
-    move: '#3b82f6', info: '#eab308', item: '#22c55e', item_dot: '#fbbf24',
-    npc: '#a855f7', trigger: '#ef4444', inspect: '#ec4899',
+    move: '#3b82f6', info: '#eab308', item: '#22c55e',
 };
 const API_BASE = 'http://localhost:3000/api';
 const Motion = motion;
@@ -659,10 +656,31 @@ const Debug03Scene = ({ onBack }) => {
                                         </div>
                                     </>
                                 )}
-                                {(selectedZone.type === 'item' || selectedZone.type === 'item_dot' || selectedZone.type === 'inspect') && (
-                                    <div><label className="text-[10px] text-gray-500 uppercase">Item ID</label>
-                                        <input value={selectedZone.itemId || ''} onChange={e => updateZone(selectedZone.id, { itemId: e.target.value })} placeholder="item010"
-                                            className="w-full mt-0.5 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" /></div>
+                                {selectedZone.type === 'item' && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] text-gray-500 uppercase">Item ID</label>
+                                        <select value={ITEM_LIST.some(it => it.id === selectedZone.itemId) ? selectedZone.itemId : '__custom__'}
+                                            onChange={e => { if (e.target.value !== '__custom__') updateZone(selectedZone.id, { itemId: e.target.value }); }}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-green-500">
+                                            <option value="">없음 (선택...)</option>
+                                            {ITEM_LIST.map(it => (
+                                                <option key={it.id} value={it.id}>{it.icon} {it.name} ({it.id})</option>
+                                            ))}
+                                            <option value="__custom__">✏️ 직접 입력...</option>
+                                        </select>
+                                        {(!ITEM_LIST.some(it => it.id === selectedZone.itemId) || selectedZone.itemId === '') && (
+                                            <input value={selectedZone.itemId || ''}
+                                                onChange={e => updateZone(selectedZone.id, { itemId: e.target.value })}
+                                                placeholder="아이템 ID 직접 입력"
+                                                className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:ring-1 focus:ring-green-500" />
+                                        )}
+                                        {selectedZone.itemId && ITEM_DEFINITIONS[selectedZone.itemId] && (
+                                            <div className="text-[10px] text-green-300/70 flex items-center gap-1 px-1">
+                                                <span>{ITEM_DEFINITIONS[selectedZone.itemId].icon}</span>
+                                                <span>{ITEM_DEFINITIONS[selectedZone.itemId].name}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                                 <div><label className="text-[10px] text-gray-500 uppercase">Label</label>
                                     <input value={selectedZone.label} onChange={e => updateZone(selectedZone.id, { label: e.target.value })}
