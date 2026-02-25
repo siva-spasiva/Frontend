@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion as Motion } from 'framer-motion';
 import { useGame } from './context/GameContext'; // Now we can use this inside MainLayout
 import TeamLogoScene from './scenes/TeamLogoScene';
 import MainMenuScene from './scenes/MainMenuScene';
-import GameStartSequence from './scenes/GameStartSequence';
 import Test01Scene from './scenes/Test01Scene';
 import Test02Scene from './scenes/Test02Scene';
 import Test03Scene from './scenes/Test03Scene';
@@ -13,8 +12,6 @@ import Debug00Scene from './scenes/Debug00Scene';
 import Debug01Scene from './scenes/Debug01Scene';
 import Debug02Scene from './scenes/Debug02Scene';
 import Debug03Scene from './scenes/Debug03Scene';
-import CrashScene from './scenes/CrashScene';
-import TerminalScene from './scenes/TerminalScene';
 
 // New Scenes
 import TutorialScene from './scenes/TutorialScene';
@@ -36,7 +33,7 @@ const MainLayout = () => {
   const [phase, setPhase] = useState('teamLogo');
 
   // Access Game Context for Layout
-  const { isPhoneCentered, setIsPhoneCentered, appEvent, currentDay, currentPeriod } = useGame();
+  const { isPhoneCentered, setIsPhoneCentered, currentDay, currentPeriod } = useGame();
   const { playBgm, stopBgm, isMusicEnabled } = useAudio();
 
   // Phase transition functions
@@ -54,8 +51,6 @@ const MainLayout = () => {
   const toDebug01 = () => setPhase('debug01');
   const toDebug02 = () => setPhase('debug02');
   const toDebug03 = () => setPhase('debug03');
-  const toCrash = () => setPhase('crash');
-  const toTerminal = () => setPhase('terminal');
 
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
@@ -125,22 +120,17 @@ const MainLayout = () => {
           <TutorialScene key="tutorial" onComplete={toMainGame} />
         )}
 
-        {phase === 'crash' && (
-          <CrashScene key="crash" onMount={toTerminal} />
-        )}
-
         {phase === 'test01' && <Test01Scene key="test01" isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} onBack={toMainMenu} />}
         {phase === 'debug00' && <Debug00Scene key="debug00" onBack={toMainMenu} />}
         {phase === 'debug01' && <Debug01Scene key="debug01" onBack={toMainMenu} />}
         {phase === 'debug02' && <Debug02Scene key="debug02" onBack={toMainMenu} />}
         {phase === 'debug03' && <Debug03Scene key="debug03" onBack={toMainMenu} />}
-        {phase === 'terminal' && <TerminalScene key="terminal" />}
         {phase === 'mainGame' && <MainGameScene key="mainGame" />}
         {phase === 'test03' && <Test03Scene key="test03" />}
 
         {/* Unified Split Layout Group */}
         {(phase === 'mainMenu' || isSplit) && (
-          <motion.div
+          <Motion.div
             key="split-group"
             className="w-full h-full relative"
             initial={{ opacity: 0 }}
@@ -151,7 +141,7 @@ const MainLayout = () => {
             <AnimatePresence>
               {/* --- Main Menu Background --- */}
               {phase === 'mainMenu' && (
-                <motion.div
+                <Motion.div
                   key="mainMenu-bg"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -161,30 +151,30 @@ const MainLayout = () => {
                 >
                   <img src={MainMenuBg} alt="Main Menu Background" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
-                </motion.div>
+                </Motion.div>
               )}
 
               {phase === 'test02' && (
-                <motion.div key="test02-bg" className="absolute inset-0 z-0">
+                <Motion.div key="test02-bg" className="absolute inset-0 z-0">
                   <Test02Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
-                </motion.div>
+                </Motion.div>
               )}
               {phase === 'test04' && (
-                <motion.div key="test04-bg" className="absolute inset-0 z-0">
+                <Motion.div key="test04-bg" className="absolute inset-0 z-0">
                   <Test04Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
-                </motion.div>
+                </Motion.div>
               )}
 
               {phase === 'test05' && (
-                <motion.div key="test05-bg" className="absolute inset-0 z-0">
+                <Motion.div key="test05-bg" className="absolute inset-0 z-0">
                   <Test05Scene isPhoneOpen={isPhoneOpen} onTogglePhone={togglePhone} />
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
 
             {/* Foreground UI (Split Layout) */}
             <div className="absolute inset-0 z-10 pointer-events-none">
-              <motion.div
+              <Motion.div
                 layout
                 className={`flex items-center justify-center overflow-hidden bg-transparent pointer-events-auto ${!isPhoneCentered ? 'shadow-2xl border-r border-gray-600' : ''}`}
                 initial={{ width: '100%' }}
@@ -229,11 +219,11 @@ const MainLayout = () => {
                     currentPhase={phase}
                   />
                 </div>
-              </motion.div>
+              </Motion.div>
 
 
             </div>
-          </motion.div>
+          </Motion.div>
         )}
 
 

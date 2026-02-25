@@ -18,6 +18,7 @@ const TIER_COLORS = {
 };
 const STAT_ICONS = { friendly: Heart, faith: Shield, fishLevel: Fish };
 const STAT_COLORS = { friendly: 'text-pink-400', faith: 'text-blue-400', fishLevel: 'text-cyan-400' };
+const Motion = motion;
 
 const Debug02Scene = ({ onBack }) => {
     const [npcs, setNpcs] = useState({});
@@ -49,7 +50,17 @@ const Debug02Scene = ({ onBack }) => {
         } catch (err) { console.error('Load NPC data failed:', err); }
     }, []);
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadData();
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [loadData]);
+
+    const showMsg = useCallback((msg) => {
+        setSaveMsg(msg);
+        setTimeout(() => setSaveMsg(''), 3000);
+    }, []);
 
     // Get prompt keys for an NPC (new structure: prompts.friendly)
     const getNpcPromptKeys = useCallback((npc) => {
@@ -125,7 +136,7 @@ const Debug02Scene = ({ onBack }) => {
             }
         } catch (err) { showMsg('오류: ' + err.message); }
         setSaving(false);
-    }, []);
+    }, [showMsg]);
 
     // Create new NPC
     const createNpc = useCallback(async () => {
@@ -150,12 +161,7 @@ const Debug02Scene = ({ onBack }) => {
             }
         } catch (err) { showMsg('오류: ' + err.message); }
         setSaving(false);
-    }, [newNpcId, newNpcName, newNpcPromptType, loadData]);
-
-    const showMsg = (msg) => {
-        setSaveMsg(msg);
-        setTimeout(() => setSaveMsg(''), 3000);
-    };
+    }, [newNpcId, newNpcName, newNpcPromptType, loadData, showMsg]);
 
     // Toggle NPC expand in list
     const toggleExpand = (npcId) => {
@@ -236,7 +242,7 @@ const Debug02Scene = ({ onBack }) => {
                                         {/* Expanded prompt list */}
                                         <AnimatePresence>
                                             {isExpanded && (
-                                                <motion.div
+                                                <Motion.div
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     exit={{ height: 0, opacity: 0 }}
@@ -259,7 +265,7 @@ const Debug02Scene = ({ onBack }) => {
                                                             </button>
                                                         ))}
                                                     </div>
-                                                </motion.div>
+                                                </Motion.div>
                                             )}
                                         </AnimatePresence>
                                     </div>
@@ -371,6 +377,7 @@ const Debug02Scene = ({ onBack }) => {
                         </>
                     ) : (
                         <NpcPromptOverview
+                            key={selectedNpc || 'none'}
                             npc={npcs[selectedNpc]}
                             npcId={selectedNpc}
                             prompts={prompts}
@@ -387,12 +394,12 @@ const Debug02Scene = ({ onBack }) => {
             {/* Add NPC Modal */}
             <AnimatePresence>
                 {showAddNpc && (
-                    <motion.div
+                    <Motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center"
                         onClick={() => setShowAddNpc(false)}
                     >
-                        <motion.div
+                        <Motion.div
                             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
                             className="bg-gray-900 border border-gray-700 rounded-xl p-5 w-96 space-y-4"
                             onClick={e => e.stopPropagation()}
@@ -447,8 +454,8 @@ const Debug02Scene = ({ onBack }) => {
                                 {saving ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
                                 NPC 생성
                             </button>
-                        </motion.div>
-                    </motion.div>
+                        </Motion.div>
+                    </Motion.div>
                 )}
             </AnimatePresence>
         </div>
@@ -465,15 +472,6 @@ const NpcPromptOverview = ({ npc, npcId, prompts, items, getNpcPromptKeys, onEdi
     const [editInventory, setEditInventory] = useState(false);
     const [inventoryItems, setInventoryItems] = useState(npc?.initialInventory || []);
     const [newItemId, setNewItemId] = useState('');
-
-    // Reset when NPC changes
-    useEffect(() => {
-        setEditName(false);
-        setNameValue(npc?.name || '');
-        setEditInventory(false);
-        setInventoryItems(npc?.initialInventory || []);
-        setNewItemId('');
-    }, [npcId, npc?.name, npc?.initialInventory]);
 
     if (!npc) {
         return (
@@ -653,7 +651,7 @@ const NpcPromptOverview = ({ npc, npcId, prompts, items, getNpcPromptKeys, onEdi
                     Friendly 프롬프트 ({promptKeys.length}개)
                 </h3>
 
-                {promptKeys.map(({ stat, tier, key }) => {
+                {promptKeys.map(({ tier, key }) => {
                     const text = prompts[key] || '';
                     const stats = { chars: text.length, lines: text.split('\n').length };
                     const preview = text.substring(0, 200).replace(/\n/g, ' ');

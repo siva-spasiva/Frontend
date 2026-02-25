@@ -24,7 +24,6 @@ const Debug00Scene = ({ onBack }) => {
         setDay,
         setPeriod,
         advancePeriod,
-        getNpcsForRoom,
         fetchStats,
     } = useGame();
 

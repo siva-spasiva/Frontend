@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+﻿import React, { useState, useEffect } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAudio } from '../context/AudioContext';
 import { ChevronDown } from 'lucide-react';
 
@@ -121,7 +121,7 @@ const NarrationOverlay = ({ sequence, isActive, onComplete }) => {
   return (
     <AnimatePresence mode="wait">
       {isActive && currentLine && (
-        <motion.div
+        <Motion.div
           key={`line-${lineIndex}`}
           className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none"
           initial={{ opacity: 0 }}
@@ -135,7 +135,7 @@ const NarrationOverlay = ({ sequence, isActive, onComplete }) => {
               {currentLine}
             </p>
           </div>
-        </motion.div>
+        </Motion.div>
       )}
     </AnimatePresence>
   );
@@ -155,13 +155,13 @@ const BookOpening = ({ isActive, onComplete }) => {
   return (
     <AnimatePresence>
       {isActive && (
-        <motion.div
+        <Motion.div
           className="fixed inset-0 flex items-center justify-center z-40 bg-black"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <motion.div
+          <Motion.div
             className="w-full max-w-4xl h-screen flex"
             initial={{ rotateY: -90 }}
             animate={{ rotateY: 0 }}
@@ -170,19 +170,19 @@ const BookOpening = ({ isActive, onComplete }) => {
           >
             {/* Left Page */}
             <div className="w-1/2 bg-amber-50 p-12 flex flex-col justify-center border-r border-amber-200 overflow-hidden">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+              <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
                 <h1 className="text-4xl font-serif font-bold text-amber-900 mb-2">
                   {BOOK_CONTENT.title}
                 </h1>
                 <p className="text-lg text-amber-700 italic">
                   {BOOK_CONTENT.subtitle}
                 </p>
-              </motion.div>
+              </Motion.div>
             </div>
 
             {/* Right Page */}
             <div className="w-1/2 bg-amber-50 p-12 flex flex-col justify-center border-l border-amber-200">
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
@@ -193,10 +193,10 @@ const BookOpening = ({ isActive, onComplete }) => {
                     {placeholder}
                   </div>
                 ))}
-              </motion.div>
+              </Motion.div>
             </div>
-          </motion.div>
-        </motion.div>
+          </Motion.div>
+        </Motion.div>
       )}
     </AnimatePresence>
   );
@@ -227,7 +227,7 @@ const StaffScroll = ({ isActive, onComplete }) => {
   return (
     <AnimatePresence>
       {isActive && (
-        <motion.div
+        <Motion.div
           className="fixed inset-0 flex flex-col items-center justify-center z-40 bg-gradient-to-b from-black via-black to-gray-900"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -239,7 +239,7 @@ const StaffScroll = ({ isActive, onComplete }) => {
             <div className="space-y-6 h-40">
               <AnimatePresence mode="wait">
                 {STAFF_CREDITS.slice(Math.max(0, scrollIndex - 1), scrollIndex + 2).map((credit, idx) => (
-                  <motion.div
+                  <Motion.div
                     key={`${credit.role}-${idx}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -248,12 +248,12 @@ const StaffScroll = ({ isActive, onComplete }) => {
                   >
                     <p className="text-sm text-gray-400">{credit.role}</p>
                     <p className="text-xl font-light text-white">{credit.name}</p>
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </AnimatePresence>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       )}
     </AnimatePresence>
   );
@@ -273,20 +273,20 @@ const ThankYouScreen = ({ isActive, onComplete }) => {
   return (
     <AnimatePresence>
       {isActive && (
-        <motion.div
+        <Motion.div
           className="fixed inset-0 flex items-center justify-center z-40 bg-black"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <motion.div
+          <Motion.div
             className="text-center space-y-6 px-8"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
           >
             {THANK_YOU_MESSAGES.map((msg, idx) => (
-              <motion.p
+              <Motion.p
                 key={idx}
                 className="text-2xl md:text-3xl font-light text-gray-300"
                 initial={{ opacity: 0, y: -10 }}
@@ -294,21 +294,21 @@ const ThankYouScreen = ({ isActive, onComplete }) => {
                 transition={{ delay: 0.5 + idx * 0.4 }}
               >
                 {msg}
-              </motion.p>
+              </Motion.p>
             ))}
 
-            <motion.div
+            <Motion.div
               className="mt-12 flex justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 2 }}
             >
-              <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+              <Motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
                 <ChevronDown className="w-6 h-6 text-gray-500" />
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+              </Motion.div>
+            </Motion.div>
+          </Motion.div>
+        </Motion.div>
       )}
     </AnimatePresence>
   );
@@ -365,7 +365,7 @@ const EndingScene = ({ onComplete }) => {
     <div className="w-full h-screen bg-black overflow-hidden flex items-center justify-center">
       <AnimatePresence mode="wait">
         {/* Background fade during narration and fadeout */}
-        <motion.div
+        <Motion.div
           key="bg"
           className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black"
           initial={{ opacity: 1 }}
@@ -397,7 +397,7 @@ const EndingScene = ({ onComplete }) => {
       {/* Fadeout to black */}
       <AnimatePresence>
         {isFadingOut && (
-          <motion.div
+          <Motion.div
             className="fixed inset-0 bg-black z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -428,3 +428,4 @@ const EndingScene = ({ onComplete }) => {
 };
 
 export default EndingScene;
+

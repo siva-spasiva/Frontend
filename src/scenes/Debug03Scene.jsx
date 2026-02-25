@@ -24,6 +24,7 @@ const ZONE_BORDER = {
     npc: '#a855f7', trigger: '#ef4444', inspect: '#ec4899',
 };
 const API_BASE = 'http://localhost:3000/api';
+const Motion = motion;
 
 // ─── Aspect Ratio Container ───
 const AspectContainer = ({ children, imgRef, className = '' }) => {
@@ -83,6 +84,7 @@ const Debug03Scene = ({ onBack }) => {
     const containerRef = useRef(null);
     const imgRef = useRef(null);
     const nextId = useRef(1);
+    const isHydratingZones = useRef(false);
 
     // === Data ===
     const selectedFloor = floors.find(f => f.id === selectedFloorId);
@@ -133,6 +135,15 @@ const Debug03Scene = ({ onBack }) => {
         } catch (err) { console.error('Load failed:', err); }
     }, []);
 
+    // Sync zones state back to floors
+    const syncZonesToFloors = useCallback(() => {
+        if (!selectedRoomId) return floors;
+        return floors.map(f => ({
+            ...f,
+            rooms: (f.rooms || []).map(r => r.id === selectedRoomId ? { ...r, activeZones: zones } : r),
+        }));
+    }, [floors, zones, selectedRoomId]);
+
     const saveAll = useCallback(async () => {
         setSaving(true);
         setSaveMsg('');
@@ -154,43 +165,43 @@ const Debug03Scene = ({ onBack }) => {
         } catch (err) { setSaveMsg('저장 오류: ' + err.message); }
         setSaving(false);
         setTimeout(() => setSaveMsg(''), 3000);
-    }, [floors, zones, selectedRoomId]);
+    }, [syncZonesToFloors]);
 
-    // Sync zones state back to floors
-    const syncZonesToFloors = useCallback(() => {
-        if (!selectedRoomId) return floors;
-        return floors.map(f => ({
-            ...f,
-            rooms: (f.rooms || []).map(r => r.id === selectedRoomId ? { ...r, activeZones: zones } : r),
-        }));
-    }, [floors, zones, selectedRoomId]);
-
-    useEffect(() => { loadFloors(); }, []);
+    useEffect(() => { loadFloors(); }, [loadFloors]);
 
     // When selecting a room, load its zones
     useEffect(() => {
-        if (!selectedRoom) { setZones([]); return; }
+        if (!selectedRoom) {
+            isHydratingZones.current = true;
+            setZones([]);
+            return;
+        }
         const imported = (selectedRoom.activeZones || []).map(z => ({
             id: z.id || 'zone_unknown', type: z.type || 'info', target: z.target || '',
             x: parseFloat(z.x) || 0, y: parseFloat(z.y) || 0,
             width: parseFloat(z.width) || 10, height: parseFloat(z.height) || 10,
             label: z.label || '', message: z.message || '', itemId: z.itemId || '',
         }));
+        isHydratingZones.current = true;
         setZones(imported);
         nextId.current = imported.length + 1;
         setSelectedZoneId(null);
         setActivePanel('room');
-    }, [selectedRoomId, selectedFloorId]);
+    }, [selectedRoom]);
 
     // Save zones back to current room in floors when zones change
     useEffect(() => {
-        if (!selectedRoomId || zones.length === 0) return;
+        if (!selectedRoomId) return;
+        if (isHydratingZones.current) {
+            isHydratingZones.current = false;
+            return;
+        }
         setFloors(prev => prev.map(f => ({
             ...f,
             rooms: (f.rooms || []).map(r => r.id === selectedRoomId ? { ...r, activeZones: zones } : r),
         })));
         setDirty(true);
-    }, [zones]);
+    }, [zones, selectedRoomId]);
 
     // === Mouse Handlers ===
     const getRelativePos = useCallback((e) => {
@@ -311,11 +322,6 @@ const Debug03Scene = ({ onBack }) => {
         setDirty(true);
     };
 
-    const updateFloor = (floorId, updates) => {
-        setFloors(prev => prev.map(f => f.id === floorId ? { ...f, ...updates } : f));
-        setDirty(true);
-    };
-
     // === Export ===
     const exportJSON = () => {
         const output = zones.map(z => ({
@@ -351,7 +357,7 @@ const Debug03Scene = ({ onBack }) => {
         const list = [];
         allRooms.forEach(room => {
             (room.activeZones || []).forEach(z => {
-                if (z.type === 'move' && (z.target === selectedRoomId || z.target === selectedRoom?.id)) {
+                if (z.type === 'move' && z.target === selectedRoomId) {
                     list.push({ fromRoom: room.id, fromFloor: room.floorId, zoneLabel: z.label || z.id });
                 }
             });
@@ -429,6 +435,7 @@ const Debug03Scene = ({ onBack }) => {
                                         onClick={() => { setSelectedFloorId(floor.id); setSelectedRoomId(room.id); }}>
                                         {room.background ? <Image className="w-2.5 h-2.5 text-green-500 shrink-0" /> : <AlertCircle className="w-2.5 h-2.5 text-gray-700 shrink-0" />}
                                         <span className="truncate flex-1">{room.name || room.id}</span>
+                                        <span className="text-[9px] text-blue-500/80">{connectionMap[room.id]?.length || 0}</span>
                                         <span className="text-[9px] text-gray-600">{room.activeZones?.length || 0}</span>
                                         <button onClick={(e) => { e.stopPropagation(); deleteRoom(floor.id, room.id); }} className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-gray-600 rounded transition-all"><Trash2 className="w-2.5 h-2.5 text-red-400" /></button>
                                     </div>
@@ -715,9 +722,9 @@ const Debug03Scene = ({ onBack }) => {
             {/* Import Modal */}
             <AnimatePresence>
                 {showImport && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowImport(false)}>
-                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                        <Motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             className="bg-gray-900 border border-gray-700 rounded-xl p-5 w-[500px] max-w-[90vw]" onClick={e => e.stopPropagation()}>
                             <h3 className="font-bold text-base mb-2">Import activeZones JSON</h3>
                             <textarea value={importText} onChange={e => setImportText(e.target.value)} placeholder={'[\n    { "id": "zone_1", ... }\n]'} rows={8}
@@ -726,8 +733,8 @@ const Debug03Scene = ({ onBack }) => {
                                 <button onClick={() => setShowImport(false)} className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm">취소</button>
                                 <button onClick={handleImport} className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium">Import</button>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </Motion.div>
+                    </Motion.div>
                 )}
             </AnimatePresence>
 

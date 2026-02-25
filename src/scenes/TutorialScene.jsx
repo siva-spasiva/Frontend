@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
-import GameStartSequence from './GameStartSequence';
 import ItemPickupModal from '../components/ItemPickupModal';
 import MessengerApp from '../components/apps/MessengerApp';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -13,8 +12,8 @@ import MapContainer from '../components/MapContainer';
 import SmartphoneMenu from '../components/SmartphoneMenu';
 
 const TutorialScene = ({ onComplete }) => {
-    // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' -> 
-    // 'meet_bingeo_inside' -> 'contract_wait' -> 'contract' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
+    // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
+    // 'meet_bingeo_inside' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
     // 'return_to_class' -> 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
@@ -183,11 +182,10 @@ const TutorialScene = ({ onComplete }) => {
                     "문으로 들어가기 전 모든 포인트를 클릭해보세요!"
                 ]);
             } else if (step === 'meet_bingeo_inside') {
-                setStep('contract_wait');
                 showGuide([
                     "건물 내부로 들어왔습니다. 입소를 위해 계약서를 작성해야 합니다."
                 ], () => {
-                    setStep('contract');
+                    handleContractSigned();
                 });
             } else if (step === 'hp_tutorial_chat') {
                 setStep('explore_inside');
@@ -233,7 +231,6 @@ const TutorialScene = ({ onComplete }) => {
         guideOpen ||
         showNpcDialog ||
         showMessenger ||
-        step === 'contract' ||
         isBingeoFinishSequence ||
         isSidebarPanelOpen;
 
@@ -250,7 +247,7 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     const handleMapInteract = (zone) => {
-        if (guideOpen || showNpcDialog || showMessenger || step === 'contract') return;
+        if (guideOpen || showNpcDialog || showMessenger) return;
 
         if (isBingeoFinishSequence && zone.type === 'move') {
             blockMoveByBingeo();
@@ -320,7 +317,7 @@ const TutorialScene = ({ onComplete }) => {
 
     const handleMenuNavigate = (targetRoomId) => {
         if (!targetRoomId) return;
-        if (guideOpen || showNpcDialog || showMessenger || step === 'contract') return;
+        if (guideOpen || showNpcDialog || showMessenger) return;
 
         if (isBingeoFinishSequence && targetRoomId !== currentRoomId) {
             blockMoveByBingeo();
@@ -560,7 +557,7 @@ const TutorialScene = ({ onComplete }) => {
         }, 2000);
     };
 
-    const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger && step !== 'contract';
+    const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger;
 
 
     return (
@@ -749,18 +746,6 @@ const TutorialScene = ({ onComplete }) => {
                         </div>
                     </Motion.div>
                 </div>
-            )}
-
-            {/* 계약서 모달 */}
-            {step === 'contract' && (
-                <Motion.div
-                    key="contract"
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute inset-0 flex items-center justify-center bg-black/80 z-50 p-8"
-                >
-                    <GameStartSequence onSign={handleContractSigned} />
-                </Motion.div>
             )}
 
             {/* 아이템 획득 팝업 */}
