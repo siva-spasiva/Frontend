@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
-import { login as apiLogin } from '../api/auth';
+import { loginNewSave, createSaveSlot, activateSlot, touchSaveSlot, getSaveSlots, setTokens } from '../api/auth';
 import { fetchAllMaps } from '../api/map';
 import { fetchInventory, addItemAPI, consumeItemAPI } from '../api/inventory';
 import { getNpcDataResolved } from '../data/npcData';
@@ -82,44 +82,9 @@ export const GameProvider = ({ children }) => {
     const [isGameOver, setIsGameOver] = useState(false);
     const prevFishTierRef = useRef(0);
 
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Fetch Initial Stats and Data
-    useEffect(() => {
-        const initGame = async () => {
-            // 1. 로그인 (토큰 발급)
-            try {
-                await apiLogin();
-                console.log('[Init] Login successful');
-            } catch (err) {
-                console.warn('[Init] Login failed, will retry on API calls:', err);
-            }
-
-            // 1.5. 서버 게임 세션 초기화 (필수)
-            try {
-                await fetchStaticStats();
-                console.log('[Init] Static stats & session initialized');
-            } catch (err) {
-                console.warn('[Init] Initializing static stats failed:', err);
-            }
-
-            // 2. 로컬 정적 데이터 로드 (서버 미제공)
-            loadLocalStaticData();
-
-            // 3. 서버 데이터 fetch (stats + 맵 + 인벤토리 + 튜토리얼)
-            const [, , , tutorialRes] = await Promise.all([
-                fetchStats(),
-                fetchMapData(),
-                fetchInventoryData(),
-                fetchTutorialStatus().catch(() => ({ isCompleted: false }))
-            ]);
-            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
-                setIsTutorialCompleted(tutorialRes.isCompleted);
-            }
-            setIsLoading(false);
-        };
-        initGame();
-    }, []);
+    const [isLoading, setIsLoading] = useState(false);
+    const [gameInitialized, setGameInitialized] = useState(false);
+    const [currentSlotId, setCurrentSlotId] = useState(null);
 
     // Check Effects: Fish Level & Contract Replacement
     useEffect(() => {
@@ -186,6 +151,88 @@ export const GameProvider = ({ children }) => {
             floorId: data.floor_id ?? null,
             roomId: data.room_id ?? null,
         };
+    };
+
+    /**
+     * 새 게임 시작: 새 JWT 발급 → 슬롯 생성 → 서버 세션 초기화 → 데이터 로드
+     */
+    const initNewGame = async () => {
+        setIsLoading(true);
+        try {
+            // 1. 새 JWT 발급 (새 세이브 슬롯)
+            const tokens = await loginNewSave();
+            setTokens(tokens);
+
+            // 2. localStorage에 슬롯 생성
+            const slot = createSaveSlot(tokens);
+            setCurrentSlotId(slot.id);
+
+            // 3. 서버 게임 세션 초기화 (새 게임만!)
+            try {
+                await fetchStaticStats();
+                console.log('[InitNewGame] Static stats & session initialized');
+            } catch (err) {
+                console.warn('[InitNewGame] fetchStaticStats failed:', err);
+            }
+
+            // 4. 로컬 정적 데이터 로드
+            loadLocalStaticData();
+
+            // 5. 서버 데이터 fetch
+            const [, , , tutorialRes] = await Promise.all([
+                fetchStats(),
+                fetchMapData(),
+                fetchInventoryData(),
+                fetchTutorialStatus().catch(() => ({ isCompleted: false })),
+            ]);
+            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
+                setIsTutorialCompleted(tutorialRes.isCompleted);
+            }
+
+            setGameInitialized(true);
+            console.log('[InitNewGame] Done. Slot:', slot.id);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    /**
+     * 기존 세이브 로드: 슬롯 토큰 활성화 → 데이터 로드 (fetchStaticStats 호출 안 함)
+     * @param {string} slotId
+     */
+    const loadGame = async (slotId) => {
+        setIsLoading(true);
+        try {
+            const slots = getSaveSlots();
+            const slot = slots.find(s => s.id === slotId);
+            if (!slot) throw new Error(`Slot not found: ${slotId}`);
+
+            // 1. 슬롯 토큰 활성화 (sessionStorage)
+            activateSlot(slot);
+            setCurrentSlotId(slotId);
+
+            // 2. 로컬 정적 데이터 로드
+            loadLocalStaticData();
+
+            // 3. 서버 데이터 fetch (fetchStaticStats 호출 안 함!)
+            const [, , , tutorialRes] = await Promise.all([
+                fetchStats(),
+                fetchMapData(),
+                fetchInventoryData(),
+                fetchTutorialStatus().catch(() => ({ isCompleted: false })),
+            ]);
+            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
+                setIsTutorialCompleted(tutorialRes.isCompleted);
+            }
+
+            // 4. lastPlayedAt 갱신
+            touchSaveSlot(slotId);
+
+            setGameInitialized(true);
+            console.log('[LoadGame] Done. Slot:', slotId);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const fetchStats = async () => {
@@ -768,7 +815,13 @@ export const GameProvider = ({ children }) => {
 
         fetchStats,
         syncStats,
-        updateStatsBackend
+        updateStatsBackend,
+
+        // Save Slot System
+        gameInitialized,
+        currentSlotId,
+        initNewGame,
+        loadGame,
     };
 
     return (

@@ -211,6 +211,7 @@ const MainLayout = () => {
                     onTest04Start={toTest04}
                     onTest05Start={toTest05}
                     onStartSequence={toTutorial}
+                    onLoadGame={toMainGame}
                     onDebug00Start={toDebug00}
                     onDebug01Start={toDebug01}
                     onDebug02Start={toDebug02}

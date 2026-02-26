@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Save, Settings, FileText, Grid, Map, Mic, MessageCircle } from 'lucide-react';
+import { Play, Save, Settings, FileText, Grid, Map, Mic, MessageCircle, Trash2, ChevronRight, Loader } from 'lucide-react';
+import { getSaveSlots, deleteSaveSlot, fetchSlotStats } from '../api/auth';
 import MessengerApp from '../components/apps/MessengerApp';
 import InventoryApp from '../components/apps/InventoryApp';
 import FishPhoneOverlay from '../components/FishPhoneOverlay';
@@ -80,6 +81,186 @@ const PhoneFrame = ({ children, header, isBroken }) => {
                     )}
                 </div>
             </motion.div>
+        </div>
+    );
+};
+
+const PERIOD_LABELS_KR = { morning: '오전', afternoon: '오후', evening: '저녁', night: '새벽' };
+
+const SaveSelectScreen = ({ onNewGame, onLoadGame, onBack }) => {
+    const { initNewGame, loadGame, currentDay } = useGame();
+    const [slots, setSlots] = useState(() => getSaveSlots());
+    const [slotStats, setSlotStats] = useState({});
+    const [isInitializing, setIsInitializing] = useState(false);
+    const [initError, setInitError] = useState(null);
+
+    useEffect(() => {
+        slots.forEach(slot => {
+            setSlotStats(prev => ({ ...prev, [slot.id]: 'loading' }));
+            fetchSlotStats(slot).then(data => {
+                setSlotStats(prev => ({ ...prev, [slot.id]: data }));
+            });
+        });
+    }, []);
+
+    const handleNewGame = async () => {
+        if (slots.length >= 3) {
+            setInitError('세이브 슬롯이 가득 찼습니다. 기존 슬롯을 삭제해주세요.');
+            return;
+        }
+        setInitError(null);
+        setIsInitializing(true);
+        try {
+            await initNewGame();
+            onNewGame(); // 항상 튜토리얼로
+        } catch (err) {
+            console.error('[SaveSelect] initNewGame failed:', err);
+            setInitError('새 게임 시작에 실패했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsInitializing(false);
+        }
+    };
+
+    const handleLoad = async (slotId) => {
+        setInitError(null);
+        setIsInitializing(true);
+        try {
+            await loadGame(slotId);
+            // currentDay는 loadGame 완료 후 GameContext stats에 반영됨
+            // stats.currentDay를 직접 읽기 위해 slotStats의 current_day 사용
+            const stats = slotStats[slotId];
+            const day = stats?.current_day ?? stats?.currentDay ?? 0;
+            if (day === 0) {
+                onNewGame(); // 튜토리얼로
+            } else {
+                onLoadGame(); // 메인게임으로
+            }
+        } catch (err) {
+            console.error('[SaveSelect] loadGame failed:', err);
+            setInitError('불러오기에 실패했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsInitializing(false);
+        }
+    };
+
+    const handleDelete = (slotId, e) => {
+        e.stopPropagation();
+        deleteSaveSlot(slotId);
+        setSlots(getSaveSlots());
+    };
+
+    const formatDate = (isoStr) => {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+
+    return (
+        <div className="w-full h-full flex flex-col p-6 bg-gray-50/60 relative">
+            {/* 로딩 오버레이 */}
+            {isInitializing && (
+                <div className="absolute inset-0 z-50 bg-black/50 flex flex-col items-center justify-center rounded-[2.5rem]">
+                    <Loader className="w-8 h-8 text-white animate-spin mb-3" />
+                    <p className="text-white text-sm font-semibold">로딩 중...</p>
+                </div>
+            )}
+
+            <button
+                onClick={onBack}
+                className="self-start mb-4 px-3 py-1.5 rounded-xl bg-white/70 text-sm font-semibold text-gray-700 border border-gray-200 hover:bg-white"
+            >
+                ← Back
+            </button>
+
+            <h2 className="text-xl font-bold text-gray-900 mb-1">세이브 파일</h2>
+            <p className="text-xs text-gray-500 mb-5">슬롯 {slots.length}/3</p>
+
+            <div className="flex-1 flex flex-col space-y-3 overflow-y-auto">
+                {slots.map((slot, idx) => {
+                    const stats = slotStats[slot.id];
+                    const isStatsLoading = stats === 'loading';
+                    const day = stats && stats !== 'loading' ? (stats.current_day ?? stats.currentDay ?? 0) : null;
+                    const isTutorial = day === 0;
+
+                    return (
+                        <div
+                            key={slot.id}
+                            className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex flex-col gap-2"
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                    Save {idx + 1}
+                                </span>
+                                <button
+                                    onClick={(e) => handleDelete(slot.id, e)}
+                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {isStatsLoading ? (
+                                <div className="flex items-center gap-2 py-2">
+                                    <Loader className="w-4 h-4 text-blue-400 animate-spin" />
+                                    <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
+                                </div>
+                            ) : stats ? (
+                                isTutorial ? (
+                                    <div className="flex items-center gap-2 py-1">
+                                        <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                                            📖 튜토리얼 진행중
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                                        <span>📅 {day}일차 · {PERIOD_LABELS_KR[stats.current_session ?? stats.currentPeriod] ?? '-'}</span>
+                                        <span>❤️ {(stats.total_hp ?? stats.hp ?? '?')}+{stats.plus_hp ?? 0} HP</span>
+                                        <span>🐟 물고기화 {stats.fish_level ?? stats.fishLevel ?? 0}</span>
+                                        <span>📍 {stats.floor_id ?? '-'} {stats.room_id ?? ''}</span>
+                                    </div>
+                                )
+                            ) : (
+                                <span className="text-xs text-red-400">세이브 데이터를 불러올 수 없습니다</span>
+                            )}
+
+                            <div className="flex items-center justify-between mt-1">
+                                <span className="text-xs text-gray-400">{formatDate(slot.lastPlayedAt)}</span>
+                                <button
+                                    onClick={() => handleLoad(slot.id)}
+                                    disabled={isStatsLoading || isInitializing}
+                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {isTutorial ? '이어하기' : '불러오기'}
+                                    <ChevronRight className="w-3 h-3" />
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {slots.length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                        <p className="text-gray-400 text-sm mb-2">저장된 게임이 없습니다.</p>
+                        <p className="text-gray-300 text-xs">새 게임을 시작해보세요!</p>
+                    </div>
+                )}
+            </div>
+
+            {initError && (
+                <p className="text-xs text-red-500 text-center mt-3">{initError}</p>
+            )}
+
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleNewGame}
+                disabled={slots.length >= 3 || isInitializing}
+                className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-base shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+                <Play className="w-5 h-5" />
+                새 게임
+                {slots.length >= 3 && <span className="text-xs opacity-70">(슬롯 가득)</span>}
+            </motion.button>
         </div>
     );
 };
@@ -232,7 +413,7 @@ import RecorderApp from '../components/apps/RecorderApp';
 import CreditsApp from '../components/apps/CreditsApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase }) => {
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onLoadGame, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase }) => {
     // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app' | 'settings'
     const [internalPhase, setInternalPhase] = useState('menu');
 
@@ -297,7 +478,7 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
         } else if (appName === 'test04') {
             onTest04Start && onTest04Start();
         } else if (appName === 'start') {
-            onStartSequence && onStartSequence();
+            setInternalPhase('save_select');
         } else if (appName === 'test05') {
             onTest05Start && onTest05Start(); // New Handler
         } else if (appName === 'debug00') {
@@ -329,6 +510,22 @@ const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTe
                         exit={{ opacity: 0 }}
                     >
                         <MainMenu onAppOpen={handleAppOpen} onOpenSettings={() => handleAppOpen('settings')} />
+                    </motion.div>
+                )}
+
+                {internalPhase === 'save_select' && (
+                    <motion.div
+                        key="save_select"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 30 }}
+                    >
+                        <SaveSelectScreen
+                            onNewGame={onStartSequence}
+                            onLoadGame={onLoadGame}
+                            onBack={() => setInternalPhase('menu')}
+                        />
                     </motion.div>
                 )}
 
