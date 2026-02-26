@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FishText } from '../utils/fishTalk';
+import { EAVESDROP_MAX_COLOR_COUNT, getEavesdropColorIndexFromText, getEavesdropColorStyle } from '../utils/eavesdropColors';
+
+const resolveEavesdropStyle = (log) => {
+    const colorIndex = Number.isFinite(log?.eavesdropParticipantIndex)
+        ? log.eavesdropParticipantIndex
+        : getEavesdropColorIndexFromText(log?.speaker || '', EAVESDROP_MAX_COLOR_COUNT);
+    return getEavesdropColorStyle(colorIndex);
+};
 
 const LogEntry = ({ log }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const eavesdropStyle = resolveEavesdropStyle(log);
 
-    // Item Presentation log type
     if (log.type === 'item_presentation') {
         return (
             <div className="mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 bg-amber-900/30 border-yellow-600">
@@ -27,15 +35,14 @@ const LogEntry = ({ log }) => {
         );
     }
 
-    // Eavesdrop log types
     if (log.type === 'eavesdrop_preview' || log.type === 'eavesdrop_listen') {
         return (
-            <div className="mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 bg-purple-900/20 border-purple-500/40 italic">
+            <div className={`mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 italic ${eavesdropStyle.bubbleClass}`}>
                 <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-900/40 px-1.5 py-0.5 rounded">
-                        {log.type === 'eavesdrop_preview' ? '엿듣기' : '엿듣기'}
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${eavesdropStyle.badgeClass}`}>
+                        엿듣기
                     </span>
-                    <span className="text-purple-300 font-medium text-xs">{log.speaker}</span>
+                    <span className={`font-medium text-xs ${eavesdropStyle.speakerClass}`}>{log.speaker}</span>
                 </div>
                 <p className="text-gray-200 pl-1 leading-relaxed">
                     <FishText text={log.text} />
@@ -46,17 +53,28 @@ const LogEntry = ({ log }) => {
 
     if (log.type === 'active_npc' || log.type === 'npc' || log.type === 'system') {
         const isSystem = log.type === 'system';
+        const isEavesdropNpc = !isSystem && Number.isFinite(log?.eavesdropParticipantIndex);
+        const containerClass = isSystem
+            ? 'bg-blue-900/30 border-blue-500'
+            : (isEavesdropNpc ? eavesdropStyle.bubbleClass : 'bg-black/60 border-yellow-700');
+        const headerClass = isSystem
+            ? 'text-blue-400'
+            : (isEavesdropNpc ? eavesdropStyle.speakerClass : 'text-yellow-500');
+        const badgeClass = isSystem
+            ? 'bg-blue-900/50'
+            : (isEavesdropNpc ? eavesdropStyle.badgeClass : 'bg-yellow-900/40');
+
         return (
-            <div className={`mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 ${isSystem ? 'bg-blue-900/30 border-blue-500' : 'bg-black/60 border-yellow-700'}`}>
+            <div className={`mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 ${containerClass}`}>
                 <div
-                    className={`${isSystem ? 'text-blue-400' : 'text-yellow-500'} cursor-pointer flex items-center group select-none`}
+                    className={`${headerClass} cursor-pointer flex items-center group select-none`}
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
-                    <span className={`mr-2 font-bold px-1.5 py-0.5 rounded text-[10px] tracking-wider ${isSystem ? 'bg-blue-900/50' : 'bg-yellow-900/40'}`}>
+                    <span className={`mr-2 font-bold px-1.5 py-0.5 rounded text-[10px] tracking-wider ${badgeClass}`}>
                         {log.speaker?.toUpperCase() || 'UNKNOWN'}
                     </span>
                     <span className="opacity-70 text-[10px] mr-2 transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-                        ▶
+                        {'>>'}
                     </span>
                     {!isExpanded && (
                         <span className="text-gray-300 truncate flex-1 opacity-80 h-5 leading-5 items-center flex">
@@ -80,7 +98,6 @@ const LogEntry = ({ log }) => {
         );
     }
 
-    // User type
     return (
         <div className="mb-4 text-sm flex justify-end">
             <div className="bg-gray-700/80 text-white px-4 py-2 rounded-2xl rounded-tr-sm max-w-[85%] border border-gray-600 shadow-sm relative">

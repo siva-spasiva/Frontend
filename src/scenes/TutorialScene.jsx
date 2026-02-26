@@ -13,6 +13,7 @@ import MapContainer from '../components/MapContainer';
 import GameHUD from '../components/GameHUD';
 import HpWarningModal from '../components/HpWarningModal';
 import ContractModal from '../components/ContractModal';
+import { EAVESDROP_MAX_COLOR_COUNT, getEavesdropColorIndexFromText, getEavesdropColorStyle } from '../utils/eavesdropColors';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
@@ -79,6 +80,12 @@ const TutorialScene = ({ onComplete }) => {
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
+    const getTutorialEavesdropColorIndex = useCallback((speakerName) => {
+        const participantIndex = tutorialEavesdropParticipants.findIndex((name) => name === speakerName);
+        if (participantIndex >= 0) return participantIndex % EAVESDROP_MAX_COLOR_COUNT;
+        return getEavesdropColorIndexFromText(speakerName, EAVESDROP_MAX_COLOR_COUNT);
+    }, [tutorialEavesdropParticipants]);
+
     useEffect(() => {
         if (initialItemsGrantedRef.current) return;
         initialItemsGrantedRef.current = true;
@@ -142,6 +149,7 @@ const TutorialScene = ({ onComplete }) => {
             speaker: turn.speaker,
             text: turn.content,
             type: 'eavesdrop_listen',
+            eavesdropParticipantIndex: getTutorialEavesdropColorIndex(turn.speaker),
         };
         const updatedLogs = [...currentLogs, newLog];
 
@@ -948,8 +956,11 @@ const TutorialScene = ({ onComplete }) => {
                         inputSlot={(
                             <div className="px-6 pt-3 pb-5 border-t border-white/10 bg-black/20 space-y-3">
                                 <div className="flex flex-wrap gap-1.5">
-                                    {tutorialEavesdropParticipants.map((name) => (
-                                        <span key={name} className="px-2 py-0.5 rounded-full text-xs bg-purple-900/50 text-purple-100 border border-purple-500/40">
+                                    {tutorialEavesdropParticipants.map((name, index) => (
+                                        <span
+                                            key={name}
+                                            className={`px-2 py-0.5 rounded-full text-xs border ${getEavesdropColorStyle(index % EAVESDROP_MAX_COLOR_COUNT).chipClass}`}
+                                        >
                                             {name}
                                         </span>
                                     ))}

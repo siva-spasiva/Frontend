@@ -18,6 +18,7 @@ import useFishVisuals from '../hooks/useFishVisuals';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import MapContainer from '../components/MapContainer';
 import PortraitDisplay from '../components/PortraitDisplay';
+import { EAVESDROP_MAX_COLOR_COUNT, getEavesdropColorIndexFromText, getEavesdropColorStyle } from '../utils/eavesdropColors';
 
 const PERIOD_TO_INDEX = {
     morning: 1,
@@ -25,6 +26,8 @@ const PERIOD_TO_INDEX = {
     evening: 3,
     night: 4,
 };
+
+const MAX_EAVESDROP_PARTICIPANTS = 5;
 
 const normalizeNpcIds = (roomPayload) => {
     const fromRoom = Array.isArray(roomPayload?.room?.npcIds) ? roomPayload.room.npcIds : [];
@@ -173,13 +176,44 @@ const MainGameScene = () => {
             || npcId;
     };
 
+    const resolveEavesdropColorIndex = useCallback((participantIds = [], speakerId = null, speakerName = '') => {
+        if (speakerId) {
+            const idIndex = participantIds.findIndex((id) => id === speakerId);
+            if (idIndex >= 0) return idIndex % EAVESDROP_MAX_COLOR_COUNT;
+        }
+
+        if (speakerName) {
+            const byNameIndex = participantIds.findIndex((id) => (getNpcName(id) || id) === speakerName);
+            if (byNameIndex >= 0) return byNameIndex % EAVESDROP_MAX_COLOR_COUNT;
+            return getEavesdropColorIndexFromText(speakerName, EAVESDROP_MAX_COLOR_COUNT);
+        }
+
+        return 0;
+    }, [getNpcName]);
+
+    const createEavesdropLog = useCallback(({
+        id,
+        speakerId = null,
+        speakerName = 'NPC',
+        text = '',
+        type = 'eavesdrop_listen',
+        participantIds = [],
+    }) => ({
+        id,
+        speaker: speakerName,
+        text,
+        type,
+        eavesdropParticipantIndex: resolveEavesdropColorIndex(participantIds, speakerId, speakerName),
+    }), [resolveEavesdropColorIndex]);
+
     const openEavesdropPreview = async (payload, fallbackNpcIds = null) => {
         const npcIds = (fallbackNpcIds && fallbackNpcIds.length > 0)
             ? fallbackNpcIds
             : normalizeNpcIds(payload);
         if (npcIds.length < 2) return;
 
-        setEavesdropNpcIds(npcIds.slice(0, 3));
+        const participantIds = npcIds.slice(0, MAX_EAVESDROP_PARTICIPANTS);
+        setEavesdropNpcIds(participantIds);
         setEavesdropTopic(payload?.topic || '주변 수군거림');
         setEavesdropLogs([]);
         setEavesdropDialogContent(null);
@@ -189,7 +223,7 @@ const MainGameScene = () => {
 
         try {
             const response = await startConversation({
-                npcIds: npcIds.slice(0, 3),
+                npcIds: participantIds,
                 topic: payload?.topic || null,
                 numTurns: 4,
                 dayIndex: currentDay || null,
@@ -199,11 +233,13 @@ const MainGameScene = () => {
             const conversation = normalizeConversationPayload(response);
             const turns = Array.isArray(conversation?.turns) ? conversation.turns : [];
             const previewTurns = turns.filter((turn) => turn?.speaker_id !== 'user');
-            const previewLogs = previewTurns.map((turn, index) => ({
+            const previewLogs = previewTurns.map((turn, index) => createEavesdropLog({
                 id: `${Date.now()}_preview_${index}`,
-                speaker: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
+                speakerId: turn.speaker_id || null,
+                speakerName: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
                 text: turn.content,
                 type: 'eavesdrop_preview',
+                participantIds,
             }));
 
             setEavesdropLogs(previewLogs);
@@ -526,8 +562,12 @@ const MainGameScene = () => {
     const currentFloorId = currentLocationInfo?.floorId || findFloorIdByRoom(currentRoomId);
     const isChatActive = eavesdropState === 'chatting' || eavesdropState === 'intercepting' || eavesdropState === 'listening';
     const isEavesdropOverlayActive = ['preview', 'choice', 'intercepting', 'listening', 'done'].includes(eavesdropState);
-    const eavesdropParticipantIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, 3);
-    const eavesdropParticipantNames = eavesdropParticipantIds.map((npcId) => getNpcName(npcId) || npcId);
+    const eavesdropParticipantIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, MAX_EAVESDROP_PARTICIPANTS);
+    const eavesdropParticipants = eavesdropParticipantIds.map((npcId, index) => ({
+        id: npcId,
+        name: getNpcName(npcId) || npcId,
+        colorIndex: index % EAVESDROP_MAX_COLOR_COUNT,
+    }));
     const isMapInteractionLocked = isSidebarPanelOpen || !!pendingMove || !!pendingItem || !!pendingRequirement || !!pendingHpWarning || isChatActive || isEavesdropOverlayActive;
     const hudLogs = isEavesdropOverlayActive ? eavesdropLogs : logs;
     const hudDialogContent = isEavesdropOverlayActive ? eavesdropDialogContent : dialogContent;
@@ -614,7 +654,7 @@ const MainGameScene = () => {
         setEavesdropInputText('');
         setIsEavesdropThinking(true);
 
-        const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, 3);
+        const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, MAX_EAVESDROP_PARTICIPANTS);
 
         const newLogs = [...eavesdropLogs];
         if (eavesdropDialogContent) {
@@ -636,12 +676,14 @@ const MainGameScene = () => {
             const npcTurns = turns.filter((turn) => turn?.speaker_id !== 'user');
 
             npcTurns.forEach((turn, index) => {
-                newLogs.push({
+                newLogs.push(createEavesdropLog({
                     id: Date.now() + '_reply_' + index,
-                    speaker: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
+                    speakerId: turn.speaker_id || null,
+                    speakerName: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
                     text: turn.content,
                     type: 'active_npc',
-                });
+                    participantIds: activeNpcIds,
+                }));
             });
 
             setEavesdropLogs([...newLogs]);
@@ -649,11 +691,14 @@ const MainGameScene = () => {
 
             if (npcTurns.length > 0) {
                 const last = npcTurns[npcTurns.length - 1];
-                setEavesdropDialogContent({
-                    speaker: getNpcName(last.speaker_id) || last.speaker || 'NPC',
+                setEavesdropDialogContent(createEavesdropLog({
+                    id: Date.now() + '_dialog',
+                    speakerId: last.speaker_id || null,
+                    speakerName: getNpcName(last.speaker_id) || last.speaker || 'NPC',
                     text: last.content,
                     type: 'active_npc',
-                });
+                    participantIds: activeNpcIds,
+                }));
             }
 
             const newCount = interceptTurnCount + 1;
@@ -684,7 +729,7 @@ const MainGameScene = () => {
         setIsEavesdropThinking(true);
         if (viewMode !== 'full') setViewMode('full');
 
-        const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, 3);
+        const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, MAX_EAVESDROP_PARTICIPANTS);
         let turns = [];
 
         try {
@@ -729,12 +774,14 @@ const MainGameScene = () => {
         }
 
         const turn = pendingTurns[index];
-        const newLog = {
+        const newLog = createEavesdropLog({
             id: Date.now() + '_auto_' + index,
-            speaker: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
+            speakerId: turn.speaker_id || null,
+            speakerName: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
             text: turn.content,
             type: 'eavesdrop_listen',
-        };
+            participantIds: activeNpcIds || [],
+        });
         const updatedLogs = [...currentLogs, newLog];
         setEavesdropLogs(updatedLogs);
         setEavesdropDialogContent(newLog);
@@ -918,9 +965,12 @@ const MainGameScene = () => {
                         inputSlot={isEavesdropOverlayActive ? (
                             <div className="px-6 pt-3 pb-5 border-t border-white/10 bg-black/20 space-y-3">
                                 <div className="flex flex-wrap gap-1.5">
-                                    {eavesdropParticipantNames.length > 0 ? eavesdropParticipantNames.map((name) => (
-                                        <span key={name} className="px-2 py-0.5 rounded-full text-xs bg-purple-900/50 text-purple-100 border border-purple-500/40">
-                                            {name}
+                                    {eavesdropParticipants.length > 0 ? eavesdropParticipants.map((participant) => (
+                                        <span
+                                            key={participant.id}
+                                            className={`px-2 py-0.5 rounded-full text-xs border ${getEavesdropColorStyle(participant.colorIndex).chipClass}`}
+                                        >
+                                            {participant.name}
                                         </span>
                                     )) : (
                                         <span className="text-xs text-gray-300">李몄뿬???놁쓬</span>
