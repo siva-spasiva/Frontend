@@ -67,7 +67,7 @@ const MainGameScene = () => {
     const { viewMode, setViewMode, handleToggleHidden, handleToggleExpand } = useViewMode('mini');
     const [inputText, setInputText] = useState('');
 
-    // GameContext?먯꽌 ?꾩옱 吏꾪뻾 ?곹깭瑜?諛쏆븘??(?쒗넗由ъ뼹 ?꾨즺 ???ㅼ젙???꾩튂 ??
+    // GameContext에서 현재 진행 상태를 받아옴 (튜토리얼 종료 후 설정된 위치 등)
     const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     // Active Room State - Context?먯꽌 珥덇린 ?꾩튂瑜?諛쏆븘???쒖옉
@@ -126,7 +126,7 @@ const MainGameScene = () => {
             return {
                 type: 'item',
                 targetId: rawRequirement,
-                message: '?좉꺼?덈떎. ?꾩슂??臾쇨굔???덉뼱 蹂댁씤??',
+                message: '잠겨있다. 필요한 물건이 있어 보인다.',
             };
         }
 
@@ -134,7 +134,7 @@ const MainGameScene = () => {
             return {
                 type: 'item',
                 targetId: rawRequirement.targetId,
-                message: rawRequirement.message || '?좉꺼?덈떎. ?꾩슂??臾쇨굔???덉뼱 蹂댁씤??',
+                message: rawRequirement.message || '잠겨있다. 필요한 물건이 있어 보인다.',
             };
         }
 
@@ -180,7 +180,7 @@ const MainGameScene = () => {
         if (npcIds.length < 2) return;
 
         setEavesdropNpcIds(npcIds.slice(0, 3));
-        setEavesdropTopic(payload?.topic || '二쇰? ?섍뎔嫄곕┝');
+        setEavesdropTopic(payload?.topic || '주변 수군거림');
         setEavesdropLogs([]);
         setEavesdropDialogContent(null);
         setEavesdropState('preview');
@@ -217,7 +217,7 @@ const MainGameScene = () => {
             } else {
                 setEavesdropDialogContent({
                     speaker: 'System',
-                    text: '?ㅻ젮?ㅻ뒗 ??붽? ?녿떎.',
+                    text: '들려오는 대화가 없다.',
                     type: 'system',
                 });
             }
@@ -225,7 +225,7 @@ const MainGameScene = () => {
             console.error('Failed to start eavesdrop preview:', error);
             setEavesdropDialogContent({
                 speaker: 'System',
-                text: '?용뱽湲곕? ?쒖옉?섏? 紐삵뻽??',
+                text: '엿듣기를 시작하지 못했다.',
                 type: 'system',
             });
         } finally {
@@ -441,7 +441,7 @@ const MainGameScene = () => {
             newLogs.push({
                 id: Date.now() + '_presentation',
                 speaker: 'System',
-                text: `${presentedItem.name}??瑜? ?쒖떆?덉뒿?덈떎.`,
+                text: `${presentedItem.name}을(를) 제시했습니다.`,
                 itemName: presentedItem.name,
                 icon: presentedItem.icon,
                 type: 'item_presentation'
@@ -461,7 +461,7 @@ const MainGameScene = () => {
             const targetNpc = activeNpc || npcData?.npc_a;
 
             if (!targetNpc) {
-                setDialogContent({ speaker: 'System', text: '??뷀븷 ?곷?媛 ?놁뒿?덈떎.', type: 'system' });
+                setDialogContent({ speaker: 'System', text: '대화할 상대가 없습니다.', type: 'system' });
                 setIsThinking(false);
                 return;
             }
@@ -497,7 +497,7 @@ const MainGameScene = () => {
             console.error(error);
             setDialogContent({
                 speaker: 'System',
-                text: '...(?쒖뒪???ㅻ쪟: ?묐떟 遺덇?)...',
+                text: '...(시스템 오류: 응답 불가)...',
                 type: 'system'
             });
             // Refund the free chat count if it failed? (Optional)
@@ -537,12 +537,12 @@ const MainGameScene = () => {
     }, []);
 
     // ========================
-    // === NPC ????쒖옉 UI ===
+    // === NPC 대화 시작 UI ===
     // ========================
     const handleStartChatClick = () => {
         if (!activeNpc) return;
         if (isNpcChatCompleted(activeNpc.id)) {
-            setDialogContent({ speaker: 'System', text: '?대? ??붾? ?섎댋?듬땲?? ?ㅻⅨ ?쒓컙???留뚮굹硫??ㅼ떆 ??뷀븷 ???덉뒿?덈떎.', type: 'system' });
+            setDialogContent({ speaker: 'System', text: '이미 대화를 나누었습니다. 다른 시간대에 만나면 다시 대화할 수 있습니다.', type: 'system' });
             if (viewMode === 'hidden') setViewMode('mini');
             return;
         }
@@ -563,13 +563,13 @@ const MainGameScene = () => {
     };
 
     // ========================
-    // === ?용뱽湲??쒖옉 ===
+    // === 엿듣기 시작 ===
     // ========================
     const handleEavesdropClick = async () => {
         if (npcsInRoom.length < 2) return;
         const allCompleted = npcsInRoom.every(id => isNpcChatCompleted(id));
         if (allCompleted) {
-            setDialogContent({ speaker: 'System', text: '?대? ??붾? ?섎늿 NPC?ㅼ엯?덈떎.', type: 'system' });
+            setDialogContent({ speaker: 'System', text: '이미 대화를 나눈 NPC들입니다.', type: 'system' });
             if (viewMode === 'hidden') setViewMode('mini');
             return;
         }
@@ -618,7 +618,7 @@ const MainGameScene = () => {
 
         try {
             const response = await replyConversation({
-                topic: eavesdropTopic || roomTopic || '?? ????',
+                topic: eavesdropTopic || roomTopic || '주변 수군거림',
                 npcIds: activeNpcIds,
                 userMessage: userMsg,
                 history: eavesdropHistory,
@@ -654,13 +654,13 @@ const MainGameScene = () => {
             if (newCount >= MAX_INTERCEPT_TURNS) {
                 setTimeout(() => {
                     setEavesdropState('done');
-                    setEavesdropDialogContent({ speaker: 'System', text: '??? ?????.', type: 'system' });
+                    setEavesdropDialogContent({ speaker: 'System', text: '대화가 끝났습니다.', type: 'system' });
                     markNpcChatCompleted(...activeNpcIds);
                 }, 1000);
             }
         } catch (err) {
             console.error('Intercept error:', err);
-            setEavesdropDialogContent({ speaker: 'System', text: '...(??)...', type: 'system' });
+            setEavesdropDialogContent({ speaker: 'System', text: '...(시스템 오류)...', type: 'system' });
         } finally {
             setIsEavesdropThinking(false);
         }
@@ -713,7 +713,7 @@ const MainGameScene = () => {
     const runAutoEavesdrop = (index, currentLogs, pendingTurns, activeNpcIds) => {
         if (!pendingTurns || index >= pendingTurns.length) {
             setEavesdropState('done');
-            setEavesdropDialogContent({ speaker: 'System', text: '???? ?????.', type: 'system' });
+            setEavesdropDialogContent({ speaker: 'System', text: '대화가 끝났습니다.', type: 'system' });
             markNpcChatCompleted(...(activeNpcIds || []));
             setIsEavesdropThinking(false);
             return;
@@ -732,6 +732,27 @@ const MainGameScene = () => {
         setEavesdropAutoIndex(index + 1);
         setIsEavesdropThinking(false);
         setEavesdropHistory((prev) => [...prev, turn]);
+
+        if (eavesdropAutoRef.current) {
+            clearTimeout(eavesdropAutoRef.current);
+        }
+        eavesdropAutoRef.current = setTimeout(() => {
+            runAutoEavesdrop(index + 1, updatedLogs, pendingTurns, activeNpcIds);
+        }, 2000);
+    };
+
+    const handleCloseEavesdrop = () => {
+        setEavesdropState(null);
+        setEavesdropLogs([]);
+        setEavesdropDialogContent(null);
+        setEavesdropHistory([]);
+        setIsEavesdropThinking(false);
+        if (eavesdropAutoRef.current) {
+            clearTimeout(eavesdropAutoRef.current);
+            eavesdropAutoRef.current = null;
+        }
+    };
+
 
     // 떠나기: 엿듣기 세션 종료, 이동 취소 (방 밖 유지)
     const handleLeaveEavesdrop = () => {
@@ -753,9 +774,9 @@ const MainGameScene = () => {
     const getHpWarningConfig = () => {
         if (eavesdropState === 'hp_warning_chat') {
             return {
-                title: '?? ?? ??',
+                title: 'HP 소모 경고',
                 cost: ACTION_COSTS.npcChat,
-                desc: `${activeNpc?.name || 'NPC'}? ?????.`,
+                desc: `${activeNpc?.name || 'NPC'}와(과) 대화합니다.`,
                 onConfirm: handleConfirmStartChat,
             };
         }
@@ -799,40 +820,40 @@ const MainGameScene = () => {
                     {npcsInRoom.length > 0 && !isChatActive && eavesdropState !== 'preview' && eavesdropState !== 'choice' && eavesdropState !== 'done' && (
                         <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
                             <span className="text-xs text-gray-400 mb-1">
-                                ?꾩옱 諛? {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
+                                현재 방: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
                             </span>
 
-                            {/* 1:1 ??뷀븯湲?*/}
+                            {/* 1:1 대화하기 */}
                             <button
                                 onClick={handleStartChatClick}
                                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
                             >
-                                ?뮠 {activeNpc?.name}? ??뷀븯湲?
+                                💬 {activeNpc?.name}와(과) 대화하기
                                 <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
-                                        <button
-                                            onClick={handleLeaveEavesdrop}
-                                            className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                        >
-                                            떠나기
-                                        </button>
+                            <button
+                                onClick={handleLeaveEavesdrop}
+                                className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                            >
+                                떠나기
+                            </button>
 
-                            {/* NPC ?꾪솚 */}
+                            {/* NPC 전환 */}
                             {npcsInRoom.length > 1 && (
                                 <>
                                     <button
                                         onClick={toggleNpc}
                                         className="w-full py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 transition-colors"
                                     >
-                                        ???蹂寃?
+                                        대상 변경
                                     </button>
 
-                                    {/* ?용뱽湲?*/}
+                                    {/* 엿듣기 */}
                                     <button
                                         onClick={handleEavesdropClick}
                                         className="w-full py-2 bg-purple-700 hover:bg-purple-600 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
                                     >
-                                        ?몔 ?용뱽湲?
+                                        👂 엿듣기
                                         <span className="text-xs text-purple-200">({ACTION_COSTS.eavesdrop} HP)</span>
                                     </button>
                                 </>
@@ -916,7 +937,7 @@ const MainGameScene = () => {
                                             <p className="text-sm text-white/90">{log.text}</p>
                                         </div>
                                     ))}
-                                    {isEavesdropThinking && <div className="text-xs text-purple-300 animate-pulse px-3">?앷컖 以?..</div>}
+                                    {isEavesdropThinking && <div className="text-xs text-purple-300 animate-pulse px-3">생각 중...</div>}
                                 </div>
 
                                 {/* Dialog Box */}
@@ -934,13 +955,13 @@ const MainGameScene = () => {
                                             onClick={handleInterceptChoice}
                                             className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
-                                            ?뿣截??쇱뼱?ㅺ린 ({ACTION_COSTS.eavesdropJoin} HP)
+                                            🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
                                         </button>
                                         <button
                                             onClick={handleListenChoice}
                                             className="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
-                                            ?몔 ?용뱽湲?怨꾩냽 ({ACTION_COSTS.eavesdropContinue} HP)
+                                            👂 계속 엿듣기 ({ACTION_COSTS.eavesdropContinue} HP)
                                         </button>
                                     </div>
                                 )}
@@ -953,7 +974,7 @@ const MainGameScene = () => {
                                             value={eavesdropInputText}
                                             onChange={(e) => setEavesdropInputText(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
-                                            placeholder={`??붿뿉 ?쇱뼱?ㅺ린... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
+                                            placeholder={`끼어들기... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
                                             className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
                                             disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
                                             autoFocus
@@ -963,7 +984,7 @@ const MainGameScene = () => {
                                             disabled={isEavesdropThinking || !eavesdropInputText.trim()}
                                             className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
                                         >
-                                            ?꾩넚
+                                            전송
                                         </button>
                                     </div>
                                 )}
@@ -971,7 +992,7 @@ const MainGameScene = () => {
                                 {/* Listening progress */}
                                 {eavesdropState === 'listening' && (
                                     <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
-                                        <span className="text-sm text-purple-300">?용뱽??以?.. ({eavesdropAutoIndex}/10)</span>
+                                        <span className="text-sm text-purple-300">엿듣는 중... ({eavesdropAutoIndex}/10)</span>
                                     </div>
                                 )}
 
@@ -982,7 +1003,7 @@ const MainGameScene = () => {
                                             onClick={handleCloseEavesdrop}
                                             className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors"
                                         >
-                                            ?リ린
+                                            닫기
                                         </button>
                                     </div>
                                 )}
@@ -997,7 +1018,7 @@ const MainGameScene = () => {
                                 onClick={handleEndChat}
                                 className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                             >
-                                ???醫낅즺
+                                대화 종료
                             </button>
                         </div>
                     )}
@@ -1007,23 +1028,23 @@ const MainGameScene = () => {
                         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                             <div className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-yellow-400 text-lg">?좑툘</span>
+                                    <span className="text-yellow-400 text-lg">⚠️</span>
                                     <span className="text-sm font-bold text-yellow-300">{hpWarningConfig.title}</span>
                                 </div>
                                 <p className="text-sm text-gray-300 mb-1">{hpWarningConfig.desc}</p>
-                                <p className="text-sm text-yellow-300 font-bold mb-4">?뚮え HP: {hpWarningConfig.cost}</p>
+                                <p className="text-sm text-yellow-300 font-bold mb-4">소모 HP: {hpWarningConfig.cost}</p>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setEavesdropState(null)}
                                         className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
                                     >
-                                        痍⑥냼
+                                        취소
                                     </button>
                                     <button
                                         onClick={hpWarningConfig.onConfirm}
                                         className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
                                     >
-                                        ?뺤씤
+                                        확인
                                     </button>
                                 </div>
                             </div>
