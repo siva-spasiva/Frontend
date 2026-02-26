@@ -14,12 +14,13 @@ const InteractionPopup = ({
         if (isOpen) {
             setCurrentIndex(0);
         }
-    }, [isOpen]);
+    }, [isOpen, messages]);
 
     if (!isOpen || !messages || messages.length === 0) return null;
+    const safeIndex = Math.min(currentIndex, messages.length - 1);
 
     const handleNext = () => {
-        if (currentIndex < messages.length - 1) {
+        if (safeIndex < messages.length - 1) {
             setCurrentIndex((prev) => prev + 1);
         } else {
             onComplete && onComplete();
@@ -56,20 +57,20 @@ const InteractionPopup = ({
                                     <h4 className="font-bold text-gray-900 mb-1 text-lg">{title}</h4>
                                 )}
                                 <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {messages[currentIndex]}
+                                    {messages[safeIndex]}
                                 </p>
                             </div>
                         </div>
 
                         <div className="bg-gray-50 flex items-center justify-between px-4 py-3 border-t border-gray-100">
                             <span className="text-xs text-gray-500 font-mono">
-                                {currentIndex + 1} / {messages.length}
+                                {safeIndex + 1} / {messages.length}
                             </span>
                             <button
                                 onClick={handleNext}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-lg text-sm transition-colors shadow-sm"
                             >
-                                {currentIndex < messages.length - 1 ? 'Next' : 'Done'}
+                                {safeIndex < messages.length - 1 ? 'Next' : 'Done'}
                             </button>
                         </div>
                     </div>

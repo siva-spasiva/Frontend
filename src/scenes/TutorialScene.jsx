@@ -16,7 +16,8 @@ import HpWarningModal from '../components/HpWarningModal';
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
     // 'meet_bingeo_inside' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
-    // 'eavesdrop_tutorial' -> 'return_to_class' -> 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
+    // 'check_item005_inventory' -> 'eavesdrop_tutorial' -> 'return_to_class' ->
+    // 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
     const [step, setStep] = useState('intro');
@@ -70,6 +71,8 @@ const TutorialScene = ({ onComplete }) => {
     const [isEavesdropThinking, setIsEavesdropThinking] = useState(false);
     const eavesdropAutoRef = useRef(null);
     const [eavesdropAutoIndex, setEavesdropAutoIndex] = useState(0);
+    const awaitingItem005InspectRef = useRef(false);
+    const openedItem005InventoryRef = useRef(false);
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
@@ -87,7 +90,7 @@ const TutorialScene = ({ onComplete }) => {
     // Utility: Show Guide
     const showGuide = (messages, onCompleteCallback) => {
         setGuideMessages(messages);
-        setGuideCallback(() => onCompleteCallback);
+        setGuideCallback(() => (typeof onCompleteCallback === 'function' ? onCompleteCallback : null));
         setGuideOpen(true);
     };
 
@@ -320,8 +323,11 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     const isBingeoFinishSequence = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
-    const disableItemUseInInventory = ['obtain_item005', 'eavesdrop_tutorial', 'return_to_class', 'npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const disableItemUseInInventory = ['obtain_item005', 'check_item005_inventory', 'eavesdrop_tutorial', 'return_to_class', 'npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
     const inventoryUseOnlyItemId = step === 'use_item_tutorial' ? 'item005' : null;
+    const sidebarDisabledPanels = step === 'check_item005_inventory'
+        ? ['map', 'recorder', 'messenger', 'settings']
+        : ['recorder'];
     const isMapInteractionLocked =
         guideOpen ||
         showNpcDialog ||
@@ -330,7 +336,28 @@ const TutorialScene = ({ onComplete }) => {
         isSidebarPanelOpen;
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
-        setIsSidebarPanelOpen(!!panelState?.isOpen);
+        const isPanelOpen = !!panelState?.isOpen;
+        const panelId = panelState?.panelId || null;
+        setIsSidebarPanelOpen(isPanelOpen);
+
+        if (!awaitingItem005InspectRef.current) return;
+
+        if (isPanelOpen && panelId === 'inventory') {
+            openedItem005InventoryRef.current = true;
+            return;
+        }
+
+        if (!isPanelOpen && openedItem005InventoryRef.current) {
+            awaitingItem005InspectRef.current = false;
+            openedItem005InventoryRef.current = false;
+            setStep('eavesdrop_tutorial');
+            setGuideMessages([
+                "누군가 창고 안에 있는 것 같습니다.",
+                "2층 창고(storage_main) 문으로 가서 들리는 소리를 확인해보세요."
+            ]);
+            setGuideCallback(null);
+            setGuideOpen(true);
+        }
     }, []);
 
     const blockMoveByBingeo = () => {
@@ -389,6 +416,28 @@ const TutorialScene = ({ onComplete }) => {
                 }, 1000);
                 return;
             }
+
+            if (zone.type === 'move') {
+                showGuide([
+                    "지금은 먼저 2층 창고(storage_main) 문에서 엿듣기를 시도해야 합니다."
+                ]);
+                return;
+            }
+
+            if (zone.type === 'info' || zone.type === 'item') {
+                showGuide([
+                    "지금은 창고 문에서 들리는 소리를 확인하는 것이 우선입니다."
+                ]);
+                return;
+            }
+        }
+
+        if (step === 'check_item005_inventory') {
+            showGuide([
+                "인벤토리를 열어 방금 획득한 '솔피의 눈물'을 확인해보세요.",
+                "확인 후 인벤토리를 닫으면 다음 안내가 진행됩니다."
+            ]);
+            return;
         }
 
         if (step === 'explore_inside') {
@@ -399,6 +448,11 @@ const TutorialScene = ({ onComplete }) => {
 
             if (zone.type === 'info') {
                 showGuide([zone.message]);
+                return;
+            }
+
+            if (zone.type === 'item') {
+                showGuide([zone.message || "지금은 특별히 얻을 수 있는 것이 없다."]);
                 return;
             }
         }
@@ -432,6 +486,11 @@ const TutorialScene = ({ onComplete }) => {
                 showGuide([zone.message || "특별한 단서는 보이지 않는다."]);
                 return;
             }
+
+            if (zone.type === 'item') {
+                showGuide([zone.message || "지금은 이 물건을 챙길 수 없다."]);
+                return;
+            }
         }
     };
 
@@ -447,6 +506,13 @@ const TutorialScene = ({ onComplete }) => {
         if (step === 'obtain_item005') {
             showGuide([
                 "솔피의 눈물을 먼저 획득해야 합니다."
+            ]);
+            return;
+        }
+
+        if (step === 'check_item005_inventory' && targetRoomId !== currentRoomId) {
+            showGuide([
+                "이동하기 전에 인벤토리에서 '솔피의 눈물'을 먼저 확인해보세요."
             ]);
             return;
         }
@@ -478,6 +544,13 @@ const TutorialScene = ({ onComplete }) => {
         if (step === 'obtain_item005' && targetRoomId !== currentRoomId) {
             showGuide([
                 "솔피의 눈물을 먼저 획득해야 합니다."
+            ]);
+            return;
+        }
+
+        if (step === 'check_item005_inventory' && targetRoomId !== currentRoomId) {
+            showGuide([
+                "이동하기 전에 인벤토리에서 '솔피의 눈물'을 먼저 확인해보세요."
             ]);
             return;
         }
@@ -566,18 +639,14 @@ const TutorialScene = ({ onComplete }) => {
         if (step === 'obtain_item005' && collectedItemId === 'item005') {
             setTimeout(() => {
                 setIsMenuEnabled(true);
+                setStep('check_item005_inventory');
+                awaitingItem005InspectRef.current = true;
+                openedItem005InventoryRef.current = false;
                 showGuide([
                     "솔피의 눈물을 획득했습니다! 확인해 봅시다.",
-                    "왼쪽 버튼으로 메뉴 목록 확인 기능을 해금했습니다.",
-                    "Inventory, Messenger, Map, Settings를 사용할 수 있습니다.",
-                    "(Recorder 등 일부 기능은 본 게임에서만 제공됩니다.)"
-                ], () => {
-                    setStep('eavesdrop_tutorial');
-                    showGuide([
-                        "잠깐, 2층 창고(storage_main) 쪽에서 무슨 소리가 들리는 것 같습니다.",
-                        "저 문을 클릭해서 접근해보세요."
-                    ]);
-                });
+                    "왼쪽 메뉴에서 인벤토리를 열어 아이템을 확인하세요.",
+                    "튜토리얼 중에는 사용하기/제시하기가 비활성화됩니다."
+                ]);
             }, 300);
         }
     };
@@ -769,7 +838,7 @@ const TutorialScene = ({ onComplete }) => {
                         currentFloorId={currentFloorId}
                         currentRoomId={currentRoomId}
                         onNavigate={handleMenuNavigate}
-                        disabledPanels={['recorder']}
+                        disabledPanels={sidebarDisabledPanels}
                         inventoryUseDisabled={disableItemUseInInventory}
                         inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                         onPanelStateChange={handleSidebarPanelStateChange}

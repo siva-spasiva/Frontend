@@ -2,8 +2,13 @@ import React from 'react';
 import { MessageSquare } from 'lucide-react';
 
 const ChatInput = ({ inputText, setInputText, onSend, isThinking, theme }) => {
+    const safeInputText = typeof inputText === 'string' ? inputText : '';
+    const canEditInput = typeof setInputText === 'function';
+    const canSendMessage = typeof onSend === 'function';
+    const hasText = safeInputText.trim().length > 0;
+
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && canSendMessage && hasText && !isThinking) {
             onSend();
         }
     };
@@ -18,18 +23,22 @@ const ChatInput = ({ inputText, setInputText, onSend, isThinking, theme }) => {
             <div className={`bg-black/35 border border-white/15 rounded-xl flex items-center p-1.5 ${inputFocusClass} transition-all ring-0`}>
                 <input
                     type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    value={safeInputText}
+                    onChange={(e) => {
+                        if (canEditInput) setInputText(e.target.value);
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder="Type dialogue..."
                     className="flex-1 bg-transparent border-none text-white/95 focus:ring-0 placeholder-white/35 h-11 px-4 text-base"
-                    disabled={isThinking}
+                    disabled={isThinking || !canEditInput}
                     autoFocus
                 />
                 <button
-                    onClick={onSend}
-                    disabled={isThinking || !inputText.trim()}
-                    className={`mr-1 px-3 py-2 rounded-lg transition-colors font-semibold text-sm ${isThinking || !inputText.trim()
+                    onClick={() => {
+                        if (canSendMessage && hasText && !isThinking) onSend();
+                    }}
+                    disabled={isThinking || !hasText || !canSendMessage}
+                    className={`mr-1 px-3 py-2 rounded-lg transition-colors font-semibold text-sm ${isThinking || !hasText || !canSendMessage
                         ? 'text-gray-500 bg-gray-800/80'
                         : `${sendButtonClass} shadow-lg`
                         }`}
