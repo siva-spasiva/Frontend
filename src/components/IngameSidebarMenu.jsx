@@ -102,6 +102,7 @@ const IngameSidebarMenu = ({
     onSidebarVisibleChange,
     forceOpen = false,
     highlightedPanel = null,
+    chatLogs = [],
 }) => {
     const [activePanel, setActivePanel] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -218,7 +219,7 @@ const IngameSidebarMenu = ({
         }
 
         if (activePanel === 'recorder') {
-            return <RecorderApp onBack={closePanel} />;
+            return <RecorderApp onBack={closePanel} chatLogs={chatLogs} />;
         }
 
         if (activePanel === 'messenger') {

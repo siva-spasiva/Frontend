@@ -975,6 +975,7 @@ const MainGameScene = () => {
                             onNavigate={handleMove}
                             onPanelStateChange={handleSidebarPanelStateChange}
                             onSidebarVisibleChange={handleSidebarVisibleChange}
+                            chatLogs={logs}
                         />
                     )}
 
