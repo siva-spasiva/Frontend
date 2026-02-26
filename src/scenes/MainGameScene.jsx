@@ -324,7 +324,7 @@ const MainGameScene = () => {
             return false;
         }
 
-        // HP는 useInteraction.handleInteraction → executeInteraction에서 이미 차감됨
+        // HP는 useInteraction.confirmMove에서 이동 확정 시 차감됨
         // 여기서 중복 차감하지 않음
 
         // NPC 2명 이상 → 이동 보류, 방 밖에서 엿듣기 프리뷰

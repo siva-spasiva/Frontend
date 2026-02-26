@@ -20,10 +20,11 @@ export const useInteraction = ({
     const [pendingRequirement, setPendingRequirement] = useState(null);
     const [pendingInfoPopup, setPendingInfoPopup] = useState(null);
 
-    const executeInteraction = useCallback((zone, cost) => {
-        if (cost > 0 && spendHp) {
-            const ok = spendHp(cost);
-            if (!ok) {
+    const executeInteraction = useCallback(async (zone, cost) => {
+        // For move zones, defer HP spending to confirmMove
+        if (zone.type !== 'move' && cost > 0 && spendHp) {
+            const result = await spendHp(cost);
+            if (!result) {
                 setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
                 return;
             }
@@ -63,6 +64,7 @@ export const useInteraction = ({
                     target: zone.target,
                     label: zone.label,
                     zone,
+                    cost, // Deferred HP cost — spent in confirmMove
                 });
 
                 responseText = `[${zone.label}] (으)로 이동하시겠습니까?`;
@@ -115,7 +117,7 @@ export const useInteraction = ({
         }
     }, [dialogContent, inventory, itemInteractionMode, onMove, setViewMode, spendHp, viewMode]);
 
-    const handleInteraction = useCallback((zone) => {
+    const handleInteraction = useCallback(async (zone) => {
         console.log('System Interaction with zone:', zone);
 
         if (zone.locked) {
@@ -187,18 +189,18 @@ export const useInteraction = ({
             }
         }
 
-        executeInteraction(zone, cost);
+        await executeInteraction(zone, cost);
     }, [ACTION_COSTS, executeInteraction, getHpCostPreview, inventory, rest, stats]);
 
     const addLog = useCallback((logItem) => {
         setLogs((prev) => [...prev, logItem]);
     }, []);
 
-    const confirmHpWarning = useCallback(() => {
+    const confirmHpWarning = useCallback(async () => {
         if (!pendingHpWarning) return;
         const { zone, cost } = pendingHpWarning;
         setPendingHpWarning(null);
-        executeInteraction(zone, cost);
+        await executeInteraction(zone, cost);
     }, [executeInteraction, pendingHpWarning]);
 
     const cancelHpWarning = useCallback(() => {
@@ -208,6 +210,23 @@ export const useInteraction = ({
 
     const confirmMove = useCallback(async () => {
         if (pendingMove && onMove) {
+            // Spend deferred HP cost (was not spent in executeInteraction for moves)
+            const moveCost = pendingMove.cost || 0;
+            if (moveCost > 0 && spendHp) {
+                const hpResult = await spendHp(moveCost);
+                if (!hpResult) {
+                    setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+                    setPendingMove(null);
+                    return;
+                }
+                // If section transition was triggered, let the overlay handle movement
+                if (hpResult.transitioned) {
+                    setPendingMove(null);
+                    setDialogContent(null);
+                    return;
+                }
+            }
+
             addLog({
                 id: `${Date.now()}_move_confirm`,
                 speaker: 'System',
@@ -223,7 +242,7 @@ export const useInteraction = ({
             setPendingMove(null);
             setDialogContent(null);
         }
-    }, [addLog, onMove, pendingMove]);
+    }, [addLog, onMove, pendingMove, spendHp]);
 
     const cancelMove = useCallback(() => {
         if (pendingMove) {

@@ -549,10 +549,10 @@ export const GameProvider = ({ children }) => {
 
     /**
      * 백엔드 API를 사용하는 HP 소모 함수
-     * UI 단에서 getHpCostPreview()를 통해 섹션 전환 경고 이후에 호출되는 것으로,
-     * 백엔드가 돌려주는 transitionEvent가 있으면 오버레이를 켭니다.
+     * 프론트엔드 주도 세션 전환: getPeriodFromHp(total_hp)로 시간대를 판별한다.
+     * backend의 session_hp / transitionEvent에 의존하지 않는다.
      * @param {number} cost - 소모할 HP
-     * @returns {Promise<boolean>} 성공 여부
+     * @returns {Promise<{success:boolean, transitioned:boolean}|false>}
      */
     const spendHp = async (cost) => {
         const baseHp = stats.hp;
@@ -563,24 +563,45 @@ export const GameProvider = ({ children }) => {
 
         try {
             const result = await spendHpBackend(cost);
-            // 백엔드에서 반환한 플래그(transitionEvent)가 있는 경우 트랜지션 모달 작동
-            if (result.transitionEvent) {
+            const backendStats = result.global || {};
+
+            // HP value from backend (source of truth for the number)
+            const newHp = backendStats.hp ?? backendStats.total_hp ?? (baseHp - cost);
+            const currentPer = stats.currentPeriod;
+            const detectedPer = getPeriodFromHp(newHp);
+
+            // Frontend-driven transition detection via HP thresholds
+            const willTransition = detectedPer === null || (detectedPer !== currentPer);
+
+            if (willTransition) {
+                const transitionInfo = SECTION_TRANSITIONS[currentPer] || {};
+                const nextPeriod = transitionInfo.next || 'morning';
                 const penalty = currentRoomHasRest() ? 0 : 5;
+                const adjustedHp = penalty > 0 ? Math.max(0, newHp - penalty) : newHp;
+
+                // Sync stats — override period with frontend-detected value
+                syncStats({
+                    ...backendStats,
+                    hp: adjustedHp,
+                    plusHp: 0,
+                    currentPeriod: nextPeriod,
+                });
+
                 setSectionTransition({
-                    message: result.transitionEvent.message,
-                    targetRoom: SECTION_TRANSITIONS[stats.currentPeriod]?.targetRoom || 'room001',
-                    nextPeriod: result.transitionEvent.next,
-                    // 백엔드에서 온 데이터에 바로 반영하지만 로컬 ui penalty 처리가 있다면 덧붙임
+                    message: transitionInfo.message || '시간이 흘러갑니다...',
+                    targetRoom: transitionInfo.targetRoom || 'room001',
+                    nextPeriod,
                     penalty: penalty > 0 ? { amount: penalty, message: '피곤하다...' } : null,
                 });
-                // Sync data slightly penalized
-                const adjustedHp = Math.max(0, result.global.hp - penalty);
-                syncStats({ ...result.global, hp: adjustedHp, plusHp: 0 });
-            } else {
-                syncStats(result.global);
+
+                setActiveConversationNpcId(null);
+                return { success: true, transitioned: true };
             }
+
+            // No transition — keep frontend-determined period
+            syncStats({ ...backendStats, currentPeriod: currentPer });
             setActiveConversationNpcId(null);
-            return true;
+            return { success: true, transitioned: false };
         } catch (error) {
             console.error(error);
             return false;
