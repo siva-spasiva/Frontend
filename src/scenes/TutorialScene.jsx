@@ -613,10 +613,14 @@ const TutorialScene = ({ onComplete }) => {
 
     // Contract Signing
     const handleContractSigned = () => {
+        if (!currentInventory?.includes('item004')) {
+            addItem('item004');
+        }
         setStep('hp_tutorial');
 
         setTimeout(() => {
             showGuide([
+                "수상한 계약서(item004)가 인벤토리에 추가되었습니다.",
                 "매 이동에는 체력을 1포인트씩 소모합니다.",
                 "튜토리얼에서는 소모되지 않으니 지금은 시스템에 익숙해져 봅시다."
             ], () => {

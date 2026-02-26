@@ -39,26 +39,29 @@ const ContractModal = ({ isOpen, onClose, onSign }) => {
 
                     <div className="p-8 relative z-10">
                         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 border-b-2 border-gray-800 pb-4">
-                            참가자 <span className="glitch-text text-red-600" data-text="권리 포기">[뻐끔뻐끔]</span> 및 <span className="glitch-text text-red-600" data-text="양도">[뻐끔]</span> 각서
+                            원데이 클래스 우미 <span className="glitch-text text-red-600">[뻐끔뻐끔]</span> 및 <span className="glitch-text text-red-600">[뻐끔]</span> 동의서
                         </h2>
 
                         <div className="mb-8 text-gray-700 space-y-4 text-sm leading-relaxed font-serif">
                             <p>
-                                1. 본인은 '솔피 힐링 클래스' 진행 중 발생하는 신체의{' '}
-                                <span className="font-bold text-red-600">[영구적 변이 및 훼손]</span>
+                                1. 본인은 '원데이 클래스 우미' 프로그램 참가 중 발생하는 신체의{' '}
+                                <span className="font-bold text-red-600">[뻐끔뻐끔]</span>
                                 에 대해 주최 측에 책임을 묻지 않습니다.
                             </p>
                             <p>
-                                2. 제공되는 음료(솔피의 눈물) 섭취 후 발생하는{' '}
-                                <span className="font-bold text-red-600">[정신 오염 및 환각]</span>
-                                은 프로그램의 일환임을 인지합니다.
+                                2. 제공되는 웰컴 드링크(솔피의 눈물) 섭취 후 발생하는{' '}
+                                <span className="font-bold text-red-600">[뻐끔뻐끔]</span>
+                                는 프로그램의 정상적인 과정임을 인지합니다.
                             </p>
                             <p>
                                 3. 본 클래스 종료 시, 참가자의{' '}
                                 <span className="font-bold text-red-600">[뻐끔뻐끔]</span>
                                 의 소유권은{' '}
-                                <span className="font-bold text-blue-800">[위대한 솔피]</span>에게{' '}
-                                <span className="font-bold text-red-600">영구히 귀속됨</span>에 동의합니다.
+                                <span className="font-bold text-blue-800">[뻐끔뻐끔]</span>에게{' '}
+                                <span className="font-bold text-red-600">[뻐끔뻐끔]</span>에 동의합니다.
+                            </p>
+                            <p className="text-gray-500 italic">
+                                ※ 본 동의서에서 약간의 비린내가 날 수 있으나 정상입니다.
                             </p>
                         </div>
 
