@@ -457,6 +457,7 @@ export const GameProvider = ({ children }) => {
     const PERIOD_ORDER = ['morning', 'afternoon', 'evening', 'night'];
     const PERIOD_LABELS = { morning: '아침', afternoon: '오후', evening: '저녁', night: '심야' };
     const PERIOD_CLOCK = { morning: '08:00', afternoon: '14:00', evening: '20:00', night: '24:00' };
+    const PERIOD_TO_INDEX = { morning: 1, afternoon: 2, evening: 3, night: 4 };
 
     // === HP Action Cost System ===
     const ACTION_COSTS = {
@@ -571,13 +572,6 @@ export const GameProvider = ({ children }) => {
         }
         const newHp = Math.max(0, baseHp - remainingCost);
 
-        try {
-            // Inform backend (fire-and-forget style — don't trust its return value for HP)
-            await spendHpBackend(cost);
-        } catch (error) {
-            console.warn('spendHpBackend failed, proceeding with frontend HP:', error);
-        }
-
         const currentPer = stats.currentPeriod;
         const detectedPer = getPeriodFromHp(newHp);
 
@@ -589,6 +583,16 @@ export const GameProvider = ({ children }) => {
             const nextPeriod = transitionInfo.next || 'morning';
             const penalty = currentRoomHasRest() ? 0 : 5;
             const adjustedHp = penalty > 0 ? Math.max(0, newHp - penalty) : newHp;
+
+            // Tell backend to advance session (resets session_hp)
+            try {
+                await endSession({
+                    dayIndex: stats.currentDay,
+                    sessionIndex: PERIOD_TO_INDEX[currentPer] || 1,
+                });
+            } catch (e) {
+                console.warn('endSession call failed during transition:', e);
+            }
 
             syncStats({
                 hp: adjustedHp,
@@ -607,26 +611,56 @@ export const GameProvider = ({ children }) => {
             return { success: true, transitioned: true };
         }
 
-        // No transition
+        // No transition — inform backend of HP spend
+        try {
+            await spendHpBackend(cost);
+        } catch (error) {
+            console.warn('spendHpBackend failed, proceeding with frontend HP:', error);
+        }
+
         syncStats({ hp: newHp, plusHp: newPlus });
         setActiveConversationNpcId(null);
         return { success: true, transitioned: false };
     };
 
     /**
-     * 백엔드 API를 사용하는 휴식 함수
+     * 휴식 함수: 즉시 endSession을 호출하여 다음 시간대로 전환한다.
+     * room001의 침대 등 rest 존과 상호작용 시 호출됨.
      */
     const rest = async () => {
         try {
-            const result = await restBackend();
-            if (result.transitionEvent) {
-                setSectionTransition({
-                    message: result.transitionEvent.message,
-                    targetRoom: SECTION_TRANSITIONS[stats.currentPeriod]?.targetRoom || 'room001',
-                    nextPeriod: result.transitionEvent.next,
+            const currentPer = stats.currentPeriod;
+            const transitionInfo = SECTION_TRANSITIONS[currentPer] || {};
+            const nextPeriod = transitionInfo.next || 'morning';
+
+            // 백엔드에 세션 종료 알림
+            try {
+                await endSession({
+                    dayIndex: stats.currentDay,
+                    sessionIndex: PERIOD_TO_INDEX[currentPer] || 1,
                 });
+            } catch (e) {
+                console.warn('endSession call failed during rest:', e);
             }
-            syncStats(result.global);
+
+            // night → 다음 날 morning, HP 리셋
+            const isNight = currentPer === 'night';
+            const nextDay = isNight ? Math.min(stats.currentDay + 1, 5) : stats.currentDay;
+            const nextHp = isNight ? 100 : stats.hp; // night 후에는 완전 회복
+
+            syncStats({
+                hp: nextHp,
+                plusHp: 0,
+                currentPeriod: isNight ? 'morning' : nextPeriod,
+                currentDay: nextDay,
+            });
+
+            setSectionTransition({
+                message: transitionInfo.message || '잠시 눈을 붙였습니다...',
+                targetRoom: transitionInfo.targetRoom || 'room001',
+                nextPeriod: isNight ? 'morning' : nextPeriod,
+            });
+
             setActiveConversationNpcId(null);
             return true;
         } catch (error) {

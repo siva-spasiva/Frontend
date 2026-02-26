@@ -65,7 +65,13 @@ export const apiClient = async (endpoint, options = {}) => {
         }
 
         if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            let detail = '';
+            try {
+                const errorBody = await response.json();
+                detail = errorBody?.detail || JSON.stringify(errorBody);
+                console.error(`API ${response.status} body:`, errorBody);
+            } catch { /* non-JSON error body */ }
+            throw new Error(`API Error: ${response.status} ${response.statusText}${detail ? ' — ' + detail : ''}`);
         }
 
         return await response.json();

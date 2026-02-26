@@ -16,6 +16,13 @@ router.post('/stats', updateStats);
 router.post('/stats/reset', resetStats);
 
 // Time and HP Actions
+router.post('/stats/hp/spend', (req, res) => {
+    const { userId = 'default_user', hp, amount } = req.body;
+    const result = spendHpInternal(userId, hp || amount || 10);
+    res.json(result);
+});
+
+// Legacy alias
 router.post('/action/spendHp', (req, res) => {
     const { userId = 'default_user', amount } = req.body;
     const result = spendHpInternal(userId, amount || 10);

@@ -215,6 +215,14 @@ const MainGameScene = () => {
             : normalizeNpcIds(payload);
         if (npcIds.length < 2) return;
 
+        // 프론트에서 HP 1 차감 (엿듣기 프리뷰)
+        const hpResult = await spendHp(ACTION_COSTS.eavesdrop);
+        if (!hpResult) {
+            setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+            return;
+        }
+        if (hpResult.transitioned) return;
+
         const participantIds = npcIds.slice(0, MAX_EAVESDROP_PARTICIPANTS);
         setEavesdropNpcIds(participantIds);
         setEavesdropTopic(payload?.topic || '주변 수군거림');
@@ -676,11 +684,22 @@ const MainGameScene = () => {
             if (viewMode === 'hidden') setViewMode('mini');
             return;
         }
-        setEavesdropState('hp_warning_chat');
+        // HP 차감은 handleConfirmStartChat에서 직접 처리
+        handleConfirmStartChat();
     };
 
-    const handleConfirmStartChat = () => {
-        // HP 차감은 백엔드 chat API에서 자동 처리 (프론트 spendHp 제거)
+    const handleConfirmStartChat = async () => {
+        // 프론트에서 HP 10 차감
+        const hpResult = await spendHp(ACTION_COSTS.npcChat);
+        if (!hpResult) {
+            setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+            setEavesdropState(null);
+            return;
+        }
+        if (hpResult.transitioned) {
+            setEavesdropState(null);
+            return;
+        }
         // GameContext의 npcStats에서 현재 NPC 스탯 표시
         if (activeNpc?.id && npcStats?.[activeNpc.id]) {
             setChatNpcStats({ [activeNpc.id]: { ...npcStats[activeNpc.id], npc_name: activeNpc.name } });
@@ -717,6 +736,17 @@ const MainGameScene = () => {
 
 
     const handleInterceptChoice = async () => {
+        // 프론트에서 HP 10 추가 차감 (끼어들기)
+        const hpResult = await spendHp(ACTION_COSTS.eavesdropJoin);
+        if (!hpResult) {
+            setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+            return;
+        }
+        if (hpResult.transitioned) {
+            handleCloseEavesdrop();
+            return;
+        }
+
         // 끼어들기: 방 입장 후 3인 대화 시작 (이동 HP 추가 차감 없음)
         if (pendingEavesdropTarget) {
             const { floorId, roomId, payload } = pendingEavesdropTarget;
@@ -824,6 +854,17 @@ const MainGameScene = () => {
     };
 
     const handleConfirmListen = async () => {
+        // 프론트에서 HP 5 추가 차감 (엿듣기 계속)
+        const hpResult = await spendHp(ACTION_COSTS.eavesdropContinue);
+        if (!hpResult) {
+            setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+            return;
+        }
+        if (hpResult.transitioned) {
+            handleCloseEavesdrop();
+            return;
+        }
+
         setEavesdropState('listening');
         setEavesdropAutoIndex(0);
         setIsEavesdropThinking(true);
