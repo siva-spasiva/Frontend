@@ -20,7 +20,18 @@ const InventoryApp = ({ onBack, disableConsumableUse = false, useOnlyItemId = nu
             {/* Header */}
             <div className="px-4 pb-4 flex items-center justify-between bg-white shadow-sm z-10 sticky top-0">
                 <div className="flex items-center space-x-2">
-                    <button onClick={onBack} className="p-1 -ml-1 hover:bg-gray-100 rounded-full transition-colors">
+                    <button 
+                        onClick={() => {
+                            if (isReading) {
+                                setIsReading(false);
+                            } else if (selectedItem) {
+                                setSelectedItem(null);
+                            } else {
+                                onBack();
+                            }
+                        }} 
+                        className="p-1 -ml-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
                         <ChevronLeft className="w-6 h-6 text-gray-800" />
                     </button>
                     <h1 className="text-xl font-bold text-gray-900">Inventory</h1>
@@ -98,15 +109,7 @@ const InventoryApp = ({ onBack, disableConsumableUse = false, useOnlyItemId = nu
                             exit={{ opacity: 0, x: 20 }}
                             className="p-6 h-full flex flex-col items-center overflow-y-auto bg-white"
                         >
-                            <div className="w-full flex items-center justify-start mb-4">
-                                <button
-                                    onClick={() => setSelectedItem(null)}
-                                    className="text-sm text-blue-500 flex items-center font-medium hover:underline"
-                                >
-                                    <ChevronLeft className="w-4 h-4 mr-1" />
-                                    목록으로
-                                </button>
-                            </div>
+
 
                             <Motion.div
                                 initial={{ scale: 0.8, rotate: -5 }}

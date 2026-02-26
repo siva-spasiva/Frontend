@@ -645,7 +645,7 @@ const TutorialScene = ({ onComplete }) => {
 
         setTimeout(() => {
             showGuide([
-                "수상한 계약서(item004)가 인벤토리에 추가되었습니다.",
+                "수상한 계약서가 인벤토리에 추가되었습니다.",
                 "매 이동에는 체력을 1포인트씩 소모합니다.",
                 "튜토리얼에서는 소모되지 않으니 지금은 시스템에 익숙해져 봅시다."
             ], () => {
@@ -697,7 +697,7 @@ const TutorialScene = ({ onComplete }) => {
         setChatLogs([]);
         setChatDialogContent({
             speaker: '곽빙어',
-            text: '잘 왔어. 음료는 챙겼지? 이것저것 물어볼 게 있으면 말해봐.',
+            text: '잘 왔어. 음료는 챙겼지?',
             type: 'active_npc'
         });
         setChatViewMode('mini');
@@ -765,33 +765,19 @@ const TutorialScene = ({ onComplete }) => {
             return;
         }
 
-        // npc_chatting 상태: 대화 체험 → 제시 단계로 전환
-        const fixedResponse = '흠, 뭘 물어보든 지금은 대답 안 해줄 거야. 인벤토리에서 아이템을 제시하는 것도 해봐. 아까 받은 솔피의 눈물을 꺼내서 나한테 보여줘 봐.';
-
-        setChatDialogContent({
-            speaker: '곽빙어',
-            text: fixedResponse,
-            type: 'active_npc'
-        });
-        setIsChatThinking(false);
-
-        // 고정 응답 후 바로 아이템 제시 단계로 전환
-        setTimeout(() => {
-            const finalLogs = [...newLogs, {
-                id: Date.now() + '_npc_fixed',
-                speaker: '곽빙어',
-                text: fixedResponse,
-                type: 'active_npc'
-            }];
-            setChatLogs(finalLogs);
-
-            setStep('chat_bingeo_present');
-            setCurrentScript([
-                { speaker: '곽빙어', text: '자, 아까 받은 솔피의 눈물을 나한테 보여줘봐. (제시)', portrait: true }
-            ]);
-            setShowNpcDialog(true);
-            setNpcDialogStep(0);
-        }, 2000);
+        // npc_chatting 상태: 대화 체험(전송 완료) → 시스템 가이드 팝업 후 제시 단계로 전환
+        if (step === 'npc_chatting') {
+            setIsChatThinking(false);
+            setChatLogs(newLogs);
+            
+            showGuide([
+                "아래 채팅창에 대화를 입력해 NPC와 대화할 수 있습니다. 지금은 일단 연습만 해 봅시다.. 본편에서 실제로 대화해 볼 수 있습니다.",
+                "제시도 해 봅시다."
+            ], () => {
+                setStep('present_tutorial');
+            });
+            return;
+        }
     };
 
     const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger && !eavesdropState;
@@ -875,6 +861,8 @@ const TutorialScene = ({ onComplete }) => {
                         inventoryUseDisabled={disableItemUseInInventory}
                         inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                         onPanelStateChange={handleSidebarPanelStateChange}
+                        forceOpen={step === 'present_tutorial' && !isSidebarPanelOpen}
+                        highlightedPanel={step === 'present_tutorial' ? 'inventory' : null}
                     />
                 )}
 
@@ -986,18 +974,35 @@ const TutorialScene = ({ onComplete }) => {
                     />
                 )}
 
-                {/* NPC 대화 HP 경고 모달 (기존 컴포넌트 사용) */}
+                {/* NPC 대화 HP 경고 모달 (인라인 구현) */}
                 {showNpcChatHpWarning && (
-                    <HpWarningModal
-                        isOpen={true}
-                        config={{
-                            title: '대화 시작 확인',
-                            cost: 10,
-                            desc: '곽빙어와 대화를 시작하면 10 HP가 소모됩니다. 대화가 끝날 때까지 이동과 다른 상호작용이 제한됩니다.',
-                            onConfirm: handleConfirmChatHp,
-                        }}
-                        onClose={handleCancelChatHp}
-                    />
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-yellow-400 text-lg">⚠️</span>
+                                <span className="text-sm font-bold text-yellow-300">대화 시작 확인</span>
+                            </div>
+                            <p className="text-sm text-gray-300 mb-1">
+                                곽빙어와 대화를 시작하면 10 HP가 소모됩니다. (튜토리얼에서는 소모되지 않습니다.)<br />
+                                대화가 끝날 때까지 이동과 다른 상호작용이 제한됩니다.
+                            </p>
+                            <p className="text-sm text-yellow-300 font-bold mb-4">소모 HP: 0 (튜토리얼)</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCancelChatHp}
+                                    className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    onClick={handleConfirmChatHp}
+                                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
+                                >
+                                    확인
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* 대화창 */}

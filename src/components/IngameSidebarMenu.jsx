@@ -100,6 +100,8 @@ const IngameSidebarMenu = ({
     inventoryUseOnlyItemId = null,
     onPanelStateChange,
     onSidebarVisibleChange,
+    forceOpen = false,
+    highlightedPanel = null,
 }) => {
     const [activePanel, setActivePanel] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -131,7 +133,7 @@ const IngameSidebarMenu = ({
     const fishPercent = Math.min(100, (currentFishLevel / 5) * 100);
     const tierColor = FISH_TIER_COLORS[currentFishLevel] || FISH_TIER_COLORS[0];
 
-    const isSidebarVisible = isHovered || !!activePanel;
+    const isSidebarVisible = isHovered || !!activePanel || forceOpen;
 
     const isPanelDisabled = (panelId) => disabledPanels.includes(panelId);
     const closePanel = () => setActivePanel(null);
@@ -275,7 +277,7 @@ const IngameSidebarMenu = ({
                         active={activePanel === 'inventory'}
                         disabled={isPanelDisabled('inventory')}
                         onClick={() => togglePanel('inventory')}
-                        colorClass="bg-amber-100 text-amber-700"
+                        colorClass={`bg-amber-100 text-amber-700 ${highlightedPanel === 'inventory' ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-400/60 shadow-[0_0_15px_rgba(251,191,36,0.5)]' : ''}`}
                     />
                     <MenuButton
                         icon={Mic}
