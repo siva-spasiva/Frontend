@@ -897,6 +897,37 @@ const MainGameScene = () => {
         setDialogContent({ speaker: 'System', text: '대화가 종료되었습니다.', type: 'system' });
     };
 
+    // === Section Transition 완료: 맵 이동 처리 ===
+    const handleSectionTransitionComplete = useCallback(async (transitionData) => {
+        if (!transitionData?.targetRoom) return;
+        const targetRoomId = transitionData.targetRoom;
+        const targetFloorId = findFloorIdByRoom(targetRoomId);
+        if (!targetFloorId) {
+            console.warn('Section transition target room not found:', targetRoomId);
+            return;
+        }
+
+        let targetRoomPayload = null;
+        try {
+            targetRoomPayload = await fetchRoom(targetFloorId, targetRoomId);
+        } catch (error) {
+            console.warn('Failed to fetch room for section transition:', error);
+        }
+
+        // 엿듣기/대화 상태 초기화
+        setEavesdropState(null);
+        setEavesdropLogs([]);
+        setEavesdropDialogContent(null);
+        setFreeChatCount(0);
+        setChatNpcStats(null);
+
+        // 대화 로그 초기화
+        setLogs([]);
+        setDialogContent(null);
+
+        await executeMove(targetRoomId, targetFloorId, targetRoomPayload);
+    }, [findFloorIdByRoom, fetchRoom, executeMove, setLogs, setDialogContent]);
+
     // HP Warning modal helper
     const getHpWarningConfig = () => {
         if (eavesdropState === 'hp_warning_chat') {
@@ -1174,7 +1205,7 @@ const MainGameScene = () => {
                     />
 
                     {/* Section Transition Overlay */}
-                    <SectionTransitionOverlay />
+                    <SectionTransitionOverlay onTransitionComplete={handleSectionTransitionComplete} />
 
                     {/* HP Boundary Warning Modal */}
                     <HpWarningModal

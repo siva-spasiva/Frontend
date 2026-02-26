@@ -482,10 +482,10 @@ export const GameProvider = ({ children }) => {
     };
 
     const SECTION_TRANSITIONS = {
-        morning: { next: 'afternoon', message: '점심 시간입니다. 식당으로 이동해 오후 일정을 시작합니다.', targetRoom: 'cafeteria' },
-        afternoon: { next: 'evening', message: '저녁 시간입니다. 진리 학습실로 이동합니다.', targetRoom: 'b3_hall' },
-        evening: { next: 'night', message: '심야 시간입니다. 각자의 방으로 돌아가 취침을 준비합니다.', targetRoom: 'room001' }, // 곽빙어의 방(001호)
-        night: { next: null, message: '더 이상 행동할 수 없다.', targetRoom: 'room001' },
+        morning: { next: 'afternoon', message: '점심 시간입니다. 식당으로 이동합니다.', targetRoom: 'cafeteria' },
+        afternoon: { next: 'evening', message: '저녁 시간입니다. 진리의 방으로 이동합니다.', targetRoom: 'truth_room001' },
+        evening: { next: 'night', message: '심야 시간입니다. 예배당으로 이동합니다.', targetRoom: 'chapel' },
+        night: { next: null, message: '더 이상 행동할 수 없다.', targetRoom: 'room001' }, // 다음 날 아침엔 자신의 방
     };
 
     const getPeriodFromHp = (hp) => {
@@ -623,10 +623,12 @@ export const GameProvider = ({ children }) => {
 
     /**
      * 섹션 전환 완료 로직
-     * (이미 백엔드에서 전환된 state를 받았고, UI 단 모달만 닫음)
+     * 전환 데이터를 반환한 후 모달을 닫음. 호출부에서 targetRoom으로 이동 처리.
      */
     const completeSectionTransition = () => {
+        const data = sectionTransition;
         setSectionTransition(null);
+        return data;
     };
 
     /**
