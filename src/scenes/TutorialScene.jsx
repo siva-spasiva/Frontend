@@ -242,11 +242,9 @@ const TutorialScene = ({ onComplete }) => {
                     setStep('fadeout');
                     completeTutorial();
 
+                    // fadeout 연출 후 튜토리얼 완료 알림 화면으로
                     setTimeout(() => {
-                        setDay(1);
-                        setPeriod('morning');
-                        setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' });
-                        onComplete();
+                        setStep('complete_notice');
                     }, 3000);
                 }, 3000);
             }, 0);
@@ -256,6 +254,14 @@ const TutorialScene = ({ onComplete }) => {
 
         previousHasItem005.current = hasItem005;
     }, [step, currentInventory, completeTutorial, setDay, setPeriod, setCurrentLocationInfo, onComplete]);
+
+    // 튜토리얼 완료 → 1일차 초기화 후 메인게임 진입
+    const handleCompleteAndStart = () => {
+        setDay(1);
+        setPeriod('morning');
+        setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' });
+        onComplete();
+    };
 
     // NPC 대화 넘기기 핸들러
     const handleNpcNext = () => {
@@ -693,7 +699,7 @@ const TutorialScene = ({ onComplete }) => {
 
                 {/* 2. 배경 (Map Viewer) */}
                 <AnimatePresence>
-                    {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
+                    {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && step !== 'complete_notice' && (
                         <Motion.div
                             key="map-viewer"
                             initial={{ opacity: 0 }}
@@ -747,7 +753,7 @@ const TutorialScene = ({ onComplete }) => {
                     )}
                 </AnimatePresence>
 
-                {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && (
+                {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && step !== 'complete_notice' && canToggleMenu && (
                     <IngameSidebarMenu
                         currentFloorId={currentFloorId}
                         currentRoomId={currentRoomId}
@@ -978,6 +984,45 @@ const TutorialScene = ({ onComplete }) => {
                         className="absolute inset-0 bg-black z-[100] flex flex-col items-center justify-center"
                     >
                         <p className="text-white text-xl font-serif">...정신이 아득해진다...</p>
+                    </Motion.div>
+                )}
+
+                {/* 튜토리얼 완료 알림 */}
+                {step === 'complete_notice' && (
+                    <Motion.div
+                        key="complete_notice"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1.2 }}
+                        className="absolute inset-0 bg-black z-[100] flex flex-col items-center justify-center gap-8 p-8"
+                    >
+                        <Motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 1 }}
+                            className="text-white text-2xl font-serif text-center tracking-wide"
+                        >
+                            지금부터 자유롭게 이동하며 말을 해 보세요!
+                        </Motion.p>
+                        <Motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1.2, duration: 0.8 }}
+                            className="text-gray-400 text-sm text-center"
+                        >
+                            — 1일차 아침이 시작됩니다 —
+                        </Motion.p>
+                        <Motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 2, duration: 0.6 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleCompleteAndStart}
+                            className="mt-4 px-10 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-2xl text-base tracking-wide shadow-lg transition-colors"
+                        >
+                            게임 시작
+                        </Motion.button>
                     </Motion.div>
                 )}
 
