@@ -19,8 +19,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_terrace",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "terrace",
                         "x": 90.04205997834119,
                         "y": 23.404781409907343,
@@ -28,7 +26,9 @@ export const FLOOR_DATA = [
                         "height": 46.2884642370651,
                         "label": "테라스",
                         "message": "테라스로 나간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "item_box_01",
@@ -40,7 +40,9 @@ export const FLOOR_DATA = [
                         "height": 7.007947639083696,
                         "label": "작은 상자",
                         "message": "미술도구 사이, 잡동사니들이 놓여 있다.",
-                        "itemId": "item010"
+                        "itemId": "item010",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "easel",
@@ -52,7 +54,9 @@ export const FLOOR_DATA = [
                         "height": 10,
                         "label": "이젤",
                         "message": "이젤이 놓여있다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -69,8 +73,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "back_to_storage",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "storage_main",
                         "x": 9.67252322375655,
                         "y": 31.234058388619225,
@@ -78,13 +80,13 @@ export const FLOOR_DATA = [
                         "height": 41.01414203378937,
                         "label": "창고로",
                         "message": "창고 안으로 돌아간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "terrace_to_stairs",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "stairs_up",
                         "x": 90.62643163505695,
                         "y": 65.67447575926337,
@@ -92,7 +94,9 @@ export const FLOOR_DATA = [
                         "height": 32.33162094605747,
                         "label": "1층 계단",
                         "message": "계단을 통해 1층으로 내려간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "item_solpi_tear",
@@ -104,7 +108,9 @@ export const FLOOR_DATA = [
                         "height": 7.19287633278617,
                         "label": "웰컴 드링크",
                         "message": "검푸른 커피인지 뭔지 모를 음료가 있다.",
-                        "itemId": "item005"
+                        "itemId": "item005",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_4",
@@ -116,7 +122,9 @@ export const FLOOR_DATA = [
                         "height": 9,
                         "label": "화단",
                         "message": "작은 화단. 정성스럽게 관리된 듯 하다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_5",
@@ -128,7 +136,9 @@ export const FLOOR_DATA = [
                         "height": 22.36764176821623,
                         "label": "하늘",
                         "message": "풍경이 예쁘다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             }
@@ -153,8 +163,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_main_hall",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "main_hall",
                         "x": 67.47970694133244,
                         "y": 38.15962244813367,
@@ -162,7 +170,9 @@ export const FLOOR_DATA = [
                         "height": 31.300865223026996,
                         "label": "건물 입구",
                         "message": "건물 안으로 들어간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "info_ocean_view",
@@ -174,7 +184,9 @@ export const FLOOR_DATA = [
                         "height": 30,
                         "label": "바닷가 풍경",
                         "message": "아름다운 푸른 바다. 평화롭다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "info_stone_stairs",
@@ -186,7 +198,9 @@ export const FLOOR_DATA = [
                         "height": 20.55895289659479,
                         "label": "돌계단",
                         "message": "절벽을 따라 깔린 낡은 돌계단. 풍경에 어우러지는 회색 돌이 햇빛에 빛나고 있다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "umi_info",
@@ -198,7 +212,9 @@ export const FLOOR_DATA = [
                         "height": 13.74988201504177,
                         "label": "간판",
                         "message": "우미 카페의 간판. 멋들어지게 umi 라고 쓰여 있다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_5",
@@ -210,7 +226,9 @@ export const FLOOR_DATA = [
                         "height": 24.912448188509753,
                         "label": "구름",
                         "message": "하늘이 맑고 예쁘다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -227,8 +245,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_outside",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "outside01",
                         "x": 64.68152627424251,
                         "y": 41.349911062019935,
@@ -236,13 +252,13 @@ export const FLOOR_DATA = [
                         "height": 24.969036701649273,
                         "label": "외부",
                         "message": "건물 밖으로 나간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "to_umi_class_from_hall",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "umi_class",
                         "x": 15.790909663573554,
                         "y": 41.50328823853371,
@@ -250,7 +266,9 @@ export const FLOOR_DATA = [
                         "height": 18.220440935042824,
                         "label": "원데이 클래스",
                         "message": "원데이 클래스 룸으로 향한다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_3",
@@ -262,7 +280,9 @@ export const FLOOR_DATA = [
                         "height": 8.3,
                         "label": "우미 간판",
                         "message": "우미 카페의 간판. 멋들어지게 umi 라고 쓰여 있다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_4",
@@ -274,13 +294,13 @@ export const FLOOR_DATA = [
                         "height": 9,
                         "label": "화로",
                         "message": "따듯해보이는 화로.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_5",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "stairs_up",
                         "x": 31.4,
                         "y": 88.1,
@@ -288,7 +308,9 @@ export const FLOOR_DATA = [
                         "height": 9.9,
                         "label": "2층 계단",
                         "message": "2층으로 향한다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -305,8 +327,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_main_hall_from_class",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "main_hall",
                         "x": 38.81204932477523,
                         "y": 85.85064364299897,
@@ -314,7 +334,9 @@ export const FLOOR_DATA = [
                         "height": 12.91713372723111,
                         "label": "메인 홀",
                         "message": "메인 홀로 돌아간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "outside",
@@ -326,7 +348,9 @@ export const FLOOR_DATA = [
                         "height": 44.4,
                         "label": "외부 테라스.",
                         "message": "공기 좋은 바닷가 테라스.",
-                        "itemId": "item025"
+                        "itemId": "item025",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_vase",
@@ -338,7 +362,9 @@ export const FLOOR_DATA = [
                         "height": 9.1,
                         "label": "꽃병",
                         "message": "투명한 유리병에 담긴 꽃들.",
-                        "itemId": "item025"
+                        "itemId": "item025",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_i",
@@ -350,7 +376,9 @@ export const FLOOR_DATA = [
                         "height": 11.189442183829467,
                         "label": "비어있는 이젤",
                         "message": "비어있는 이젤. 햇빛을 받아 하얗게 빛난다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_s",
@@ -362,7 +390,9 @@ export const FLOOR_DATA = [
                         "height": 31.4,
                         "label": "하늘",
                         "message": "탁 트인 유리창의 하늘. 깨끗하고 맑다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -375,22 +405,20 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_storage",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
-                        "target": "storage_main",
+                        "target": "terrace",
                         "x": 43.9,
                         "y": 12.615384615384617,
                         "width": 13.399999999999999,
                         "height": 19.076923076923077,
-                        "label": "2층 창고",
-                        "message": "2층 자재 창고로 올라간다.",
-                        "itemId": ""
+                        "label": "2층 테라스",
+                        "message": "2층으로 올라간다.",
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "to_umi_class",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "main_hall",
                         "x": 90,
                         "y": 40,
@@ -398,7 +426,9 @@ export const FLOOR_DATA = [
                         "height": 41.10734301882992,
                         "label": "홀",
                         "message": "홀로 나간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_3",
@@ -410,7 +440,9 @@ export const FLOOR_DATA = [
                         "height": 21.7,
                         "label": "잡동사니",
                         "message": "잔뜩 쌓인 잡동사니. 관리되지 않아 덩굴이 많이 자랐다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -423,22 +455,20 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_storage",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
-                        "target": "storage_main",
+                        "target": "terrace",
                         "x": 43.2,
                         "y": 13.3846153846154,
                         "width": 13.5,
                         "height": 20,
-                        "label": "2층 창고",
-                        "message": "2층 자재 창고로 올라간다.",
-                        "itemId": ""
+                        "label": "2층 테라스",
+                        "message": "2층으로 올라간다.",
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "to_b1",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "cafeteria",
                         "x": 64.8,
                         "y": 52.15384615384614,
@@ -446,13 +476,13 @@ export const FLOOR_DATA = [
                         "height": 32.307692307692335,
                         "label": "지하 1층",
                         "message": "지하 1층으로 내려간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "to_umi_class",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "main_hall",
                         "x": 90.39999999999999,
                         "y": 44.30769230769231,
@@ -460,7 +490,9 @@ export const FLOOR_DATA = [
                         "height": 46.61538461538461,
                         "label": "홀",
                         "message": "홀로 나간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ],
                 "namePrefix": "1F"
@@ -486,8 +518,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_1f",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "stairs_revealed",
                         "x": 8.037548312289703,
                         "y": 38.085631748095494,
@@ -500,8 +532,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_kitchen",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "kitchen",
                         "x": 67.29947168947052,
                         "y": 37.54880674143047,
@@ -514,8 +546,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_b2",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 15.475279586348854,
                         "y": 38.50245864997763,
@@ -572,8 +604,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_cafeteria",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "cafeteria",
                         "x": 86.13372668991056,
                         "y": 20.310370990129798,
@@ -642,8 +674,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_1",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "kitchen",
                         "x": 92.33992681529222,
                         "y": 42.27721415097507,
@@ -656,8 +688,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_2",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "stairs_revealed",
                         "x": 44.49945111469173,
                         "y": 15.586070754875319,
@@ -682,8 +714,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_4",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 1.272365805168986,
                         "y": 28.495791665677288,
@@ -717,8 +749,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_001",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "room001",
                         "x": 5.3998667915147465,
                         "y": 25.067674675328895,
@@ -731,8 +763,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_002",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "room002",
                         "x": 48.545352342945506,
                         "y": 40.43962119049319,
@@ -745,8 +777,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_laundry",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "laundry_room",
                         "x": 31.739853470666226,
                         "y": 31.486729264078846,
@@ -759,8 +791,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_003",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"item010",
+                        "locked": false,
+                        "locked_key": "item010",
                         "target": "room003",
                         "x": 58.379240711634054,
                         "y": 42.80453603898003,
@@ -773,8 +805,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_004",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "room004",
                         "x": 78.99933395757375,
                         "y": 40.4396211904932,
@@ -787,8 +819,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "door_005",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "room005",
                         "x": 87.55954709115014,
                         "y": 25.91228712121704,
@@ -801,8 +833,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "stair_down",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b3_hall",
                         "x": 67.62720250162639,
                         "y": 49.23729242578694,
@@ -815,8 +847,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "stair_up",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "B1_machineroom",
                         "x": 72.81778844119177,
                         "y": 42.37818506928924,
@@ -889,8 +921,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_door",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 68.09336885559605,
                         "y": 30.61504694805911,
@@ -938,8 +970,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_door_002",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 5.6880104803421,
                         "y": 23.3128510583484,
@@ -989,8 +1021,6 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_door_003",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
                         "target": "hallway",
                         "x": 4.636408777603989,
                         "y": 26.535639604580297,
@@ -998,7 +1028,9 @@ export const FLOOR_DATA = [
                         "height": 64.33263630941613,
                         "label": "복도",
                         "message": "복도로 나간다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_notebook_003",
@@ -1010,7 +1042,9 @@ export const FLOOR_DATA = [
                         "height": 8.516188336216516,
                         "label": "낡은 침대",
                         "message": "아주 낡고 헤진 천이 대충 놓여있다.",
-                        "itemId": ""
+                        "itemId": "",
+                        "locked": false,
+                        "locked_key": ""
                     },
                     {
                         "id": "zone_mug_003",
@@ -1022,7 +1056,9 @@ export const FLOOR_DATA = [
                         "height": 5.0263746088511425,
                         "label": "술병",
                         "message": "뚜껑이 열린 채 말라있다.",
-                        "itemId": "item022"
+                        "itemId": "item022",
+                        "locked": false,
+                        "locked_key": ""
                     }
                 ]
             },
@@ -1040,8 +1076,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_door_004",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 67.36080503178547,
                         "y": 31.837913985493017,
@@ -1127,8 +1163,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_door_005",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 88.58837917807213,
                         "y": 27.02354314622044,
@@ -1209,8 +1245,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_hall",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 66.81961805888606,
                         "y": 48.45775592311131,
@@ -1302,8 +1338,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_b2",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "hallway",
                         "x": 72.8177884411918,
                         "y": 43.272239606616004,
@@ -1316,8 +1352,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_chapel",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "chapel",
                         "x": 31.790303026220464,
                         "y": 32.36477425122932,
@@ -1330,8 +1366,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_truth001",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "truth_room001",
                         "x": 58.18225270836577,
                         "y": 43.62986142154672,
@@ -1356,8 +1392,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_9",
                         "type": "move",
-                        "locked":true,
-                        "locked_key":"item010",
+                        "locked": true,
+                        "locked_key": "item010",
                         "target": "b4_entrance",
                         "x": 67.9,
                         "y": 51.9,
@@ -1378,8 +1414,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_hall",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b3_hall",
                         "x": 23.26130325690862,
                         "y": 29.809752001025686,
@@ -1411,8 +1447,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_hall",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b3_hall",
                         "x": 90.4524093651707,
                         "y": 27.891491256616277,
@@ -1489,8 +1525,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_b3",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b3_hall",
                         "x": 31.310449395636017,
                         "y": 33.2588287885561,
@@ -1503,8 +1539,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_leader",
                         "type": "move",
-                        "locked":true,
-                        "locked_key":"npc_bokeo_003",
+                        "locked": true,
+                        "locked_key": "npc_bokeo_003",
                         "target": "real_leader_room",
                         "x": 59.021996561888564,
                         "y": 34.71246979065042,
@@ -1517,8 +1553,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_b5",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b5_entrance",
                         "x": 38.02840022381845,
                         "y": 90.39785399626663,
@@ -1551,8 +1587,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_entrance",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "b4_entrance",
                         "x": 7.932811606948517,
                         "y": 32.78541747697876,
@@ -1593,8 +1629,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_b5",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": true,
+                        "locked_key": "key026",
                         "target": "B5_hallway",
                         "x": 47.79111635006855,
                         "y": 36.796275717187825,
@@ -1660,8 +1696,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_entrance",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "B5_hallway",
                         "x": 61.05861055045224,
                         "y": 32.06879632994096,
@@ -1766,8 +1802,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "to_entrance",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "B5_hallway",
                         "x": 0.7197804458766912,
                         "y": 68.40740518065117,
@@ -1800,8 +1836,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_1",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "freezer",
                         "x": 45.6,
                         "y": 36.8,
@@ -1814,8 +1850,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_2",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "solphi_room",
                         "x": 78.13992681529224,
                         "y": 36.6,
@@ -1828,8 +1864,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_3",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "dock",
                         "x": 23.780219554123313,
                         "y": 37.853509164059005,
@@ -1851,8 +1887,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_1",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "solphi_room",
                         "x": 39.420329331184966,
                         "y": 48.420054895118604,
@@ -1865,8 +1901,8 @@ export const FLOOR_DATA = [
                     {
                         "id": "zone_2",
                         "type": "move",
-                        "locked":false,
-                        "locked_key":"",
+                        "locked": false,
+                        "locked_key": "",
                         "target": "B5_hallway",
                         "x": 43.7,
                         "y": 88.3,
