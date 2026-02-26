@@ -549,8 +549,8 @@ export const GameProvider = ({ children }) => {
 
     /**
      * 백엔드 API를 사용하는 HP 소모 함수
-     * 프론트엔드 주도 세션 전환: getPeriodFromHp(total_hp)로 시간대를 판별한다.
-     * backend의 session_hp / transitionEvent에 의존하지 않는다.
+     * 프론트엔드 주도: HP 계산과 세션 전환 모두 프론트에서 수행한다.
+     * backend의 session_hp / transitionEvent / total_hp 에 의존하지 않는다.
      * @param {number} cost - 소모할 HP
      * @returns {Promise<{success:boolean, transitioned:boolean}|false>}
      */
@@ -561,51 +561,56 @@ export const GameProvider = ({ children }) => {
 
         if (totalHp < cost) return false;
 
-        try {
-            const result = await spendHpBackend(cost);
-            const backendStats = result.global || {};
-
-            // HP value from backend (source of truth for the number)
-            const newHp = backendStats.hp ?? backendStats.total_hp ?? (baseHp - cost);
-            const currentPer = stats.currentPeriod;
-            const detectedPer = getPeriodFromHp(newHp);
-
-            // Frontend-driven transition detection via HP thresholds
-            const willTransition = detectedPer === null || (detectedPer !== currentPer);
-
-            if (willTransition) {
-                const transitionInfo = SECTION_TRANSITIONS[currentPer] || {};
-                const nextPeriod = transitionInfo.next || 'morning';
-                const penalty = currentRoomHasRest() ? 0 : 5;
-                const adjustedHp = penalty > 0 ? Math.max(0, newHp - penalty) : newHp;
-
-                // Sync stats — override period with frontend-detected value
-                syncStats({
-                    ...backendStats,
-                    hp: adjustedHp,
-                    plusHp: 0,
-                    currentPeriod: nextPeriod,
-                });
-
-                setSectionTransition({
-                    message: transitionInfo.message || '시간이 흘러갑니다...',
-                    targetRoom: transitionInfo.targetRoom || 'room001',
-                    nextPeriod,
-                    penalty: penalty > 0 ? { amount: penalty, message: '피곤하다...' } : null,
-                });
-
-                setActiveConversationNpcId(null);
-                return { success: true, transitioned: true };
-            }
-
-            // No transition — keep frontend-determined period
-            syncStats({ ...backendStats, currentPeriod: currentPer });
-            setActiveConversationNpcId(null);
-            return { success: true, transitioned: false };
-        } catch (error) {
-            console.error(error);
-            return false;
+        // Frontend-authoritative HP calculation
+        let remainingCost = cost;
+        let newPlus = currentPlus;
+        if (newPlus > 0) {
+            const fromPlus = Math.min(remainingCost, newPlus);
+            newPlus -= fromPlus;
+            remainingCost -= fromPlus;
         }
+        const newHp = Math.max(0, baseHp - remainingCost);
+
+        try {
+            // Inform backend (fire-and-forget style — don't trust its return value for HP)
+            await spendHpBackend(cost);
+        } catch (error) {
+            console.warn('spendHpBackend failed, proceeding with frontend HP:', error);
+        }
+
+        const currentPer = stats.currentPeriod;
+        const detectedPer = getPeriodFromHp(newHp);
+
+        // Frontend-driven transition detection via HP thresholds
+        const willTransition = detectedPer === null || (detectedPer !== currentPer);
+
+        if (willTransition) {
+            const transitionInfo = SECTION_TRANSITIONS[currentPer] || {};
+            const nextPeriod = transitionInfo.next || 'morning';
+            const penalty = currentRoomHasRest() ? 0 : 5;
+            const adjustedHp = penalty > 0 ? Math.max(0, newHp - penalty) : newHp;
+
+            syncStats({
+                hp: adjustedHp,
+                plusHp: 0,
+                currentPeriod: nextPeriod,
+            });
+
+            setSectionTransition({
+                message: transitionInfo.message || '시간이 흘러갑니다...',
+                targetRoom: transitionInfo.targetRoom || 'room001',
+                nextPeriod,
+                penalty: penalty > 0 ? { amount: penalty, message: '피곤하다...' } : null,
+            });
+
+            setActiveConversationNpcId(null);
+            return { success: true, transitioned: true };
+        }
+
+        // No transition
+        syncStats({ hp: newHp, plusHp: newPlus });
+        setActiveConversationNpcId(null);
+        return { success: true, transitioned: false };
     };
 
     /**
