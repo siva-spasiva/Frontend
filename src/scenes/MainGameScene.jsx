@@ -110,6 +110,7 @@ const MainGameScene = () => {
         viewMode,
         setViewMode,
         onMove: handleMove,
+        onMovePreCheck: handleMovePreCheck,
         inventory: currentInventory, // Pass current inventory to check for existing items
         stats: { fishLevel, hp }, // Pass stats for interaction checks
         spendHp,
@@ -306,37 +307,78 @@ const MainGameScene = () => {
         }
     }
 
-    // === handleMove: 이동 요청 처리 (엿듣기 분기 포함) ===
-    async function handleMove(targetId, moveZone = null) {
+    // === handleMovePreCheck: 이동 전 사전 검사 (엿듣기 감지, 잠금 확인) ===
+    // 순수 검사만 수행, 부수효과 없음 (결과 객체 반환)
+    async function handleMovePreCheck(targetId, moveZone) {
         const targetFloorId = findFloorIdByRoom(targetId);
         if (!targetFloorId) {
-            setDialogContent({ speaker: 'System', text: '이동할 수 없는 위치입니다.', type: 'system' });
-            return false;
+            return { result: 'blocked', message: '이동할 수 없는 위치입니다.' };
         }
 
         let targetRoomPayload = null;
         try {
             targetRoomPayload = await fetchRoom(targetFloorId, targetId);
         } catch (error) {
-            console.warn('Room fetch failed before move:', error);
+            console.warn('Room fetch failed during pre-check:', error);
+            return { result: 'normal' };
         }
 
         const requirement = extractMoveRequirement(moveZone, targetRoomPayload);
         if (requirement && !currentInventory?.includes(requirement.targetId)) {
-            setPendingRequirement(requirement);
-            setDialogContent({
-                speaker: 'System',
-                text: requirement.message || '잠겼습니다.',
-                type: 'system',
-            });
+            return {
+                result: 'blocked',
+                requirement,
+                message: requirement.message || '잠겼습니다.',
+            };
+        }
+
+        const npcs = normalizeNpcIds(targetRoomPayload);
+        if (npcs.length >= 2) {
+            return { result: 'eavesdrop', roomPayload: targetRoomPayload, npcs, targetFloorId };
+        }
+
+        return { result: 'normal' };
+    }
+
+    // === handleMove: 이동 요청 처리 (엿듣기 분기 포함) ===
+    // options.cachedRoomPayload / cachedNpcs: preCheck에서 가져온 캐시 데이터
+    async function handleMove(targetId, moveZone = null, options = {}) {
+        const { cachedRoomPayload, cachedNpcs } = options;
+
+        const targetFloorId = findFloorIdByRoom(targetId);
+        if (!targetFloorId) {
+            setDialogContent({ speaker: 'System', text: '이동할 수 없는 위치입니다.', type: 'system' });
             return false;
         }
 
-        // HP는 useInteraction.confirmMove에서 이동 확정 시 차감됨
-        // 여기서 중복 차감하지 않음
+        // 캐시된 데이터가 있으면 재사용, 없으면 새로 fetch
+        let targetRoomPayload = cachedRoomPayload || null;
+        if (!targetRoomPayload) {
+            try {
+                targetRoomPayload = await fetchRoom(targetFloorId, targetId);
+            } catch (error) {
+                console.warn('Room fetch failed before move:', error);
+            }
+        }
+
+        // 캐시 경로가 아닐 때만 잠금 확인 (preCheck에서 이미 확인됨)
+        if (!cachedRoomPayload) {
+            const requirement = extractMoveRequirement(moveZone, targetRoomPayload);
+            if (requirement && !currentInventory?.includes(requirement.targetId)) {
+                setPendingRequirement(requirement);
+                setDialogContent({
+                    speaker: 'System',
+                    text: requirement.message || '잠겼습니다.',
+                    type: 'system',
+                });
+                return false;
+            }
+        }
+
+        // HP는 useInteraction에서 이미 차감됨 (preCheck eavesdrop 또는 confirmMove)
 
         // NPC 2명 이상 → 이동 보류, 방 밖에서 엿듣기 프리뷰
-        const npcs = normalizeNpcIds(targetRoomPayload);
+        const npcs = cachedNpcs || normalizeNpcIds(targetRoomPayload);
         if (npcs.length >= 2) {
             setPendingEavesdropTarget({ floorId: targetFloorId, roomId: targetId, payload: targetRoomPayload });
             // room payload를 임시 적용 (버튼 표시용, 위치는 변경 안 함)

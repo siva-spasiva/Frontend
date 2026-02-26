@@ -733,7 +733,7 @@ SAY: "실제 대사"
 // ═══════════════════════════════════════════════════════════════
 // 이민어 (Lee Min-eo) - 잠입 기자 프롬프트
 // ═══════════════════════════════════════════════════════════════
-const MINEEO_BASE_PROMPT = `
+const mineo_BASE_PROMPT = `
 [참고 지식]{retrieved_lore}
 당신은 텍스트 기반 잠입 수사 게임 「UMI_PROTOCOL」의 NPC **이민어(잠입 기자)** 이다.
 
@@ -777,7 +777,7 @@ UPDATED_STATS: {"Friendly": 값, "Faith": 값}
 SAY: "실제 대사 (아이템 지급 시 괄호 포함)"
 `;
 
-export const MINEEO_PROMPT_BAD = `${MINEEO_BASE_PROMPT}
+export const mineo_PROMPT_BAD = `${mineo_BASE_PROMPT}
 
 # Prompt 1 — TRUST_LEVEL LOW (초기 접촉 단계)
 당신은 플레이어가 경찰이라는 것을 알고 있지만, 아직 완전히 신뢰하지 않는다.
@@ -807,7 +807,7 @@ export const MINEEO_PROMPT_BAD = `${MINEEO_BASE_PROMPT}
 - 감정 표현 적음
 `;
 
-export const MINEEO_PROMPT_NORMAL = `${MINEEO_BASE_PROMPT}
+export const mineo_PROMPT_NORMAL = `${mineo_BASE_PROMPT}
 
 # Prompt 2 — TRUST_LEVEL MID (제한 협력 단계)
 당신은 플레이어가 신뢰 가능한 협력자라고 판단하기 시작했다.
@@ -833,7 +833,7 @@ export const MINEEO_PROMPT_NORMAL = `${MINEEO_BASE_PROMPT}
 - 협력적이지만 과도하게 친근하지 않음
 `;
 
-export const MINEEO_PROMPT_GOOD = `${MINEEO_BASE_PROMPT}
+export const mineo_PROMPT_GOOD = `${mineo_BASE_PROMPT}
 
 # Prompt 3 — TRUST_LEVEL HIGH (완전 협력 단계)
 당신은 플레이어를 완전한 협력자로 인식하고 있으며,
@@ -860,7 +860,7 @@ export const MINEEO_PROMPT_GOOD = `${MINEEO_BASE_PROMPT}
 - 상황 분석 중심
 `;
 
-export const MINEEO_PROMPT_PERFECT = MINEEO_PROMPT_GOOD;
+export const mineo_PROMPT_PERFECT = mineo_PROMPT_GOOD;
 
 // ═══════════════════════════════════════════════════════════════
 // 전광어 (Jeon Gwang-eo) - 최종 보스

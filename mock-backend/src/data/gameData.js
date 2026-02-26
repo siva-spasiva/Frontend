@@ -123,19 +123,19 @@ const NPC_DATA = {
         }
     },
     // === 추가된 LLM NPC ===
-    mineeo: {
-        id: 'mineeo',
+    mineo: {
+        id: 'mineo',
         name: '이민어',
         initialStats: { friendly: 10, faith: 50, fishLevel: 10 },
         initialInventory: [],
-        initialPortrait: 'npc_mineeo_00.png',
-        portraits: { default: 'npc_mineeo_00.png', alt: 'npc_mineeo_01.png' },
+        initialPortrait: 'npc_mineo_00.png',
+        portraits: { default: 'npc_mineo_00.png', alt: 'npc_mineo_01.png' },
         prompts: {
             friendly: {
-                BAD: PROMPTS.MINEEO_PROMPT_BAD,
-                NORMAL: PROMPTS.MINEEO_PROMPT_NORMAL,
-                GOOD: PROMPTS.MINEEO_PROMPT_GOOD,
-                PERFECT: PROMPTS.MINEEO_PROMPT_PERFECT,
+                BAD: PROMPTS.mineo_PROMPT_BAD,
+                NORMAL: PROMPTS.mineo_PROMPT_NORMAL,
+                GOOD: PROMPTS.mineo_PROMPT_GOOD,
+                PERFECT: PROMPTS.mineo_PROMPT_PERFECT,
             }
         },
         apiConfig: { model: 'gpt-oss:20b-cloud' }

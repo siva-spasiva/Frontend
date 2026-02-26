@@ -96,8 +96,8 @@ const NPC_SCHEDULE = {
         },
     },
 
-    // ─── 이민어 (mineeo): 잠입 기자 -> 004호 거주 ───
-    mineeo: {
+    // ─── 이민어 (mineo): 잠입 기자 -> 004호 거주 ───
+    mineo: {
         default: {
             morning: 'room004',
             afternoon: 'laundry_room',

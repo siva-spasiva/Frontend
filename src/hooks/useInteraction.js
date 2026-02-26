@@ -4,6 +4,7 @@ export const useInteraction = ({
     viewMode,
     setViewMode,
     onMove,
+    onMovePreCheck,
     inventory = [],
     stats = {},
     spendHp,
@@ -60,6 +61,40 @@ export const useInteraction = ({
 
         if (zone.type === 'move') {
             if (onMove && zone.target) {
+                // Pre-check: detect eavesdrop before showing confirmation popup
+                if (onMovePreCheck) {
+                    const preCheck = await onMovePreCheck(zone.target, zone);
+
+                    if (preCheck?.result === 'blocked') {
+                        if (preCheck.requirement) {
+                            setPendingRequirement(preCheck.requirement);
+                        }
+                        if (preCheck.message) {
+                            setDialogContent({ speaker: 'System', text: preCheck.message, type: 'system' });
+                        }
+                        return;
+                    }
+
+                    if (preCheck?.result === 'eavesdrop') {
+                        // Spend move HP before triggering eavesdrop (no confirmation popup)
+                        if (cost > 0 && spendHp) {
+                            const hpResult = await spendHp(cost);
+                            if (!hpResult) {
+                                setDialogContent({ speaker: 'System', text: '체력이 부족하다...', type: 'system' });
+                                return;
+                            }
+                            if (hpResult.transitioned) return;
+                        }
+                        // Trigger eavesdrop directly with cached room data
+                        await onMove(zone.target, zone, {
+                            cachedRoomPayload: preCheck.roomPayload,
+                            cachedNpcs: preCheck.npcs,
+                        });
+                        return;
+                    }
+                }
+
+                // Normal move — show confirmation popup
                 setPendingMove({
                     target: zone.target,
                     label: zone.label,
@@ -115,7 +150,7 @@ export const useInteraction = ({
         if (!isPopupItemMode && viewMode === 'hidden' && setViewMode) {
             setViewMode('mini');
         }
-    }, [dialogContent, inventory, itemInteractionMode, onMove, setViewMode, spendHp, viewMode]);
+    }, [dialogContent, inventory, itemInteractionMode, onMove, onMovePreCheck, setViewMode, spendHp, viewMode]);
 
     const handleInteraction = useCallback(async (zone) => {
         console.log('System Interaction with zone:', zone);
