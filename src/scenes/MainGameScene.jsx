@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { sendChatMessage } from '../api/chat';
 import { fetchRoom } from '../api/map';
-import { startConversation, replyConversation, eavesdropMore, endSession } from '../api/chat';
+import { startConversation, replyConversation, eavesdropMore } from '../api/chat';
 import { updateLocationStats } from '../api/stats';
 import GameHUD from '../components/GameHUD';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -72,7 +72,7 @@ const MainGameScene = () => {
     const [inputText, setInputText] = useState('');
 
     // GameContext에서 현재 진행 상태를 받아옴 (튜토리얼 종료 후 설정된 위치 등)
-    const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+    const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, triggerEndSession, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     // Active Room State - Context
     const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
@@ -361,12 +361,37 @@ const MainGameScene = () => {
     const eavesdropAutoRef = useRef(null);
 
     // === Completed NPC Conversations (per period) ===
-    const [completedNpcChats, setCompletedNpcChats] = useState({});
-    // Key: `${npcId}_${currentDay}_${currentPeriod}`, Value: true
+    const storageKey = 'umi_completed_chats';
+    const [completedNpcChats, setCompletedNpcChats] = useState(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            return {};
+        }
+    });
 
-    // Reset completed chats on period change
     useEffect(() => {
-        setCompletedNpcChats({});
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(completedNpcChats));
+        } catch (e) {
+            console.warn('Failed to save completedNpcChats to local storage', e);
+        }
+    }, [completedNpcChats]);
+
+    // Cleanup old periods' data
+    useEffect(() => {
+        setCompletedNpcChats(prev => {
+            const next = { ...prev };
+            let changed = false;
+            Object.keys(next).forEach(key => {
+                if (!key.includes(`_${currentDay}_${currentPeriod}`)) {
+                    delete next[key];
+                    changed = true;
+                }
+            });
+            return changed ? next : prev;
+        });
     }, [currentDay, currentPeriod]);
 
     const isNpcChatCompleted = (npcId) => {
@@ -617,6 +642,7 @@ const MainGameScene = () => {
             text: '무슨 일이야?',
             type: 'active_npc'
         });
+        markNpcChatCompleted(activeNpc.id);
         if (viewMode === 'hidden') setViewMode('mini');
     };
 
@@ -652,6 +678,7 @@ const MainGameScene = () => {
             text: '대화에 끼어들었습니다. 대화를 시작하세요.',
             type: 'system'
         });
+        markNpcChatCompleted(...(eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, MAX_EAVESDROP_PARTICIPANTS));
         if (viewMode !== 'full') setViewMode('full');
     };
 
@@ -727,7 +754,6 @@ const MainGameScene = () => {
                 setTimeout(() => {
                     setEavesdropState('done');
                     setEavesdropDialogContent({ speaker: 'System', text: '대화가 끝났습니다.', type: 'system' });
-                    markNpcChatCompleted(...activeNpcIds);
                 }, 1000);
             }
         } catch (err) {
@@ -749,6 +775,7 @@ const MainGameScene = () => {
         if (viewMode !== 'full') setViewMode('full');
 
         const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, MAX_EAVESDROP_PARTICIPANTS);
+        markNpcChatCompleted(...activeNpcIds);
         let turns = [];
 
         try {
@@ -787,7 +814,6 @@ const MainGameScene = () => {
         if (!pendingTurns || index >= pendingTurns.length) {
             setEavesdropState('done');
             setEavesdropDialogContent({ speaker: 'System', text: '대화가 끝났습니다.', type: 'system' });
-            markNpcChatCompleted(...(activeNpcIds || []));
             setIsEavesdropThinking(false);
             return;
         }
@@ -841,12 +867,10 @@ const MainGameScene = () => {
             applyRoomPayload(null);
         }
 
-        endSession({
-            dayIndex: currentDay,
-            sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
-        }).catch((error) => {
-            console.warn('Failed to end eavesdrop session:', error);
-        });
+        const threshold = { morning: 70, afternoon: 40, evening: 10, night: 0 }[currentPeriod];
+        if (threshold !== undefined && hp <= threshold) {
+            triggerEndSession().catch(e => console.warn('Failed to auto trigger end session:', e));
+        }
     };
 
 
@@ -858,15 +882,13 @@ const MainGameScene = () => {
     // End 1:1 chat session
     const handleEndChat = async () => {
         if (activeNpc) {
-            markNpcChatCompleted(activeNpc.id);
-            try {
-                await endSession({
-                    dayIndex: currentDay,
-                    sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
-                    npcId: activeNpc.id,
-                });
-            } catch (error) {
-                console.warn('Failed to end chat session:', error);
+            const threshold = { morning: 70, afternoon: 40, evening: 10, night: 0 }[currentPeriod];
+            if (threshold !== undefined && hp <= threshold) {
+                try {
+                    await triggerEndSession(activeNpc.id);
+                } catch (error) {
+                    console.warn('Failed to trigger end chat session:', error);
+                }
             }
         }
         setFreeChatCount(0);
@@ -992,11 +1014,11 @@ const MainGameScene = () => {
                                                 <h4 className="text-xs font-bold text-gray-200 mb-1.5 truncate">{npcName}</h4>
                                                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] font-mono text-gray-400">
                                                     <div className="flex justify-between items-center">
-                                                        <span>호감도</span>
+                                                        <span>친밀도</span>
                                                         <span className="text-white font-bold">{stats.favor ?? '?'}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
-                                                        <span>경계도</span>
+                                                        <span>신앙심</span>
                                                         <span className="text-white font-bold">{stats.alertness ?? '?'}</span>
                                                     </div>
                                                     {stats.stress !== undefined && (

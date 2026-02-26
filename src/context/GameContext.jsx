@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
+import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
 import { loginNewSave, createSaveSlot, activateSlot, touchSaveSlot, getSaveSlots, setTokens } from '../api/auth';
 import { fetchAllMaps, fetchFloor } from '../api/map';
 import { fetchInventory, addItemAPI, consumeItemAPI } from '../api/inventory';
 import { getNpcDataResolved } from '../data/npcData';
 import NPC_SCHEDULE from '../data/npcSchedule';
 import { ITEM_DEFINITIONS } from '../data/items';
+import { endSession } from '../api/chat';
 
 // Fish Level Tier 유틸리티
 const getFishTier = (fishLevel) => {
@@ -629,6 +630,35 @@ export const GameProvider = ({ children }) => {
     };
 
     /**
+     * 외부(MainGameScene의 커스텀 조건 등)에서 수동으로 엔드세션을 호출하고 모달을 띄움
+     * (채팅이나 엿듣기가 종료된 시점에 HP 임계값을 채웠을 경우 사용)
+     */
+    const triggerEndSession = async (npcId = null) => {
+        try {
+            const endSessionResult = await endSession({
+                dayIndex: stats.currentDay,
+                sessionIndex: PERIOD_TO_INDEX[stats.currentPeriod] || 1,
+                npcId: npcId,
+            });
+            const after = await fetchGameStats();
+            
+            const advance = endSessionResult?.advance;
+            if (advance) {
+                setSectionTransition({
+                    message: advance.message || endSessionResult?.message || '일정이 끝났습니다.',
+                    targetRoom: SECTION_TRANSITIONS[stats.currentPeriod]?.targetRoom || 'room001',
+                    nextPeriod: advance.current_session || null,
+                });
+            }
+            syncStats(mapServerStats(after));
+            return true;
+        } catch(e) {
+            console.error('triggerEndSession failed:', e);
+            return false;
+        }
+    };
+
+    /**
      * 특정 방에 있는 NPC 목록 조회 (스케줄 기반)
      * @param {string} roomId
      * @returns {string[]} NPC ID 배열
@@ -829,8 +859,12 @@ export const GameProvider = ({ children }) => {
 
     const completeTutorial = async () => {
         try {
-            await completeTutorialAPI();
+            await endSession({ dayIndex: 0, sessionIndex: 1 });
             setIsTutorialCompleted(true);
+            
+            // 튜토리얼 종료 후 로컬 정보 동기화를 위해 스탯 재조회
+            const updated = await fetchGameStats();
+            syncStats(mapServerStats(updated));
         } catch (error) {
             console.error("Failed to complete tutorial:", error);
         }
@@ -868,6 +902,7 @@ export const GameProvider = ({ children }) => {
         spendHp,
         getHpCostPreview,
         rest,
+        triggerEndSession,
         sectionTransition,
         completeSectionTransition,
         activeConversationNpcId,

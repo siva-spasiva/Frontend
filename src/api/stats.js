@@ -77,12 +77,9 @@ export const fetchTutorialStatus = async () => {
     return apiClient('/api/v1/tutorial/status', { auth: true, silent: true });
 };
 
-export const completeTutorialAPI = async () => {
-    return apiClient('/api/v1/tutorial/complete', {
-        method: 'POST',
-        auth: true,
-    });
-};
+
+
+export const spendHpBackend = spendHpAPI;
 
 export const resetItemsAPI = async () => {
     return apiClient('/api/v1/debug/reset_items', {
