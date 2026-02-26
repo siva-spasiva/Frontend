@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
 import { loginNewSave, createSaveSlot, activateSlot, touchSaveSlot, getSaveSlots, setTokens } from '../api/auth';
-import { fetchAllMaps } from '../api/map';
+import { fetchAllMaps, fetchFloor } from '../api/map';
 import { fetchInventory, addItemAPI, consumeItemAPI } from '../api/inventory';
 import { getNpcDataResolved } from '../data/npcData';
 import NPC_SCHEDULE from '../data/npcSchedule';
@@ -17,6 +17,8 @@ const getFishTier = (fishLevel) => {
     return 0;
 };
 const FISH_TIER_LABELS = ['정상', '미세 변이', '중간 변이', '심각 변이', '거의 물고기', '완전한 물고기'];
+const MAP_ROOT = '/src/assets/map/';
+const CANDIDATE_FLOOR_IDS = ['1F', '2F', 'B1', 'B2', 'B3', 'B4', 'B5', 'DEBUG'];
 
 
 const GameContext = createContext();
@@ -270,35 +272,101 @@ export const GameProvider = ({ children }) => {
     /**
      * 서버에서 맵 데이터 fetch
      */
+    const extractFloorArray = (mapResponse) => {
+        if (Array.isArray(mapResponse)) return mapResponse;
+        if (mapResponse && Array.isArray(mapResponse.floors)) return mapResponse.floors;
+        if (mapResponse && Array.isArray(mapResponse.data)) return mapResponse.data;
+        if (mapResponse && Array.isArray(mapResponse.items)) return mapResponse.items;
+        return [];
+    };
+
+    const resolveMapAssetPath = (assetValue, wrapAsCssUrl = false) => {
+        if (!assetValue || typeof assetValue !== 'string') return null;
+
+        const value = assetValue.trim();
+        if (!value) return null;
+        if (value.startsWith('url(')) return value;
+
+        const isAbsolute = /^(https?:)?\/\//.test(value) || value.startsWith('/') || value.startsWith('data:');
+        const resolvedPath = isAbsolute ? value : `${MAP_ROOT}${value}`;
+        return wrapAsCssUrl ? `url(${resolvedPath})` : resolvedPath;
+    };
+
+    const normalizeRoom = (room) => {
+        const roomId = room?.id || room?.room_id || room?.roomId || null;
+        const activeZones = Array.isArray(room?.activeZones)
+            ? room.activeZones
+            : (Array.isArray(room?.active_zones) ? room.active_zones : []);
+
+        return {
+            ...room,
+            id: roomId,
+            activeZones,
+            background: resolveMapAssetPath(room?.background || room?.background_url || room?.backgroundUrl, true),
+        };
+    };
+
+    const normalizeFloor = (floor) => {
+        const rooms = Array.isArray(floor?.rooms)
+            ? floor.rooms
+            : (Array.isArray(floor?.room_list) ? floor.room_list : []);
+
+        return {
+            ...floor,
+            id: floor?.id || floor?.floor_id || floor?.floorId || null,
+            mapImage: resolveMapAssetPath(floor?.mapImage || floor?.map_image || floor?.mapUrl || floor?.map_url),
+            rooms: rooms.map(normalizeRoom),
+        };
+    };
+
     const fetchMapData = async () => {
         try {
             const mapResponse = await fetchAllMaps();
-            // 서버 맵 응답을 기존 구조로 변환
-            const MAP_ROOT = '/src/assets/map/';
-            const resolvedFloorData = (Array.isArray(mapResponse) ? mapResponse : []).map(floor => ({
-                ...floor,
-                mapImage: floor.mapImage ? `${MAP_ROOT}${floor.mapImage}` : null,
-                rooms: (floor.rooms || []).map(room => ({
-                    ...room,
-                    background: room.background
-                        ? (room.background.startsWith('url(') ? room.background : `url(${MAP_ROOT}${room.background})`)
-                        : null,
-                })),
-            }));
+            let floorArray = extractFloorArray(mapResponse);
+
+            if (floorArray.length === 0) {
+                console.warn('[MapData] /api/v1/map/ returned no floors. Retrying /api/v1/map/{floor_id}...');
+                const fallbackFloors = await Promise.all(
+                    CANDIDATE_FLOOR_IDS.map(async (floorId) => {
+                        try {
+                            return await fetchFloor(floorId);
+                        } catch (error) {
+                            return null;
+                        }
+                    })
+                );
+                floorArray = fallbackFloors.filter(Boolean);
+            }
+
+            const resolvedFloorData = floorArray
+                .map(normalizeFloor)
+                .filter(floor => !!floor.id);
+
             const resolvedMapData = {};
             resolvedFloorData.forEach(floor => {
                 (floor.rooms || []).forEach(room => {
                     if (room.id) resolvedMapData[room.id] = room;
                 });
             });
+
+            if (Object.keys(resolvedMapData).length === 0) {
+                throw new Error('Map API returned 0 rooms after normalization.');
+            }
+
             setGameData(prev => ({
                 ...prev,
                 mapData: resolvedMapData,
                 floorData: resolvedFloorData,
             }));
-            console.log('[Init] Map data loaded:', resolvedFloorData.length, 'floors');
+            console.log('[Init] Map data loaded:', resolvedFloorData.length, 'floors,', Object.keys(resolvedMapData).length, 'rooms');
         } catch (error) {
-            console.error('Failed to fetch map data:', error);
+            console.error('[MapData] Failed to fetch map data:', error);
+            setGameData(prev => ({
+                ...prev,
+                mapData: {},
+                floorData: [],
+            }));
+            throw error;
         }
     };
 
