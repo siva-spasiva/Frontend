@@ -41,7 +41,7 @@ export const ITEM_DEFINITIONS = {
         type: 'normal',
         icon: '🍹',
         consumable: true,
-        effect: { fishLevel: 10 },
+        effect: { fishLevel: 1 },
     },
     item006: {
         id: 'item006',
@@ -51,7 +51,7 @@ export const ITEM_DEFINITIONS = {
         type: 'normal',
         icon: '🍹',
         consumable: true,
-        effect: { fishLevel: 10 },
+        effect: { fishLevel: 1 },
     },
     item007: {
         id: 'item007',
@@ -61,7 +61,7 @@ export const ITEM_DEFINITIONS = {
         type: 'normal',
         icon: '🍹',
         consumable: true,
-        effect: { fishLevel: 10 },
+        effect: { fishLevel: 1 },
     },
     item008: {
         id: 'item008',
@@ -71,7 +71,7 @@ export const ITEM_DEFINITIONS = {
         type: 'normal',
         icon: '🧪',
         consumable: true,
-        effect: { fishLevel: 10 },
+        effect: { fishLevel: 1 },
     },
     item009: {
         id: 'item009',
@@ -81,7 +81,7 @@ export const ITEM_DEFINITIONS = {
         type: 'key_item',
         icon: '🩸',
         consumable: true,
-        effect: { fishLevel: 10 },
+        effect: { fishLevel: 1 },
     },
     item010: {
         id: 'item010',

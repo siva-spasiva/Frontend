@@ -14,6 +14,7 @@ export const apiClient = async (endpoint, options = {}) => {
     const {
         auth = false,
         retryOnAuthError = true,
+        silent = false,
         ...fetchOptions
     } = options;
 
@@ -69,7 +70,9 @@ export const apiClient = async (endpoint, options = {}) => {
 
         return await response.json();
     } catch (error) {
-        console.error(`API Request Failed: ${endpoint}`, error);
+        if (!silent) {
+            console.error(`API Request Failed: ${endpoint}`, error);
+        }
         throw error;
     }
 };

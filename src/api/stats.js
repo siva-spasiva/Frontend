@@ -74,7 +74,7 @@ export const transferItem = async (npcId, itemId, direction = 'fromNpc') => {
 };
 
 export const fetchTutorialStatus = async () => {
-    return apiClient('/api/v1/tutorial/status', { auth: true });
+    return apiClient('/api/v1/tutorial/status', { auth: true, silent: true });
 };
 
 export const completeTutorialAPI = async () => {
@@ -84,7 +84,12 @@ export const completeTutorialAPI = async () => {
     });
 };
 
-export const spendHpBackend = spendHpAPI;
+export const resetItemsAPI = async () => {
+    return apiClient('/api/v1/debug/reset_items', {
+        method: 'POST',
+        auth: true,
+    });
+};
 
 export const restBackend = async () => {
     try {

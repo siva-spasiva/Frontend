@@ -2,7 +2,7 @@
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
-import { updateLocationStats } from '../api/stats';
+import { updateLocationStats, resetItemsAPI } from '../api/stats';
 import ItemPickupModal from '../components/ItemPickupModal';
 import MessengerApp from '../components/apps/MessengerApp';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -26,7 +26,8 @@ const TutorialScene = ({ onComplete }) => {
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
         completeTutorial, mapData, npcData,
-        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField
+        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField,
+        updateStatsBackend
     } = useGame();
 
     const currentFloorId = currentLocationInfo?.floorId || '1F';
@@ -56,6 +57,7 @@ const TutorialScene = ({ onComplete }) => {
     // Ingame menu state (left HUD button)
     const [isMenuEnabled, setIsMenuEnabled] = useState(false);
     const [isSidebarPanelOpen, setIsSidebarPanelOpen] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     // === AI Chat State (for npc_chatting step) ===
     const [chatLogs, setChatLogs] = useState([]);
@@ -90,18 +92,19 @@ const TutorialScene = ({ onComplete }) => {
         if (initialItemsGrantedRef.current) return;
         initialItemsGrantedRef.current = true;
 
-        const grantInitialItems = async () => {
-            for (const itemId of ['item001', 'item002', 'item003']) {
-                try {
-                    await addItem(itemId);
-                } catch (error) {
-                    console.warn(`[Tutorial] Failed to grant initial item: ${itemId}`, error);
-                }
+        const resetTutorialItems = async () => {
+            try {
+                // 백엔드 API를 통해 인벤토리 초기화 (단, 화면 동기화 처리를 위해 약간의 우회가 필요할 수 있으나 진행)
+                await resetItemsAPI();
+                // 초기화 후 클라이언트 상태 갱신을 위해 빈 업데이트를 날림
+                await updateStatsBackend({ floorId: '1F' });
+            } catch (error) {
+                console.warn(`[Tutorial] Failed to reset initial items`, error);
             }
         };
 
-        grantInitialItems();
-    }, [addItem]);
+        resetTutorialItems();
+    }, [updateStatsBackend]);
 
     // Initialize location immediately upon tutorial component mount
     useEffect(() => {
@@ -195,7 +198,9 @@ const TutorialScene = ({ onComplete }) => {
         setStep('outside');
         // Location is already set to 1F outside01 on mount
 
+        setIsTransitioning(true);
         setTimeout(() => {
+            setIsTransitioning(false);
             showGuide([
                 "시스템: (안내) 섬에 도착했습니다.",
                 "리조트 건물로 이동 전, 동료와 통신을 확인하세요. 좌측의 메신저를 확인해 주세요."
@@ -208,7 +213,9 @@ const TutorialScene = ({ onComplete }) => {
     // 2. 메신저 종료 감지 -> 곽빙어 만남
     useEffect(() => {
         if (step === 'outside' && messengerDisconnected) {
+            setIsTransitioning(true);
             const timer = setTimeout(() => {
+                setIsTransitioning(false);
                 setShowMessenger(false);
                 setStep('meet_bingeo_outside');
                 setCurrentScript([
@@ -231,29 +238,7 @@ const TutorialScene = ({ onComplete }) => {
         return () => setActiveNpcInField(null);
     }, [step, npcData, setActiveNpcInField]);
 
-    useEffect(() => {
-        if (!presentedItem || step !== 'present_tutorial') return;
-
-        const timer = setTimeout(() => {
-            if (presentedItem.itemId === 'item005') {
-                setCurrentScript([
-                    { speaker: '곽빙어', text: '오, 잘했어. 이렇게 아이템을 NPC에게 제시할 수 있어. 뭐든 한마디 해봐.', portrait: true }
-                ]);
-                setStep('correct_present');
-            } else {
-                setCurrentScript([
-                    { speaker: '곽빙어', text: '그건 아니야. 시식용 음료를 보여줘.', portrait: true }
-                ]);
-                setStep('wrong_present');
-            }
-
-            setShowNpcDialog(true);
-            setNpcDialogStep(0);
-            clearPresentation();
-        }, 0);
-
-        return () => clearTimeout(timer);
-    }, [presentedItem, step, clearPresentation]);
+    // 튜토리얼용 아이템 제시 연출은 handleTutorialChatSend 내에서 채팅 전송 시 처리됩니다.
 
     useEffect(() => {
         const hasItem005 = currentInventory?.includes('item005');
@@ -356,7 +341,8 @@ const TutorialScene = ({ onComplete }) => {
         isBingeoFinishSequence ||
         isSidebarPanelOpen ||
         !!pendingItem ||
-        !!eavesdropState;
+        !!eavesdropState ||
+        isTransitioning;
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         const isPanelOpen = !!panelState?.isOpen;
@@ -509,6 +495,13 @@ const TutorialScene = ({ onComplete }) => {
         }
 
         if (step === 'return_to_class' || step === 'npc_chat_tutorial') {
+            if (zone.type === 'move' && zone.target === 'storage_main') {
+                showGuide([
+                    "중요한 이야기 중인 것 같다. 지금은 곽빙어에게 돌아가자..."
+                ]);
+                return;
+            }
+
             if (zone.type === 'move') {
                 handleMoveInternal(zone.target);
                 return;
@@ -561,6 +554,13 @@ const TutorialScene = ({ onComplete }) => {
             return;
         }
 
+        if (step === 'return_to_class' && targetRoomId === 'storage_main') {
+            showGuide([
+                "중요한 이야기 중인 것 같다. 지금은 곽빙어에게 돌아가자..."
+            ]);
+            return;
+        }
+
         handleMoveInternal(targetRoomId);
     };
 
@@ -591,6 +591,21 @@ const TutorialScene = ({ onComplete }) => {
             return;
         }
 
+        if (step === 'explore_outside' && targetRoomId === 'main_hall' && !canEnterMainHall()) {
+            showGuide([
+                "아직 메인 홀로 바로 들어갈 수 없습니다.",
+                "주변의 정보 포인트를 먼저 확인해 주세요."
+            ]);
+            return;
+        }
+
+        if (step === 'return_to_class' && targetRoomId === 'storage_main') {
+            showGuide([
+                "중요한 이야기 중인 것 같다. 지금은 곽빙어에게 돌아가자..."
+            ]);
+            return;
+        }
+
         // Determine floor
         let targetFloorId = '1F';
         if (targetRoomId === 'storage_main' || targetRoomId === 'terrace') {
@@ -603,7 +618,9 @@ const TutorialScene = ({ onComplete }) => {
         // Move hooks
         if (step === 'explore_outside' && targetRoomId === 'main_hall') {
             setStep('meet_bingeo_inside');
+            setIsTransitioning(true);
             setTimeout(() => {
+                setIsTransitioning(false);
                 setCurrentScript([
                     { speaker: '곽빙어', text: '여기서부터는 진짜 우미의 공간이야. 일단 이거부터 서명해.', portrait: true },
                     { speaker: '곽빙어', text: '입소하려면 꼭 써야 하는 간단한 서명 같은 거니까, 걱정하지 말고.', portrait: true }
@@ -615,7 +632,9 @@ const TutorialScene = ({ onComplete }) => {
 
         if (step === 'explore_inside' && targetRoomId === 'terrace') {
             setStep('obtain_item005');
+            setIsTransitioning(true);
             setTimeout(() => {
+                setIsTransitioning(false);
                 showGuide([
                     "저기 테이블 위에 웰컴 드링크가 있네요. 클릭해서 획득해봅시다."
                 ]);
@@ -624,7 +643,9 @@ const TutorialScene = ({ onComplete }) => {
 
         if (step === 'return_to_class' && targetRoomId === 'umi_class') {
             setStep('npc_chat_tutorial');
+            setIsTransitioning(true);
             setTimeout(() => {
+                setIsTransitioning(false);
                 showGuide([
                     "곽빙어를 클릭해서 대화를 시도해봅시다.",
                     "본편에서는 NPC에게 대화를 요청할 때 10의 행동력을 소모하지만,",
@@ -709,10 +730,10 @@ const TutorialScene = ({ onComplete }) => {
 
     // Tutorial Chat Send Handler - 체험용 고정 스크립트 응답
     const handleTutorialChatSend = async () => {
-        if (!chatInputText.trim() || isChatThinking) return;
-        if (step !== 'npc_chatting' && step !== 'correct_present') return;
+        if ((!chatInputText.trim() && !presentedItem) || isChatThinking) return;
+        if (step !== 'npc_chatting' && step !== 'correct_present' && step !== 'present_tutorial') return;
 
-        const userMsg = chatInputText;
+        const userMsg = chatInputText.trim();
         setChatInputText('');
         setIsChatThinking(true);
 
@@ -725,38 +746,80 @@ const TutorialScene = ({ onComplete }) => {
                 type: chatDialogContent.type || 'npc'
             });
         }
-        newLogs.push({
-            id: Date.now() + '_user',
-            speaker: 'You',
-            text: userMsg,
-            type: 'user'
-        });
+        
+        if (userMsg) {
+            newLogs.push({
+                id: Date.now() + '_user',
+                speaker: 'You',
+                text: userMsg,
+                type: 'user'
+            });
+        }
+
+        if (presentedItem) {
+            newLogs.push({
+                id: Date.now() + '_presentation',
+                speaker: 'System',
+                text: `${presentedItem.name}을(를) 제시했습니다.`,
+                itemName: presentedItem.name,
+                icon: presentedItem.icon,
+                type: 'item_presentation'
+            });
+            clearPresentation();
+        }
+
         setChatLogs(newLogs);
         setChatDialogContent(null);
 
         // 짧은 "생각 중" 딜레이 후 고정 응답
         await new Promise(resolve => setTimeout(resolve, 1200));
 
-        // correct_present 상태: 제시 후 사용자 메시지 → 사용 단계로 전환
+        // present_tutorial 상태: 처음으로 아이템을 제시받았을 때
+        if (step === 'present_tutorial') {
+            if (presentedItem && presentedItem.itemId === 'item005') {
+                const presentResponse = '오, 잘했어. 이렇게 아이템을 NPC에게 제시할 수 있어. 뭐든 한마디 해봐.';
+                setChatDialogContent({
+                    speaker: '곽빙어',
+                    text: presentResponse,
+                    type: 'active_npc'
+                });
+                setIsChatThinking(false);
+
+                setTimeout(() => {
+                    setStep('correct_present');
+                }, 2000);
+            } else {
+                const wrongResponse = '그건 아니야. 시식용 음료를 보여줘.';
+                setChatDialogContent({
+                    speaker: '곽빙어',
+                    text: wrongResponse,
+                    type: 'active_npc'
+                });
+                setIsChatThinking(false);
+
+                setTimeout(() => {
+                    showGuide([
+                        "잘못된 아이템입니다. 다시 인벤토리를 열어 '솔피의 눈물'을 제시해보세요."
+                    ]);
+                    // step remains 'present_tutorial', which will auto-reopen the sidebar
+                }, 2000);
+            }
+            if (presentedItem) clearPresentation();
+            return;
+        }
+
+        // correct_present 상태: 올바른 제시 완료 후 이어지는 대화 → 사용 단계로 전환
         if (step === 'correct_present') {
-            const presentResponse = '오케이, 이렇게 제시하는 거야. 자, 이제 인벤토리에서 솔피의 눈물을 마셔보자.';
+            const finalResponse = '오케이, 이렇게 제시하는 거야. 자, 이제 인벤토리에서 솔피의 눈물을 마셔보자.';
 
             setChatDialogContent({
                 speaker: '곽빙어',
-                text: presentResponse,
+                text: finalResponse,
                 type: 'active_npc'
             });
             setIsChatThinking(false);
 
             setTimeout(() => {
-                const finalLogs = [...newLogs, {
-                    id: Date.now() + '_npc_present_done',
-                    speaker: '곽빙어',
-                    text: presentResponse,
-                    type: 'active_npc'
-                }];
-                setChatLogs(finalLogs);
-
                 setStep('use_item_tutorial');
                 showGuide([
                     "인벤토리를 열고 '솔피의 눈물'을 '사용'해봅시다."
@@ -772,7 +835,7 @@ const TutorialScene = ({ onComplete }) => {
             
             showGuide([
                 "아래 채팅창에 대화를 입력해 NPC와 대화할 수 있습니다. 지금은 일단 연습만 해 봅시다.. 본편에서 실제로 대화해 볼 수 있습니다.",
-                "제시도 해 봅시다."
+                "'제시'도 해 봅시다."
             ], () => {
                 setStep('present_tutorial');
             });
@@ -823,7 +886,7 @@ const TutorialScene = ({ onComplete }) => {
                             {mapInfo?.id === 'umi_class' && ['npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step) && step !== 'hp_tutorial_chat' && (
                                 <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
                                     <span className="text-xs text-gray-400 mb-1">
-                                        현재 방: 곽빙어
+                                        현재 방: 우미 클래스룸
                                     </span>
                                     {step === 'npc_chat_tutorial' ? (
                                         <button
@@ -861,8 +924,8 @@ const TutorialScene = ({ onComplete }) => {
                         inventoryUseDisabled={disableItemUseInInventory}
                         inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                         onPanelStateChange={handleSidebarPanelStateChange}
-                        forceOpen={step === 'present_tutorial' && !isSidebarPanelOpen}
-                        highlightedPanel={step === 'present_tutorial' ? 'inventory' : null}
+                        forceOpen={step === 'present_tutorial' && !isSidebarPanelOpen && !presentedItem}
+                        highlightedPanel={step === 'present_tutorial' && !presentedItem ? 'inventory' : null}
                     />
                 )}
 
@@ -906,8 +969,8 @@ const TutorialScene = ({ onComplete }) => {
                     )}
                 </AnimatePresence>
 
-                {/* AI 채팅 UI (npc_chatting 스텝) - GameHUD 적용 */}
-                {step === 'npc_chatting' && (
+                {/* AI 채팅 UI (npc_chatting, chat_bingeo_present 스텝 등) - GameHUD 적용 */}
+                {['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step) && (
                     <GameHUD
                         mapInfo={mapInfo}
                         activeNpc={npcData?.bingeo}

@@ -765,7 +765,7 @@ const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
 
     // This is called when the ChatScreen decides it's time (after X messages)
     const handleTriggerContract = () => {
-        console.log("MessengerApp: Triggering Contract Phase globally");
+        console.log("MessengerApp: sequence complete");
         triggerAppEvent('CONTRACT_TRIGGER');
         // We stay in 'chat' phase here!
     };

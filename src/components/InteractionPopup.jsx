@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Info, CheckCircle } from 'lucide-react';
 
 const InteractionPopup = ({
     isOpen,
     messages,
     onComplete,
-    title = 'Guide',
-    showTitle = false,
+    title = '안내',
+    showTitle = true,
 }) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
 
@@ -29,53 +30,68 @@ const InteractionPopup = ({
 
     return (
         <AnimatePresence>
-            <motion.div
-                key="interaction-popup-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            >
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: -20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                    key="interaction-popup"
-                    className="w-full max-w-md"
-                >
-                    <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-400">
-                        <div className="bg-blue-500 h-1 w-full" />
+            {isOpen && (
+                <div key="interaction-popup-wrapper" className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                    />
 
-                        <div className="p-4 flex items-start space-x-4">
-                            <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
-                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
+                    {/* Modal Content */}
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        className="relative w-full max-w-md bg-gray-900 border border-blue-500/30 rounded-2xl p-6 shadow-2xl overflow-hidden mx-4"
+                    >
+                        {/* Glow Effect */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full" />
+
+                        {/* Header */}
+                        <div className="relative z-10 flex justify-between items-start mb-6">
+                            <div>
                                 {showTitle && (
-                                    <h4 className="font-bold text-gray-900 mb-1 text-lg">{title}</h4>
+                                    <h2 className="text-2xl font-bold text-white flex items-center gap-2 drop-shadow-md">
+                                        <Info className="text-blue-400 w-6 h-6" />
+                                        {title}
+                                    </h2>
                                 )}
-                                <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {messages[safeIndex]}
-                                </p>
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                            <span className="text-xs text-gray-500 font-mono">
+                        {/* Content */}
+                        <div className="relative z-10 bg-black/40 rounded-xl p-6 mb-6 border border-white/5 flex flex-col">
+                            <motion.p
+                                key={safeIndex} // re-animate on message change
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="text-blue-50 text-base leading-relaxed whitespace-pre-wrap"
+                            >
+                                {messages[safeIndex]}
+                            </motion.p>
+                        </div>
+
+                        {/* Actions & Progress */}
+                        <div className="relative z-10 flex items-center justify-between">
+                            <span className="text-xs text-blue-300/50 font-mono tracking-widest pl-2">
                                 {safeIndex + 1} / {messages.length}
                             </span>
                             <button
                                 onClick={handleNext}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-lg text-sm transition-colors shadow-sm"
+                                className="py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/30 flex items-center justify-center group transition-all"
                             >
-                                {safeIndex < messages.length - 1 ? 'Next' : 'Done'}
+                                <span className="group-hover:scale-105 transition-transform flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    {safeIndex < messages.length - 1 ? '다음' : '확인'}
+                                </span>
                             </button>
                         </div>
-                    </div>
-                </motion.div>
-            </motion.div>
+                    </motion.div>
+                </div>
+            )}
         </AnimatePresence>
     );
 };

@@ -18,6 +18,7 @@ import useFishVisuals from '../hooks/useFishVisuals';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import MapContainer from '../components/MapContainer';
 import PortraitDisplay from '../components/PortraitDisplay';
+import InteractionPopup from '../components/InteractionPopup';
 import { EAVESDROP_MAX_COLOR_COUNT, getEavesdropColorIndexFromText, getEavesdropColorStyle } from '../utils/eavesdropColors';
 
 const PERIOD_TO_INDEX = {
@@ -95,9 +96,10 @@ const MainGameScene = () => {
         cancelMove,
         pendingItem,
         resolveItem,
-        pendingRequirement,
         setPendingRequirement,
         resolveRequirement,
+        pendingInfoPopup,
+        resolveInfoPopup,
         setDialogContent,
         setLogs,
         pendingHpWarning,
@@ -421,6 +423,7 @@ const MainGameScene = () => {
         setEavesdropNpcIds([]);
         setEavesdropTopic(null);
         setInterceptTurnCount(0);
+        setChatNpcStats(null);
         if (eavesdropAutoRef.current) {
             clearTimeout(eavesdropAutoRef.current);
             eavesdropAutoRef.current = null;
@@ -435,7 +438,7 @@ const MainGameScene = () => {
 
 
     const handleSend = async () => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() && !presentedItem) return;
 
         // HP 차감은 백엔드 chat API에서 자동 처리
         // freeChatCount는 handleConfirmStartChat에서 설정됨 (세션 턴 카운트)
@@ -449,7 +452,7 @@ const MainGameScene = () => {
         }
         setFreeChatCount(prev => prev - 1);
 
-        const userMsg = inputText;
+        const userMsg = inputText.trim();
         setInputText(''); // Clear input
 
         setIsThinking(true);
@@ -465,12 +468,14 @@ const MainGameScene = () => {
         }
 
         // 2. Add User Message
-        newLogs.push({
-            id: Date.now() + '_user',
-            speaker: 'You',
-            text: userMsg,
-            type: 'user'
-        });
+        if (userMsg) {
+            newLogs.push({
+                id: Date.now() + '_user',
+                speaker: 'You',
+                text: userMsg,
+                type: 'user'
+            });
+        }
 
         // 2.5. If presenting an item, add presentation log
         if (presentedItem) {
@@ -518,9 +523,14 @@ const MainGameScene = () => {
             });
 
             // 백엔드가 반환한 stats로 로컬 동기화 (HP 등)
-            const updatedStats = data.updatedStats || data.hp || data.stats;
+            const updatedStats = data.updatedStats || data.hp || data.stats || data.global;
             if (updatedStats) {
                 syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
+            }
+
+            // NPC 스탯 업데이트 반영
+            if (data.npc_stats || data.npcStats) {
+                setChatNpcStats(data.npc_stats || data.npcStats);
             }
 
             // Clear presented item after it's been sent with the message
@@ -689,6 +699,15 @@ const MainGameScene = () => {
             setEavesdropLogs([...newLogs]);
             setEavesdropHistory((prev) => [...prev, ...turns]);
 
+            const updatedStats = response.updatedStats || response.hp || response.stats || response.global;
+            if (updatedStats) {
+                syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
+            }
+
+            if (response.npc_stats || response.npcStats) {
+                setChatNpcStats(response.npc_stats || response.npcStats);
+            }
+
             if (npcTurns.length > 0) {
                 const last = npcTurns[npcTurns.length - 1];
                 setEavesdropDialogContent(createEavesdropLog({
@@ -807,9 +826,11 @@ const MainGameScene = () => {
         setEavesdropHistory([]);
         setIsEavesdropThinking(false);
         setInterceptTurnCount(0);
+        setFreeChatCount(0);
         setEavesdropAutoIndex(0);
         setEavesdropNpcIds([]);
         setEavesdropTopic(null);
+        setChatNpcStats(null);
         if (eavesdropAutoRef.current) {
             clearTimeout(eavesdropAutoRef.current);
             eavesdropAutoRef.current = null;
@@ -849,6 +870,7 @@ const MainGameScene = () => {
             }
         }
         setFreeChatCount(0);
+        setChatNpcStats(null);
         setEavesdropState(null);
         setDialogContent({ speaker: 'System', text: '대화가 종료되었습니다.', type: 'system' });
     };
@@ -901,7 +923,7 @@ const MainGameScene = () => {
                         />
                     )}
 
-                    {/* NPC Interaction Panel */}
+                    {/* Interaction Panel */}
                     {npcsInRoom.length > 0 && !isChatActive && !isEavesdropOverlayActive && (
                         <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
                             <span className="text-xs text-gray-400 mb-1">
@@ -935,6 +957,59 @@ const MainGameScene = () => {
                                         <span className="text-xs text-purple-200">({ACTION_COSTS.eavesdrop} HP)</span>
                                     </button>
                                 </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* NPC Chat Status Panel (우상단) */}
+                    {isChatActive && (
+                        <div className="absolute top-4 right-4 z-20 flex flex-col gap-3 min-w-[280px]">
+                            {/* 대화 컨트롤 헤더 */}
+                            <div className="bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 shadow-lg shadow-black/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-bold text-white flex items-center gap-2">
+                                        💬 대화 중
+                                    </span>
+                                    <span className="text-xs font-mono bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded-full border border-blue-500/50">
+                                        남은 횟수: {eavesdropState === 'chatting' ? freeChatCount : (10 - interceptTurnCount)}/10
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={eavesdropState === 'chatting' ? handleEndChat : handleCloseEavesdrop}
+                                    className="w-full py-2 bg-red-600/80 hover:bg-red-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+                                >
+                                    🚪 대화 종료
+                                </button>
+                            </div>
+
+                            {/* 다중 NPC 스탯 표시 */}
+                            {(chatNpcStats || activeNpc) && (
+                                <div className="flex flex-col gap-2">
+                                    {Object.entries(chatNpcStats || { [activeNpc?.id || 'unknown']: { npc_name: activeNpc?.name } }).map(([id, stats], idx) => {
+                                        const npcName = stats.npc_name || stats.name || getNpcName(id) || id;
+                                        return (
+                                            <div key={id} className={`bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-xl border-l-4 shadow-md ${stats.favor > 50 ? 'border-l-blue-500' : 'border-l-yellow-500'}`}>
+                                                <h4 className="text-xs font-bold text-gray-200 mb-1.5 truncate">{npcName}</h4>
+                                                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] font-mono text-gray-400">
+                                                    <div className="flex justify-between items-center">
+                                                        <span>호감도</span>
+                                                        <span className="text-white font-bold">{stats.favor ?? '?'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span>경계도</span>
+                                                        <span className="text-white font-bold">{stats.alertness ?? '?'}</span>
+                                                    </div>
+                                                    {stats.stress !== undefined && (
+                                                        <div className="flex justify-between items-center col-span-2 mt-0.5 pt-0.5 border-t border-white/10">
+                                                            <span>스트레스</span>
+                                                            <span className={stats.stress > 70 ? 'text-red-400 font-bold' : 'text-white'}>{stats.stress}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
                     )}
@@ -1147,6 +1222,12 @@ const MainGameScene = () => {
                         </div>
                     )}
                 </div>
+                
+                <InteractionPopup 
+                    isOpen={!!pendingInfoPopup} 
+                    messages={pendingInfoPopup || []} 
+                    onComplete={resolveInfoPopup} 
+                />
             </MapContainer>
         </div>
     );
