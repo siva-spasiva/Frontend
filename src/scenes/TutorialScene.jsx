@@ -22,7 +22,7 @@ const TutorialScene = ({ onComplete }) => {
     // 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
-    const [step, setStep] = useState('intro');
+    const [step, setStep] = useState('skip_prompt');
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
         completeTutorial, mapData, npcData,
@@ -194,6 +194,29 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     // 1. ?명듃濡??꾨즺 ???몃? ?꾩갑
+    // === 튜토리얼 스킵 ===
+    const handleSkipTutorial = async () => {
+        try {
+            // 튜토리얼 완료 처리 (endSession 등)
+            await completeTutorial();
+            // 기본 아이템 지급 (계약서)
+            if (!currentInventory?.includes('item004')) {
+                addItem('item004');
+            }
+        } catch (error) {
+            console.warn('Skip tutorial failed:', error);
+        }
+        // 1일차 아침으로 진입
+        setDay(1);
+        setPeriod('morning');
+        setCurrentLocationInfo({ floorId: 'B2', roomId: 'room001' });
+        onComplete();
+    };
+
+    const handlePlayTutorial = () => {
+        setStep('intro');
+    };
+
     const handleIntroComplete = async () => {
         setStep('outside');
         // Location is already set to 1F outside01 on mount
@@ -848,6 +871,56 @@ const TutorialScene = ({ onComplete }) => {
 
     return (
         <div className="relative w-full h-screen bg-black overflow-hidden font-sans">
+            {/* 0. 튜토리얼 스킵 프롬프트 */}
+            <AnimatePresence mode="wait">
+                {step === 'skip_prompt' && (
+                    <Motion.div
+                        key="skip_prompt"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-6 p-8"
+                    >
+                        <Motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.8 }}
+                            className="text-white text-xl font-serif text-center tracking-wide"
+                        >
+                            튜토리얼을 진행하시겠습니까?
+                        </Motion.p>
+                        <Motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8, duration: 0.6 }}
+                            className="text-gray-400 text-sm text-center"
+                        >
+                            스킵 시 기본 아이템을 받고 바로 1일차로 진입합니다.
+                        </Motion.p>
+                        <Motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1.2, duration: 0.6 }}
+                            className="flex gap-4 mt-4"
+                        >
+                            <button
+                                onClick={handlePlayTutorial}
+                                className="px-8 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-2xl text-base tracking-wide shadow-lg transition-colors"
+                            >
+                                튜토리얼 시작
+                            </button>
+                            <button
+                                onClick={handleSkipTutorial}
+                                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold rounded-2xl text-base tracking-wide shadow-lg transition-colors"
+                            >
+                                스킵
+                            </button>
+                        </Motion.div>
+                    </Motion.div>
+                )}
+            </AnimatePresence>
+
             {/* 1. 인트로 독백 */}
             <AnimatePresence mode="wait">
                 {step === 'intro' && (
