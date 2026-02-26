@@ -96,6 +96,7 @@ const MainGameScene = () => {
         cancelMove,
         pendingItem,
         resolveItem,
+        pendingRequirement,
         setPendingRequirement,
         resolveRequirement,
         pendingInfoPopup,
@@ -316,8 +317,8 @@ const MainGameScene = () => {
             return false;
         }
 
-        // 클릭 조회 = 1HP (프론트가 전달)
-        if (spendHp) spendHp(ACTION_COSTS.move || 1);
+        // HP는 useInteraction.handleInteraction → executeInteraction에서 이미 차감됨
+        // 여기서 중복 차감하지 않음
 
         // NPC 2명 이상 → 이동 보류, 방 밖에서 엿듣기 프리뷰
         const npcs = normalizeNpcIds(targetRoomPayload);
@@ -359,6 +360,7 @@ const MainGameScene = () => {
     const MAX_INTERCEPT_TURNS = 10;
     const [eavesdropAutoIndex, setEavesdropAutoIndex] = useState(0);
     const eavesdropAutoRef = useRef(null);
+    const [chatNpcStats, setChatNpcStats] = useState(null);
 
     // === Completed NPC Conversations (per period) ===
     const storageKey = 'umi_completed_chats';
