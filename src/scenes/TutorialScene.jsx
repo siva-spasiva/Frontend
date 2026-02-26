@@ -12,10 +12,11 @@ import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import MapContainer from '../components/MapContainer';
 import GameHUD from '../components/GameHUD';
 import HpWarningModal from '../components/HpWarningModal';
+import ContractModal from '../components/ContractModal';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
-    // 'meet_bingeo_inside' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
+    // 'meet_bingeo_inside' -> 'contract' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
     // 'check_item005_inventory' -> 'eavesdrop_tutorial' -> 'return_to_class' ->
     // 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
@@ -283,7 +284,7 @@ const TutorialScene = ({ onComplete }) => {
                 showGuide([
                     "건물 내부로 들어왔습니다. 입소를 위해 계약서를 작성해야 합니다."
                 ], () => {
-                    handleContractSigned();
+                    setStep('contract');
                 });
             } else if (step === 'hp_tutorial_chat') {
                 setStep('explore_inside');
@@ -332,6 +333,7 @@ const TutorialScene = ({ onComplete }) => {
         guideOpen ||
         showNpcDialog ||
         showMessenger ||
+        step === 'contract' ||
         isBingeoFinishSequence ||
         isSidebarPanelOpen;
 
@@ -369,6 +371,7 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     const handleMapInteract = (zone) => {
+        if (step === 'contract') return;
         if (guideOpen || showNpcDialog || showMessenger) return;
 
         if (isBingeoFinishSequence && zone.type === 'move') {
@@ -496,6 +499,7 @@ const TutorialScene = ({ onComplete }) => {
 
     const handleMenuNavigate = (targetRoomId) => {
         if (!targetRoomId) return;
+        if (step === 'contract') return;
         if (guideOpen || showNpcDialog || showMessenger) return;
 
         if (isBingeoFinishSequence && targetRoomId !== currentRoomId) {
@@ -842,6 +846,15 @@ const TutorialScene = ({ onComplete }) => {
                         inventoryUseDisabled={disableItemUseInInventory}
                         inventoryUseOnlyItemId={inventoryUseOnlyItemId}
                         onPanelStateChange={handleSidebarPanelStateChange}
+                    />
+                )}
+
+                {/* 계약서 체크/서명 단계 */}
+                {step === 'contract' && (
+                    <ContractModal
+                        isOpen={true}
+                        onClose={() => { }}
+                        onSign={handleContractSigned}
                     />
                 )}
 
