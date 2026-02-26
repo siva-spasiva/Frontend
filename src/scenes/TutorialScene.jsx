@@ -364,9 +364,28 @@ const TutorialScene = ({ onComplete }) => {
         setNpcDialogStep(0);
     };
 
+    const handleItemInteraction = (zone) => {
+        if (zone?.type !== 'item') return false;
+
+        const itemId = zone.itemId || 'item010';
+        if (currentInventory?.includes(itemId)) {
+            showGuide([
+                zone.message || '이미 챙긴 물건이다.'
+            ]);
+            return true;
+        }
+
+        setPendingItem({ ...zone, itemId });
+        return true;
+    };
+
     const handleMapInteract = (zone) => {
         if (step === 'contract') return;
         if (guideOpen || showNpcDialog || showMessenger) return;
+
+        if (handleItemInteraction(zone)) {
+            return;
+        }
 
         if (isBingeoFinishSequence && zone.type === 'move') {
             blockMoveByBingeo();
@@ -421,7 +440,7 @@ const TutorialScene = ({ onComplete }) => {
                 return;
             }
 
-            if (zone.type === 'info' || zone.type === 'item') {
+            if (zone.type === 'info') {
                 showGuide([
                     "지금은 창고 문에서 들리는 소리를 확인하는 것이 우선입니다."
                 ]);
@@ -448,18 +467,9 @@ const TutorialScene = ({ onComplete }) => {
                 return;
             }
 
-            if (zone.type === 'item') {
-                showGuide([zone.message || "지금은 특별히 얻을 수 있는 것이 없다."]);
-                return;
-            }
         }
 
         if (step === 'obtain_item005') {
-            if (zone.type === 'item' && zone.itemId === 'item005') {
-                setPendingItem(zone);
-                return;
-            }
-
             if (zone.type === 'move') {
                 showGuide([
                     "웰컴 드링크를 먼저 얻어야 합니다."
@@ -484,10 +494,6 @@ const TutorialScene = ({ onComplete }) => {
                 return;
             }
 
-            if (zone.type === 'item') {
-                showGuide([zone.message || "지금은 이 물건을 챙길 수 없다."]);
-                return;
-            }
         }
     };
 
