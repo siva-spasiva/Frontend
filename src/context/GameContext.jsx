@@ -179,15 +179,13 @@ export const GameProvider = ({ children }) => {
             loadLocalStaticData();
 
             // 5. 서버 데이터 fetch
-            const [, , , tutorialRes] = await Promise.all([
+            // 새 게임: fetchTutorialStatus 호출 안 함 (새 계정엔 레코드 없어서 404)
+            await Promise.all([
                 fetchStats(),
                 fetchMapData(),
                 fetchInventoryData(),
-                fetchTutorialStatus().catch(() => ({ isCompleted: false })),
             ]);
-            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
-                setIsTutorialCompleted(tutorialRes.isCompleted);
-            }
+            setIsTutorialCompleted(false); // 새 게임은 항상 미완료
 
             setGameInitialized(true);
             console.log('[InitNewGame] Done. Slot:', slot.id);
