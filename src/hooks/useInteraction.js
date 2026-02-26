@@ -175,7 +175,8 @@ export const useInteraction = ({
 
         const cost = ACTION_COSTS?.[costKey] ?? 0;
 
-        if (cost > 0 && getHpCostPreview) {
+        // Move zones: skip HP check here — HP is spent in confirmMove
+        if (zone.type !== 'move' && cost > 0 && getHpCostPreview) {
             const preview = getHpCostPreview(cost);
 
             if (!preview) {
