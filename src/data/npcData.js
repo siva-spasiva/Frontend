@@ -31,10 +31,10 @@ export const NPC_DATA = {
         portraits: { default: 'npc_bingeo_00.png', nervous: 'npc_bingeo_01.png', earnest: 'npc_bingeo_02.png' }
     },
     mineeo: {
-        id: 'mineeo',
+        id: 'mineo',
         name: '이민어',
-        initialPortrait: 'npc_mineeo_00.png',
-        portraits: { default: 'npc_mineeo_00.png', alt: 'npc_mineeo_01.png' }
+        initialPortrait: 'npc_mineo_00.png',
+        portraits: { default: 'npc_mineo_00.png', alt: 'npc_mineo_01.png' }
     },
     gwangeo: {
         id: 'gwangeo',
