@@ -20,6 +20,24 @@ const FISH_TIER_LABELS = ['정상', '미세 변이', '중간 변이', '심각 �
 const MAP_ROOT = '/src/assets/map/';
 const CANDIDATE_FLOOR_IDS = ['1F', '2F', 'B1', 'B2', 'B3', 'B4', 'B5', 'DEBUG'];
 
+const normalizeInventoryIds = (rawInventory) => {
+    if (!Array.isArray(rawInventory)) return null;
+
+    const ids = rawInventory
+        .map((entry) => {
+            if (typeof entry === 'string') return entry;
+            if (!entry || typeof entry !== 'object') return null;
+
+            const itemId = entry.id ?? entry.item_id ?? null;
+            if (!itemId || typeof itemId !== 'string') return null;
+            if (entry.owned === false) return null;
+            return itemId;
+        })
+        .filter(Boolean);
+
+    return [...new Set(ids)];
+};
+
 
 const GameContext = createContext();
 
@@ -139,6 +157,7 @@ export const GameProvider = ({ children }) => {
      * 서버 stats → 프론트 stats 매핑
      */
     const mapServerStats = (data) => {
+        const normalizedInventory = normalizeInventoryIds(data?.inventory);
         return {
             fishLevel: data.fishLevel ?? data.fish_level ?? 0,
             umiLevel: data.umiLevel ?? data.umi_level ?? 0,
@@ -149,7 +168,7 @@ export const GameProvider = ({ children }) => {
             currentDay: data.current_day ?? data.currentDay ?? 0,
             currentPeriod: data.current_session ?? data.currentPeriod ?? 'morning',
             npcStats: data.npcStats ?? {},
-            inventory: data.inventory ?? ['smartphone', 'id_card', 'police_badge'],
+            inventory: normalizedInventory ?? data.inventory ?? ['smartphone', 'id_card', 'police_badge'],
             floorId: data.floor_id ?? null,
             roomId: data.room_id ?? null,
         };
@@ -251,7 +270,11 @@ export const GameProvider = ({ children }) => {
         try {
             const data = await fetchInventory();
             console.log('Fetched Inventory (raw):', data);
-            setStats(prev => ({ ...prev, inventory: data.items || data.inventory || prev.inventory }));
+            const normalizedInventory = normalizeInventoryIds(data?.items ?? data?.inventory);
+            setStats(prev => ({
+                ...prev,
+                inventory: normalizedInventory ?? prev.inventory,
+            }));
         } catch (error) {
             console.error('Failed to fetch inventory:', error);
         }
@@ -392,8 +415,12 @@ export const GameProvider = ({ children }) => {
 
         try {
             const newFullData = await updateGameStats(updates, npcId);
-            // backend returns flat global + npcStats
-            setStats(newFullData);
+            const mapped = mapServerStats(newFullData || {});
+            setStats(prev => ({
+                ...prev,
+                ...mapped,
+                npcStats: newFullData?.npcStats ?? prev.npcStats,
+            }));
 
         } catch (error) {
             console.error("Failed to update stats:", error);
@@ -620,8 +647,11 @@ export const GameProvider = ({ children }) => {
                 setStats(prev => ({ ...prev, inventory: [...currentInventory, itemId] }));
             }
             const res = await addItemAPI(itemId);
-            if (res && res.items) {
-                syncStats({ inventory: res.items });
+            if (res && (res.items || res.inventory)) {
+                const normalizedInventory = normalizeInventoryIds(res.items ?? res.inventory);
+                if (normalizedInventory) {
+                    syncStats({ inventory: normalizedInventory });
+                }
             }
         } catch (err) {
             console.error("Failed to add item API:", err);
@@ -679,8 +709,9 @@ export const GameProvider = ({ children }) => {
                 // Determine structure based on backend response
                 if (res.global) syncStats(res.global);
                 else {
+                    const normalizedInventory = normalizeInventoryIds(res.items ?? res.inventory);
                     const mapped = {
-                        inventory: res.items || res.inventory || newInv,
+                        inventory: normalizedInventory ?? newInv,
                         fishLevel: res.fishLevel ?? res.fish_level ?? newFishLevel
                     };
                     if (res.total_hp !== undefined) mapped.hp = res.total_hp;
@@ -696,6 +727,8 @@ export const GameProvider = ({ children }) => {
     };
 
     const inventoryItems = (stats.inventory || [])
+        .map(entry => (typeof entry === 'string' ? entry : entry?.id))
+        .filter(Boolean)
         .map(id => gameData.itemData?.[id] || customItems[id])
         .filter(Boolean);
 
@@ -734,9 +767,11 @@ export const GameProvider = ({ children }) => {
     const transferItemFromNpc = async (npcId, itemId) => {
         try {
             const data = await transferItem(npcId, itemId, 'fromNpc');
+            const normalizedInventory = normalizeInventoryIds(data?.inventory);
             setStats(prev => ({
                 ...prev,
                 ...data,
+                inventory: normalizedInventory ?? prev.inventory,
                 npcStats: data.npcStats || prev.npcStats,
             }));
             console.log(`[Transfer] NPC '${npcId}' → Player: ${itemId}`);
@@ -750,9 +785,11 @@ export const GameProvider = ({ children }) => {
     const transferItemToNpc = async (npcId, itemId) => {
         try {
             const data = await transferItem(npcId, itemId, 'toNpc');
+            const normalizedInventory = normalizeInventoryIds(data?.inventory);
             setStats(prev => ({
                 ...prev,
                 ...data,
+                inventory: normalizedInventory ?? prev.inventory,
                 npcStats: data.npcStats || prev.npcStats,
             }));
             console.log(`[Transfer] Player → NPC '${npcId}': ${itemId}`);
