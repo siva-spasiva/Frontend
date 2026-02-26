@@ -75,8 +75,26 @@ const TutorialScene = ({ onComplete }) => {
     const tutorialEavesdropParticipants = ['이민어', '구복치'];
     const awaitingItem005InspectRef = useRef(false);
     const openedItem005InventoryRef = useRef(false);
+    const initialItemsGrantedRef = useRef(false);
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
+
+    useEffect(() => {
+        if (initialItemsGrantedRef.current) return;
+        initialItemsGrantedRef.current = true;
+
+        const grantInitialItems = async () => {
+            for (const itemId of ['item001', 'item002', 'item003']) {
+                try {
+                    await addItem(itemId);
+                } catch (error) {
+                    console.warn(`[Tutorial] Failed to grant initial item: ${itemId}`, error);
+                }
+            }
+        };
+
+        grantInitialItems();
+    }, [addItem]);
 
     // Initialize location immediately upon tutorial component mount
     useEffect(() => {

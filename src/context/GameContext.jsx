@@ -21,6 +21,10 @@ const MAP_ROOT = '/src/assets/map/';
 const CANDIDATE_FLOOR_IDS = ['1F', '2F', 'B1', 'B2', 'B3', 'B4', 'B5', 'DEBUG'];
 const DEFAULT_INVENTORY_IDS = ['item001', 'item002', 'item003'];
 
+const mergeDefaultInventoryIds = (ids = []) => {
+    return [...new Set([...DEFAULT_INVENTORY_IDS, ...ids])];
+};
+
 const normalizeInventoryIds = (rawInventory) => {
     if (!Array.isArray(rawInventory)) return null;
 
@@ -36,7 +40,15 @@ const normalizeInventoryIds = (rawInventory) => {
         })
         .filter(Boolean);
 
-    return [...new Set(ids)];
+    const normalizedIds = [...new Set(ids)];
+    const mergedIds = mergeDefaultInventoryIds(normalizedIds);
+
+    const missingDefaultIds = DEFAULT_INVENTORY_IDS.filter((id) => !normalizedIds.includes(id));
+    if (missingDefaultIds.length > 0) {
+        console.warn('[Inventory] Backend response missing default items:', missingDefaultIds);
+    }
+
+    return mergedIds;
 };
 
 
