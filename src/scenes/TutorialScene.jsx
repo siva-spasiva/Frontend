@@ -329,6 +329,7 @@ const TutorialScene = ({ onComplete }) => {
         step === 'contract' ||
         isBingeoFinishSequence ||
         isSidebarPanelOpen ||
+        !!pendingItem ||
         !!eavesdropState;
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
@@ -369,9 +370,7 @@ const TutorialScene = ({ onComplete }) => {
 
         const itemId = zone.itemId || 'item010';
         if (currentInventory?.includes(itemId)) {
-            showGuide([
-                zone.message || '이미 챙긴 물건이다.'
-            ]);
+            // MainGame popup mode behavior: already-collected items do nothing.
             return true;
         }
 
