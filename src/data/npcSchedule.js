@@ -53,13 +53,19 @@ const NPC_SCHEDULE = {
         },
         2: {
             morning: 'cafeteria',
-            afternoon: 'lounge', // (식당이나 복도가 붐비지 않게 휴게소 배정)
+            afternoon: 'hallway',
             evening: 'room001',
             night: 'room001',
         },
         3: {
             morning: 'hallway',
             afternoon: 'b3_hall', // 3일차 심부름
+            evening: 'room001',
+            night: 'room001',
+        },
+        4: {
+            morning: 'hallway',
+            afternoon: 'cafeteria',
             evening: 'room001',
             night: 'room001',
         },
