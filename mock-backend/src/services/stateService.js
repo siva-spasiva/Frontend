@@ -8,7 +8,6 @@ export const INITIAL_STATS = {
     hp: 100,
     plusHp: 0,
     fishLevel: 0,
-    umiLevel: 0,
     trust: 10,
     currentDay: 0,       // 0=Tutorial, 1~5=본편 (5일차가 최종일)
     currentPeriod: 'morning', // 'morning' | 'afternoon' | 'evening' | 'night'

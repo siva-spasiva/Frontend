@@ -115,7 +115,7 @@ export const handleChat = async (req, res) => {
 [User Status]
 - HP(체력): ${globalState.hp}/100
 - FishLevel(변이도): ${globalState.fishLevel}% (높을수록 당신의 '뻐끔' 언어를 알아듣습니다)
-- UmiLevel(신앙등급): ${globalState.umiLevel} (높을수록 교단 기밀에 접근할 권한이 있습니다)
+
 
 // [Interaction Rule: Trust vs Friendly] - Trust removed
 // (Trust is removed, so Friendly stands alone as the relationship metric)
@@ -185,7 +185,6 @@ ${presentedItem.type === 'transcript' && presentedItem.transcriptSummary ? `녹�
                     // But if AI wants to damage player HP:
                     else if (key === 'Hp') cleanUpdates.hp = val; // Global
                     // else if (key === 'Trust') cleanUpdates.trust = val; // Removed
-                    else if (key === 'Umi_Level') cleanUpdates.umiLevel = val; // Global
                     else {
                         // generic fallback
                         const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
@@ -200,7 +199,7 @@ ${presentedItem.type === 'transcript' && presentedItem.transcriptSummary ? `녹�
                 Object.keys(cleanUpdates).forEach(k => {
                     if (['friendly', 'faith'].includes(k)) {
                         npcUpdates[k] = cleanUpdates[k];
-                    } else if (['hp', 'umiLevel'].includes(k)) {
+                    } else if (['hp'].includes(k)) {
                         globalUpdates[k] = cleanUpdates[k];
                     } else if (k === 'fishLevel') {
                         // FORCE IGNORE: Do not allow AI to update FishLevel.

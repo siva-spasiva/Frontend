@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { sendChatMessage } from '../api/chat';
@@ -110,7 +110,7 @@ const MainGameScene = () => {
         setViewMode,
         onMove: handleMove,
         inventory: currentInventory, // Pass current inventory to check for existing items
-        stats: { fishLevel, umiLevel, hp }, // Pass stats for interaction checks
+        stats: { fishLevel, hp }, // Pass stats for interaction checks
         spendHp,
         rest,
         ACTION_COSTS,
@@ -1101,16 +1101,16 @@ const MainGameScene = () => {
                                             {participant.name}
                                         </span>
                                     )) : (
-                                        <span className="text-xs text-gray-300">李몄뿬???놁쓬</span>
+                                        <span className="text-xs text-gray-300">참여자 없음</span>
                                     )}
                                 </div>
 
                                 <p className="text-xs text-gray-300">
-                                    {eavesdropState === 'choice' && '?됰룞???좏깮?섏꽭?? 痍⑥냼 ?꾧퉴吏 留?硫붾돱 ?묎렐???쒗븳?⑸땲??'}
-                                    {eavesdropState === 'intercepting' && '??붿뿉 ?쇱뼱?쒕뒗 以묒엯?덈떎.'}
-                                    {eavesdropState === 'listening' && `?ｋ뒗 以묒엯?덈떎... (${eavesdropAutoIndex}/10)`}
-                                    {eavesdropState === 'done' && '??붽? ?앸궗?듬땲??'}
-                                    {eavesdropState === 'preview' && '??붾? 遺덈윭?ㅻ뒗 以묒엯?덈떎...'}
+                                    {eavesdropState === 'choice' && '행동을 선택하세요. 취소 버튼을 누르면 메뉴로 돌아갑니다.'}
+                                    {eavesdropState === 'intercepting' && '대화에 끼어드는 중입니다.'}
+                                    {eavesdropState === 'listening' && `엿듣는 중입니다... (${eavesdropAutoIndex}/10)`}
+                                    {eavesdropState === 'done' && '대화가 끝났습니다.'}
+                                    {eavesdropState === 'preview' && '대화를 불러오는 중입니다...'}
                                 </p>
 
                                 {eavesdropState === 'choice' && (
@@ -1119,19 +1119,19 @@ const MainGameScene = () => {
                                             onClick={handleInterceptChoice}
                                             className="py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
-                                            ?뿣截??쇱뼱?ㅺ린 ({ACTION_COSTS.eavesdropJoin} HP)
+                                            끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
                                         </button>
                                         <button
                                             onClick={handleListenChoice}
                                             className="py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
-                                            ?몔 怨꾩냽 ?용뱽湲?({ACTION_COSTS.eavesdropContinue} HP)
+                                            더 계속 엿듣기 ({ACTION_COSTS.eavesdropContinue} HP)
                                         </button>
                                         <button
                                             onClick={handleLeaveEavesdrop}
                                             className="py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
-                                            痍⑥냼
+                                            취소
                                         </button>
                                     </div>
                                 )}
@@ -1144,7 +1144,7 @@ const MainGameScene = () => {
                                                 value={eavesdropInputText}
                                                 onChange={(e) => setEavesdropInputText(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
-                                                placeholder={`?쇱뼱?ㅺ린... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
+                                                placeholder={`끼어들기... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
                                                 className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
                                                 disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
                                                 autoFocus
@@ -1154,14 +1154,14 @@ const MainGameScene = () => {
                                                 disabled={isEavesdropThinking || typeof eavesdropInputText !== 'string' || eavesdropInputText.trim().length === 0}
                                                 className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
                                             >
-                                                ?꾩넚
+                                                전송
                                             </button>
                                         </div>
                                         <button
                                             onClick={handleLeaveEavesdrop}
                                             className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
                                         >
-                                            痍⑥냼
+                                            취소
                                         </button>
                                     </>
                                 )}
@@ -1171,7 +1171,7 @@ const MainGameScene = () => {
                                         onClick={handleLeaveEavesdrop}
                                         className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
                                     >
-                                        洹몃쭔 ?ｊ린
+                                        그만 듣기
                                     </button>
                                 )}
 
@@ -1180,7 +1180,7 @@ const MainGameScene = () => {
                                         onClick={handleLeaveEavesdrop}
                                         className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
                                     >
-                                        痍⑥냼
+                                        취소
                                     </button>
                                 )}
 

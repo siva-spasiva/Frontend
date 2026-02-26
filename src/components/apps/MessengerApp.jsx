@@ -716,7 +716,7 @@ const ContractPhase = ({ onComplete }) => {
 const MessengerApp = ({ onComplete, onBack, initialMessages, isStartMode }) => {
     // phase: 'loading' | 'list' | 'chat' | 'failed'
     const [phase, setPhase] = useState('loading');
-    const { triggerAppEvent, isTutorialCompleted } = useGame();
+    const { triggerAppEvent } = useGame();
 
     // --- LIFTED STATE ---
     const [messages, setMessages] = useState([]);

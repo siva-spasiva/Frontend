@@ -73,10 +73,6 @@ export const transferItem = async (npcId, itemId, direction = 'fromNpc') => {
     });
 };
 
-export const fetchTutorialStatus = async () => {
-    return apiClient('/api/v1/tutorial/status', { auth: true, silent: true });
-};
-
 
 
 export const spendHpBackend = spendHpAPI;

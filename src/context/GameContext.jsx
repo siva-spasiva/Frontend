@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
+import { fetchGameStats, updateGameStats, transferItem, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
 import { loginNewSave, createSaveSlot, activateSlot, touchSaveSlot, getSaveSlots, setTokens } from '../api/auth';
 import { fetchAllMaps, fetchFloor } from '../api/map';
 import { fetchInventory, addItemAPI, consumeItemAPI } from '../api/inventory';
@@ -66,7 +66,6 @@ export const GameProvider = ({ children }) => {
     // Stats State
     const [stats, setStats] = useState({
         fishLevel: 0,
-        umiLevel: 0,
         hp: 100,
         plusHp: 0,
         trust: 10,
@@ -76,7 +75,7 @@ export const GameProvider = ({ children }) => {
         inventory: DEFAULT_INVENTORY_IDS,
     });
 
-    const [isTutorialCompleted, setIsTutorialCompleted] = useState(false);
+
 
     // Static Data State
     const [gameData, setGameData] = useState({
@@ -136,10 +135,8 @@ export const GameProvider = ({ children }) => {
             }
 
             // 2. Perform Update
-            // Also increase Umi Level as a bonus
             updateStatsBackend({
                 inventory: newInv,
-                umiLevel: Math.max(stats.umiLevel, 1)
             });
         }
     }, [stats.fishLevel, stats.inventory]); // Dependency on specific stats
@@ -174,7 +171,6 @@ export const GameProvider = ({ children }) => {
         const normalizedInventory = normalizeInventoryIds(data?.inventory);
         return {
             fishLevel: data.fishLevel ?? data.fish_level ?? 0,
-            umiLevel: data.umiLevel ?? data.umi_level ?? 0,
             hp: data.total_hp ?? data.hp ?? 100,
             sessionHp: data.session_hp ?? 30,
             plusHp: data.plus_hp ?? data.plusHp ?? 0,
@@ -214,13 +210,11 @@ export const GameProvider = ({ children }) => {
             loadLocalStaticData();
 
             // 5. 서버 데이터 fetch
-            // 새 게임: fetchTutorialStatus 호출 안 함 (새 계정엔 레코드 없어서 404)
             await Promise.all([
                 fetchStats(),
                 fetchMapData(),
                 fetchInventoryData(),
             ]);
-            setIsTutorialCompleted(false); // 새 게임은 항상 미완료
 
             setGameInitialized(true);
             console.log('[InitNewGame] Done. Slot:', slot.id);
@@ -248,15 +242,11 @@ export const GameProvider = ({ children }) => {
             loadLocalStaticData();
 
             // 3. 서버 데이터 fetch (fetchStaticStats 호출 안 함!)
-            const [, , , tutorialRes] = await Promise.all([
+            await Promise.all([
                 fetchStats(),
                 fetchMapData(),
                 fetchInventoryData(),
-                fetchTutorialStatus().catch(() => ({ isCompleted: false })),
             ]);
-            if (tutorialRes && tutorialRes.isCompleted !== undefined) {
-                setIsTutorialCompleted(tutorialRes.isCompleted);
-            }
 
             // 4. lastPlayedAt 갱신
             touchSaveSlot(slotId);
@@ -457,11 +447,9 @@ export const GameProvider = ({ children }) => {
     const updateHp = (amount) => updateStatsBackend({ hp: stats.hp + amount });
     // const updateTrust = (amount) => updateStatsBackend({ trust: stats.trust + amount }); // Removed
     const updateFishLevel = (amount) => updateStatsBackend({ fishLevel: stats.fishLevel + amount });
-    const updateUmiLevel = (amount) => updateStatsBackend({ umiLevel: stats.umiLevel + amount });
 
     // Explicit setters if needed
     const setFishLevel = (val) => updateStatsBackend({ fishLevel: typeof val === 'function' ? val(stats.fishLevel) : val });
-    const setUmiLevel = (val) => updateStatsBackend({ umiLevel: typeof val === 'function' ? val(stats.umiLevel) : val });
     const setHp = (val) => updateStatsBackend({ hp: typeof val === 'function' ? val(stats.hp) : val });
     const setTrust = (val) => updateStatsBackend({ trust: typeof val === 'function' ? val(stats.trust) : val });
 
@@ -686,7 +674,6 @@ export const GameProvider = ({ children }) => {
     };
 
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
-    const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
 
     const addItem = async (itemId) => {
         console.log("Adding item API:", itemId);
@@ -862,7 +849,6 @@ export const GameProvider = ({ children }) => {
     const completeTutorial = async () => {
         try {
             await endSession({ dayIndex: 0, sessionIndex: 1 });
-            setIsTutorialCompleted(true);
             
             // 튜토리얼 종료 후 로컬 정보 동기화를 위해 스탯 재조회
             const updated = await fetchGameStats();
@@ -876,7 +862,7 @@ export const GameProvider = ({ children }) => {
         // Expose all stats directly
         ...stats,
 
-        isTutorialCompleted,
+        isTutorialCompleted: (stats.currentDay ?? 0) >= 1,
         completeTutorial,
 
         // Expose Game Data
@@ -912,7 +898,6 @@ export const GameProvider = ({ children }) => {
 
         // Expose setters
         setFishLevel,
-        setUmiLevel,
         setHp,
         setTrust,
 
@@ -920,9 +905,7 @@ export const GameProvider = ({ children }) => {
         updateHp,
         updateTrust: (amount) => updateStatsBackend({ trust: stats.trust + amount }), // Re-enabled
         updateFishLevel,
-        updateUmiLevel,
         incrementFishLevel,
-        incrementUmiLevel,
         addItem,
         addCustomItem,
         removeItem,
@@ -969,7 +952,6 @@ export const GameProvider = ({ children }) => {
         maxHp: 100,
         maxTrust: 100,
         maxFishLevel: 100,
-        maxUmiLevel: 100,
 
         fetchStats,
         syncStats,
