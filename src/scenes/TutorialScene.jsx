@@ -9,7 +9,8 @@ import InteractionPopup from '../components/InteractionPopup';
 import PortraitDisplay from '../components/PortraitDisplay';
 import IngameSidebarMenu from '../components/IngameSidebarMenu';
 import MapContainer from '../components/MapContainer';
-import SmartphoneMenu from '../components/SmartphoneMenu';
+import GameHUD from '../components/GameHUD';
+import HpWarningModal from '../components/HpWarningModal';
 
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
@@ -21,7 +22,7 @@ const TutorialScene = ({ onComplete }) => {
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
         completeTutorial, mapData, npcData,
-        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField
+        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField, ACTION_COSTS
     } = useGame();
 
     const currentFloorId = currentLocationInfo?.floorId || '1F';
@@ -61,6 +62,14 @@ const TutorialScene = ({ onComplete }) => {
     const [showNpcChatHpWarning, setShowNpcChatHpWarning] = useState(false);
     const [chatViewMode, setChatViewMode] = useState('mini');
 
+    // === Eavesdrop State (Simulated) ===
+    const [eavesdropState, setEavesdropState] = useState(null); // 'preview', 'listening', 'done', 'hp_warning'
+    const [eavesdropLogs, setEavesdropLogs] = useState([]);
+    const [eavesdropDialogContent, setEavesdropDialogContent] = useState(null);
+    const [isEavesdropThinking, setIsEavesdropThinking] = useState(false);
+    const eavesdropAutoRef = useRef(null);
+    const [eavesdropAutoIndex, setEavesdropAutoIndex] = useState(0);
+
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
     // Initial map data fetch is no longer needed via fetchMapData
@@ -76,6 +85,77 @@ const TutorialScene = ({ onComplete }) => {
     const handleGuideComplete = () => {
         setGuideOpen(false);
         if (guideCallback) guideCallback();
+    };
+
+    // Eavesdrop Simulation Data & Logic
+    const EAVESDROP_SIMULATION_DATA = [
+        { speaker: '이민어', content: '뭔가 마셨습니까?' },
+        { speaker: '구복치', content: '네... 마시지 않으면 안된다고 했어요...' },
+        { speaker: '이민어', content: '마신 이후에 어떤 기분이 들던가요?' },
+        { speaker: '구복치', content: '... 약간 어지럽고...' },
+    ];
+
+    const runSimulatedEavesdrop = (index, currentLogs) => {
+        if (index >= EAVESDROP_SIMULATION_DATA.length) {
+            setEavesdropState('done');
+            setEavesdropDialogContent({ speaker: 'System', text: '대화가 끝났습니다.', type: 'system' });
+            setIsEavesdropThinking(false);
+            return;
+        }
+
+        setIsEavesdropThinking(true);
+        const turn = EAVESDROP_SIMULATION_DATA[index];
+        const newLog = {
+            id: `eavesdrop_${index}_${Math.random().toString(36).substr(2, 5)}`,
+            speaker: turn.speaker,
+            text: turn.content,
+            type: 'eavesdrop_listen',
+        };
+        const updatedLogs = [...currentLogs, newLog];
+
+        // Simulating the delay for thinking effect
+        setTimeout(() => {
+            setEavesdropLogs(updatedLogs);
+            setEavesdropDialogContent(newLog);
+            setEavesdropAutoIndex(index + 1);
+            setIsEavesdropThinking(false);
+
+            if (eavesdropAutoRef.current) {
+                clearTimeout(eavesdropAutoRef.current);
+            }
+            eavesdropAutoRef.current = setTimeout(() => {
+                runSimulatedEavesdrop(index + 1, updatedLogs);
+            }, 2000);
+        }, 1000); // 1초 생각 중 연출
+    };
+
+    const handleCloseEavesdrop = () => {
+        setEavesdropState(null);
+        setEavesdropLogs([]);
+        setEavesdropDialogContent(null);
+        setIsEavesdropThinking(false);
+        if (eavesdropAutoRef.current) {
+            clearTimeout(eavesdropAutoRef.current);
+            eavesdropAutoRef.current = null;
+        }
+
+        // Only progress tutorial if we are in the eavesdrop phase
+        if (step === 'eavesdrop_tutorial') {
+            setStep('return_to_class');
+            showGuide([
+                "안쪽에서 대화소리가 들렸습니다.",
+                "본 게임에서는 이렇게 방 안의 상황을 엿듣거나 대화에 끼어들 수 있는 선택지가 존재합니다.",
+                "튜토리얼에서의 엿듣기 체험은 여기까지입니다. 이제 1층 강의실로 돌아가주세요."
+            ]);
+        }
+    };
+
+    const handleEavesdropActionTutorial = () => {
+        showGuide([
+            "튜토리얼에서는 기능이 제한됩니다.",
+            "본 게임에서는 이 옵션들을 사용해 대화에 끼어들거나 계속 엿들을 수 있습니다.",
+            "하단의 '닫기' 또는 상단의 '떠나기' 버튼을 눌러 돌아가주세요."
+        ]);
     };
 
     // 1. 인트로 완료 후 외부 도착
@@ -277,6 +357,20 @@ const TutorialScene = ({ onComplete }) => {
             }
         }
 
+        if (step === 'eavesdrop_tutorial') {
+            if (zone.type === 'move' && zone.target === 'storage_main') {
+                setEavesdropState('preview');
+                // 시작 안내 후 1초 뒤에 자동 엿듣기 시작
+                setTimeout(() => {
+                    if (eavesdropState !== 'done') {
+                        setEavesdropState('listening');
+                        runSimulatedEavesdrop(0, []);
+                    }
+                }, 1000);
+                return;
+            }
+        }
+
         if (step === 'explore_inside') {
             if (zone.type === 'move') {
                 handleMoveInternal(zone.target);
@@ -331,6 +425,13 @@ const TutorialScene = ({ onComplete }) => {
             return;
         }
 
+        if (step === 'eavesdrop_tutorial' && targetRoomId !== currentRoomId) {
+            showGuide([
+                "2층 창고(storage_main) 문에서 들리는 소리를 확인해주세요."
+            ]);
+            return;
+        }
+
         if (step === 'explore_outside' && targetRoomId === 'main_hall' && !canEnterMainHall()) {
             showGuide([
                 "아직 메인 홀로 바로 들어갈 수 없습니다.",
@@ -351,6 +452,13 @@ const TutorialScene = ({ onComplete }) => {
         if (step === 'obtain_item005' && targetRoomId !== currentRoomId) {
             showGuide([
                 "솔피의 눈물을 먼저 획득해야 합니다."
+            ]);
+            return;
+        }
+
+        if (step === 'eavesdrop_tutorial' && targetRoomId !== currentRoomId) {
+            showGuide([
+                "2층 창고(storage_main) 문에서 들리는 소리를 확인해주세요."
             ]);
             return;
         }
@@ -434,13 +542,14 @@ const TutorialScene = ({ onComplete }) => {
                 setIsMenuEnabled(true);
                 showGuide([
                     "솔피의 눈물을 획득했습니다! 확인해 봅시다.",
-                    "왼쪽 버튼으로 게임 메뉴를 열 수 있습니다.",
+                    "왼쪽 버튼으로 메뉴 목록 확인 기능을 해금했습니다.",
                     "Inventory, Messenger, Map, Settings를 사용할 수 있습니다.",
-                    "Recorder는 인게임 진입 후 사용할 수 있습니다."
+                    "(Recorder 등 일부 기능은 본 게임에서만 제공됩니다.)"
                 ], () => {
-                    setStep('return_to_class');
+                    setStep('eavesdrop_tutorial');
                     showGuide([
-                        "이제 돌아갑시다. 1층 강의실로 이동해 주세요."
+                        "잠깐, 2층 창고(storage_main) 쪽에서 무슨 소리가 들리는 것 같습니다.",
+                        "저 문을 클릭해서 접근해보세요."
                     ]);
                 });
             }, 300);
@@ -503,7 +612,7 @@ const TutorialScene = ({ onComplete }) => {
         // correct_present 상태: 제시 후 사용자 메시지 → 사용 단계로 전환
         if (step === 'correct_present') {
             const presentResponse = '오케이, 이렇게 제시하는 거야. 자, 이제 인벤토리에서 솔피의 눈물을 마셔보자.';
-            
+
             setChatDialogContent({
                 speaker: '곽빙어',
                 text: presentResponse,
@@ -573,229 +682,295 @@ const TutorialScene = ({ onComplete }) => {
 
             <MapContainer aspectRatio={16 / 9}>
 
-            {/* 2. 배경 (Map Viewer) */}
-            <AnimatePresence>
-                {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
+                {/* 2. 배경 (Map Viewer) */}
+                <AnimatePresence>
+                    {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && (
+                        <Motion.div
+                            key="map-viewer"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-gray-900 overflow-hidden"
+                            style={{
+                                backgroundImage: mapInfo?.background,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                            }}
+                        >
+                            {/* Map Interactive Layer */}
+                            <MapInteractiveLayer
+                                mapInfo={mapInfo}
+                                onInteract={handleMapInteract}
+                                highlightCondition={(zone) => step === 'obtain_item005' && zone.type === 'item' && zone.itemId === 'item005'}
+                                isInteractionLocked={isMapInteractionLocked}
+                            />
+
+                            {/* NPC "대화하기" 버튼 (강의실에서 곽빙어와 대화 시작 - NPC 패널 모방) */}
+                            {mapInfo?.id === 'umi_class' && ['npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step) && step !== 'hp_tutorial_chat' && (
+                                <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
+                                    <span className="text-xs text-gray-400 mb-1">
+                                        현재 방: 곽빙어
+                                    </span>
+                                    {step === 'npc_chat_tutorial' ? (
+                                        <button
+                                            onClick={handleStartChatClick}
+                                            className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2 animate-pulse"
+                                        >
+                                            💬 곽빙어와(과) 대화하기
+                                            <span className="text-xs text-blue-200">(0 HP)</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setChatLogs([]);
+                                                setChatDialogContent(null);
+                                                setStep('npc_chat_tutorial'); // end chat equivalent for tutorial
+                                                showGuide(["대화를 종료했습니다. 곽빙어를 다시 클릭해 대화를 시작할 수 있습니다."]);
+                                            }}
+                                            className="w-full py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            대화 종료
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </Motion.div>
+                    )}
+                </AnimatePresence>
+
+                {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && (
+                    <IngameSidebarMenu
+                        currentFloorId={currentFloorId}
+                        currentRoomId={currentRoomId}
+                        onNavigate={handleMenuNavigate}
+                        disabledPanels={['recorder']}
+                        inventoryUseDisabled={disableItemUseInInventory}
+                        inventoryUseOnlyItemId={inventoryUseOnlyItemId}
+                        onPanelStateChange={handleSidebarPanelStateChange}
+                    />
+                )}
+
+
+                {/* 가이드 팝업 */}
+                <InteractionPopup
+                    isOpen={guideOpen}
+                    messages={guideMessages}
+                    onComplete={handleGuideComplete}
+                    title="튜토리얼 안내"
+                    showTitle
+                />
+
+                {/* 메신저 앱 */}
+                <AnimatePresence>
+                    {showMessenger && (
+                        <Motion.div
+                            key="messenger"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="absolute left-0 top-0 w-[420px] h-full bg-white shadow-2xl z-40 border-r border-gray-300"
+                        >
+                            <MessengerApp
+                                isStartMode={true}
+                                onBack={() => { }}
+                                onComplete={() => { }}
+                            />
+                            <MessengerDisconnectWatcher onDisconnect={() => setMessengerDisconnected(true)} />
+                        </Motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* AI 채팅 UI (npc_chatting 스텝) - GameHUD 적용 */}
+                {step === 'npc_chatting' && (
+                    <GameHUD
+                        mapInfo={mapInfo}
+                        activeNpc={npcData?.bingeo}
+                        logs={chatLogs}
+                        dialogContent={chatDialogContent}
+                        isThinking={isChatThinking}
+                        onSend={handleTutorialChatSend}
+                        inputText={chatInputText}
+                        setInputText={setChatInputText}
+                        viewMode={chatViewMode}
+                        onToggleExpand={() => setChatViewMode(prev => prev === 'full' ? 'mini' : 'full')}
+                        onToggleHidden={() => setChatViewMode(prev => prev === 'hidden' ? 'mini' : 'hidden')}
+                        theme="basic"
+                        presentedItem={presentedItem}
+                        onClearPresentation={clearPresentation}
+                        showViewControls={false}
+                        isSidebarVisible={isSidebarPanelOpen}
+                    />
+                )}
+
+                {/* Eavesdrop UI (시뮬레이션 용) */}
+                {eavesdropState && (
+                    <>
+                        <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
+                            <span className="text-xs text-gray-400 mb-1">
+                                문 너머 대상: 이민어, 구복치
+                            </span>
+
+                            {(eavesdropState === 'preview' || eavesdropState === 'choice') && (
+                                <>
+                                    <button
+                                        className="w-full py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
+                                        onClick={() => handleEavesdropActionTutorial('intercept')}
+                                    >
+                                        🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
+                                    </button>
+                                    <button
+                                        className="w-full py-2 bg-purple-700 hover:bg-purple-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
+                                        onClick={() => handleEavesdropActionTutorial('listen')}
+                                    >
+                                        👂 계속 엿듣기 ({ACTION_COSTS.eavesdropContinue} HP)
+                                    </button>
+                                    <button
+                                        className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
+                                        onClick={handleCloseEavesdrop}
+                                    >
+                                        떠나기
+                                    </button>
+                                </>
+                            )}
+
+                            {eavesdropState === 'listening' && (
+                                <button
+                                    className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
+                                    onClick={handleCloseEavesdrop}
+                                >
+                                    떠나기
+                                </button>
+                            )}
+                        </div>
+
+                        <GameHUD
+                            mapInfo={mapInfo}
+                            activeNpc={null}
+                            viewMode="mini"
+                            logs={eavesdropLogs}
+                            dialogContent={eavesdropDialogContent}
+                            isThinking={null}
+                            showViewControls={false}
+                            isSidebarVisible={isSidebarPanelOpen}
+                        >
+                            <div className="absolute bottom-[calc(100%+8px)] w-full left-0 flex flex-col gap-2 px-1 pb-2">
+                                {/* Listening progress */}
+                                {eavesdropState === 'listening' && (
+                                    <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
+                                        <span className="text-sm text-purple-300">
+                                            {isEavesdropThinking ? '생각 중...' : `엿듣는 중... (${eavesdropAutoIndex}/${EAVESDROP_SIMULATION_DATA.length})`}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {eavesdropState === 'done' && (
+                                    <div className="mt-2 flex justify-center">
+                                        <button
+                                            onClick={handleCloseEavesdrop}
+                                            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg animate-pulse"
+                                        >
+                                            닫기
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </GameHUD>
+                    </>
+                )}
+
+                {/* NPC 대화 HP 경고 모달 (표준 컴포넌트 사용) */}
+                {showNpcChatHpWarning && (
+                    <HpWarningModal
+                        isOpen={true}
+                        config={{
+                            title: '대화 시작 확인',
+                            cost: 10,
+                            desc: '곽빙어와 대화를 시작하면 10 HP가 소모됩니다. 대화가 끝날 때까지 이동과 다른 상호작용이 제한됩니다.',
+                            onConfirm: handleConfirmChatHp,
+                        }}
+                        onClose={handleCancelChatHp}
+                    />
+                )}
+
+                {/* 대화창 */}
+                {showNpcDialog && (
+                    <div className="absolute inset-x-0 bottom-0 top-0 pointer-events-none flex flex-col justify-end items-center z-50">
+                        {currentScript[npcDialogStep]?.portrait && (
+                            <PortraitDisplay activeNpc={npcData?.bingeo} mood="neutral" isVisible={true} isLeft={false} />
+                        )}
+                        <Motion.div
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-black/90 backdrop-blur-sm border-t border-white/20 p-8 pt-6 w-full max-w-4xl text-white cursor-pointer pointer-events-auto rounded-t-3xl shadow-2xl relative"
+                            onClick={handleNpcNext}
+                        >
+                            <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-blue-600 text-white font-bold px-4 py-1 rounded-full text-sm">
+                                곽빙어
+                            </div>
+                            <h3 className="text-xl font-bold mb-4 text-gray-200">
+                                {currentScript[npcDialogStep]?.speaker}
+                            </h3>
+                            <p className="text-lg leading-relaxed whitespace-pre-line text-white/90">
+                                {currentScript[npcDialogStep]?.text}
+                            </p>
+                            <div className="absolute bottom-4 right-6 animate-pulse">
+                                <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </Motion.div>
+                    </div>
+                )}
+
+                {/* 아이템 획득 팝업 */}
+                {pendingItem && (
+                    <ItemPickupModal
+                        isOpen={true}
+                        item={ITEMS[pendingItem.itemId] || { name: 'Unknown', description: '' }}
+                        onClose={() => setPendingItem(null)}
+                        onCollect={handleItemCollect}
+                    />
+                )}
+
+                {/* 간이 인벤토리 (강제 제시용) */}
+
+                {/* 간이 인벤토리 (강제 사용용) */}
+
+
+                {/* 물고기 레벨 피드백 이펙트 */}
+                {step === 'fish_level_up' && (
                     <Motion.div
-                        key="map-viewer"
+                        key="fish_level_up"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-gray-900 overflow-hidden"
-                        style={{
-                            backgroundImage: mapInfo?.background,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        }}
+                        transition={{ duration: 1 }}
+                        className="absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-8 text-center"
                     >
-                        {/* Map Interactive Layer */}
-                        <MapInteractiveLayer
-                            mapInfo={mapInfo}
-                            onInteract={handleMapInteract}
-                            highlightCondition={(zone) => step === 'obtain_item005' && zone.type === 'item' && zone.itemId === 'item005'}
-                            isInteractionLocked={isMapInteractionLocked}
-                        />
-
-                        {/* NPC "대화하기" 버튼 (강의실에서 곽빙어와 대화 시작) */}
-                        {mapInfo?.id === 'umi_class' && step === 'npc_chat_tutorial' && (
-                            <div
-                                className="absolute z-20 flex flex-col items-center gap-2"
-                                style={{ left: '50%', bottom: '18%', transform: 'translateX(-50%)' }}
-                            >
-                                <button
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-xl transition-all hover:scale-105 animate-pulse"
-                                    onClick={handleStartChatClick}
-                                >
-                                    💬 대화하기
-                                </button>
-                                <span className="text-xs text-white/70 bg-black/50 px-2 py-1 rounded">10 HP 소모</span>
-                            </div>
-                        )}
+                        <Motion.div
+                            animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="text-6xl mb-6"
+                        >
+                            🐟
+                        </Motion.div>
+                        <h3 className="text-2xl font-bold text-white mb-8">FISH LEVEL INCREASED</h3>
+                        <p className="text-white text-lg font-serif italic text-gray-400">몸 속에 기이한 기운이 퍼져나간다...</p>
                     </Motion.div>
                 )}
-            </AnimatePresence>
 
-            {step !== 'intro' && step !== 'fadeout' && step !== 'fish_level_up' && canToggleMenu && (
-                <IngameSidebarMenu
-                    currentFloorId={currentFloorId}
-                    currentRoomId={currentRoomId}
-                    onNavigate={handleMenuNavigate}
-                    disabledPanels={['recorder']}
-                    inventoryUseDisabled={disableItemUseInInventory}
-                    inventoryUseOnlyItemId={inventoryUseOnlyItemId}
-                    onPanelStateChange={handleSidebarPanelStateChange}
-                />
-            )}
-
-
-            {/* 가이드 팝업 */}
-            <InteractionPopup
-                isOpen={guideOpen}
-                messages={guideMessages}
-                onComplete={handleGuideComplete}
-                title="튜토리얼 안내"
-                showTitle
-            />
-
-            {/* 메신저 앱 */}
-            <AnimatePresence>
-                {showMessenger && (
+                {/* 암전 (시간 경과 / 다음 날 전환) */}
+                {step === 'fadeout' && (
                     <Motion.div
-                        key="messenger"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '-100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="absolute left-0 top-0 w-[420px] h-full bg-white shadow-2xl z-40 border-r border-gray-300"
+                        key="fadeout"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 2 }}
+                        className="absolute inset-0 bg-black z-[100] flex flex-col items-center justify-center"
                     >
-                        <MessengerApp
-                            isStartMode={true}
-                            onBack={() => { }}
-                            onComplete={() => { }}
-                        />
-                        <MessengerDisconnectWatcher onDisconnect={() => setMessengerDisconnected(true)} />
+                        <p className="text-white text-xl font-serif">...정신이 아득해진다...</p>
                     </Motion.div>
                 )}
-            </AnimatePresence>
-
-            {/* AI 채팅 UI (npc_chatting 스텝) */}
-            {step === 'npc_chatting' && (
-                <SmartphoneMenu
-                    logs={chatLogs}
-                    dialogContent={chatDialogContent}
-                    isThinking={isChatThinking}
-                    onSend={handleTutorialChatSend}
-                    inputText={chatInputText}
-                    setInputText={setChatInputText}
-                    viewMode={chatViewMode}
-                    onToggleExpand={() => setChatViewMode(prev => prev === 'full' ? 'mini' : 'full')}
-                    onToggleHidden={() => setChatViewMode(prev => prev === 'hidden' ? 'mini' : 'hidden')}
-                    theme="basic"
-                    presentedItem={presentedItem}
-                    npcName="곽빙어"
-                    onClearPresentation={clearPresentation}
-                    showControls={false}
-                    leftInset="340px"
-                    rightInset="24px"
-                />
-            )}
-
-            {/* NPC 대화 HP 경고 모달 */}
-            {showNpcChatHpWarning && (
-                <Motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                >
-                    <Motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-gray-900/95 border border-yellow-500/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
-                    >
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className="text-yellow-400 text-lg">⚠️</span>
-                            <span className="text-sm font-bold text-yellow-300">대화 시작 확인</span>
-                        </div>
-                        <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            곽빙어와 대화를 시작하면 <strong className="text-yellow-300">10 HP</strong>가 소모됩니다.<br />
-                            대화가 끝날 때까지 이동과 다른 상호작용이 제한됩니다.
-                        </p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleCancelChatHp}
-                                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-gray-300 transition-colors"
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmChatHp}
-                                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold text-white transition-colors"
-                            >
-                                대화 시작
-                            </button>
-                        </div>
-                    </Motion.div>
-                </Motion.div>
-            )}
-
-            {/* 대화창 */}
-            {showNpcDialog && (
-                <div className="absolute inset-x-0 bottom-0 top-0 pointer-events-none flex flex-col justify-end items-center z-50">
-                    {currentScript[npcDialogStep]?.portrait && (
-                        <PortraitDisplay activeNpc={npcData?.bingeo} mood="neutral" isVisible={true} isLeft={false} />
-                    )}
-                    <Motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-black/90 backdrop-blur-sm border-t border-white/20 p-8 pt-6 w-full max-w-4xl text-white cursor-pointer pointer-events-auto rounded-t-3xl shadow-2xl relative"
-                        onClick={handleNpcNext}
-                    >
-                        <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-blue-600 text-white font-bold px-4 py-1 rounded-full text-sm">
-                            곽빙어
-                        </div>
-                        <h3 className="text-xl font-bold mb-4 text-gray-200">
-                            {currentScript[npcDialogStep]?.speaker}
-                        </h3>
-                        <p className="text-lg leading-relaxed whitespace-pre-line text-white/90">
-                            {currentScript[npcDialogStep]?.text}
-                        </p>
-                        <div className="absolute bottom-4 right-6 animate-pulse">
-                            <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </Motion.div>
-                </div>
-            )}
-
-            {/* 아이템 획득 팝업 */}
-            {pendingItem && (
-                <ItemPickupModal
-                    isOpen={true}
-                    item={ITEMS[pendingItem.itemId] || { name: 'Unknown', description: '' }}
-                    onClose={() => setPendingItem(null)}
-                    onCollect={handleItemCollect}
-                />
-            )}
-
-            {/* 간이 인벤토리 (강제 제시용) */}
-
-            {/* 간이 인벤토리 (강제 사용용) */}
-
-
-            {/* 물고기 레벨 피드백 이펙트 */}
-            {step === 'fish_level_up' && (
-                <Motion.div
-                    key="fish_level_up"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1 }}
-                    className="absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-8 text-center"
-                >
-                    <Motion.div
-                        animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                        className="text-6xl mb-6"
-                    >
-                        🐟
-                    </Motion.div>
-                    <h3 className="text-2xl font-bold text-white mb-8">FISH LEVEL INCREASED</h3>
-                    <p className="text-white text-lg font-serif italic text-gray-400">몸 속에 기이한 기운이 퍼져나간다...</p>
-                </Motion.div>
-            )}
-
-            {/* 암전 (시간 경과 / 다음 날 전환) */}
-            {step === 'fadeout' && (
-                <Motion.div
-                    key="fadeout"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 2 }}
-                    className="absolute inset-0 bg-black z-[100] flex flex-col items-center justify-center"
-                >
-                    <p className="text-white text-xl font-serif">...정신이 아득해진다...</p>
-                </Motion.div>
-            )}
 
             </MapContainer>
         </div>
