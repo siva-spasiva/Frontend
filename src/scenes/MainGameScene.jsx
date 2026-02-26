@@ -733,6 +733,26 @@ const MainGameScene = () => {
         setIsEavesdropThinking(false);
         setEavesdropHistory((prev) => [...prev, turn]);
 
+        if (eavesdropAutoRef.current) {
+            clearTimeout(eavesdropAutoRef.current);
+        }
+        eavesdropAutoRef.current = setTimeout(() => {
+            runAutoEavesdrop(index + 1, updatedLogs, pendingTurns, activeNpcIds);
+        }, 2000);
+    };
+
+    const handleCloseEavesdrop = () => {
+        setEavesdropState(null);
+        setEavesdropLogs([]);
+        setEavesdropDialogContent(null);
+        setEavesdropHistory([]);
+        setIsEavesdropThinking(false);
+        if (eavesdropAutoRef.current) {
+            clearTimeout(eavesdropAutoRef.current);
+            eavesdropAutoRef.current = null;
+        }
+    };
+
     // 떠나기: 엿듣기 세션 종료, 이동 취소 (방 밖 유지)
     const handleLeaveEavesdrop = () => {
         handleCloseEavesdrop();
@@ -810,12 +830,6 @@ const MainGameScene = () => {
                                 ?뮠 {activeNpc?.name}? ??뷀븯湲?
                                 <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
-                                        <button
-                                            onClick={handleLeaveEavesdrop}
-                                            className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                        >
-                                            떠나기
-                                        </button>
 
                             {/* NPC ?꾪솚 */}
                             {npcsInRoom.length > 1 && (
@@ -941,6 +955,12 @@ const MainGameScene = () => {
                                             className="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
                                         >
                                             ?몔 ?용뱽湲?怨꾩냽 ({ACTION_COSTS.eavesdropContinue} HP)
+                                        </button>
+                                        <button
+                                            onClick={handleLeaveEavesdrop}
+                                            className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            떠나기
                                         </button>
                                     </div>
                                 )}
