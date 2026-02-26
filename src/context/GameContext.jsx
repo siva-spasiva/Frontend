@@ -19,6 +19,7 @@ const getFishTier = (fishLevel) => {
 const FISH_TIER_LABELS = ['정상', '미세 변이', '중간 변이', '심각 변이', '거의 물고기', '완전한 물고기'];
 const MAP_ROOT = '/src/assets/map/';
 const CANDIDATE_FLOOR_IDS = ['1F', '2F', 'B1', 'B2', 'B3', 'B4', 'B5', 'DEBUG'];
+const DEFAULT_INVENTORY_IDS = ['item001', 'item002', 'item003'];
 
 const normalizeInventoryIds = (rawInventory) => {
     if (!Array.isArray(rawInventory)) return null;
@@ -59,7 +60,7 @@ export const GameProvider = ({ children }) => {
         currentDay: 0,
         currentPeriod: 'morning',
         npcStats: {},
-        inventory: ['smartphone', 'id_card', 'police_badge'],
+        inventory: DEFAULT_INVENTORY_IDS,
     });
 
     const [isTutorialCompleted, setIsTutorialCompleted] = useState(false);
@@ -156,7 +157,7 @@ export const GameProvider = ({ children }) => {
     /**
      * 서버 stats → 프론트 stats 매핑
      */
-    const mapServerStats = (data) => {
+    const mapServerStats = (data, fallbackInventory = DEFAULT_INVENTORY_IDS) => {
         const normalizedInventory = normalizeInventoryIds(data?.inventory);
         return {
             fishLevel: data.fishLevel ?? data.fish_level ?? 0,
@@ -168,7 +169,7 @@ export const GameProvider = ({ children }) => {
             currentDay: data.current_day ?? data.currentDay ?? 0,
             currentPeriod: data.current_session ?? data.currentPeriod ?? 'morning',
             npcStats: data.npcStats ?? {},
-            inventory: normalizedInventory ?? data.inventory ?? ['smartphone', 'id_card', 'police_badge'],
+            inventory: normalizedInventory ?? data.inventory ?? fallbackInventory,
             floorId: data.floor_id ?? null,
             roomId: data.room_id ?? null,
         };
@@ -258,9 +259,11 @@ export const GameProvider = ({ children }) => {
         try {
             const data = await fetchGameStats();
             console.log('Fetched Stats (raw):', data);
-            const mapped = mapServerStats(data);
-            console.log('Fetched Stats (mapped):', mapped);
-            setStats(mapped);
+            setStats(prev => {
+                const mapped = mapServerStats(data, prev.inventory);
+                console.log('Fetched Stats (mapped):', mapped);
+                return { ...prev, ...mapped };
+            });
         } catch (error) {
             console.error('Failed to fetch game stats:', error);
         }
@@ -415,10 +418,9 @@ export const GameProvider = ({ children }) => {
 
         try {
             const newFullData = await updateGameStats(updates, npcId);
-            const mapped = mapServerStats(newFullData || {});
             setStats(prev => ({
                 ...prev,
-                ...mapped,
+                ...mapServerStats(newFullData || {}, prev.inventory),
                 npcStats: newFullData?.npcStats ?? prev.npcStats,
             }));
 
@@ -431,7 +433,11 @@ export const GameProvider = ({ children }) => {
     // Sync without backend call (used when backend already returned updated stats)
     const syncStats = (newStats) => {
         console.log("Syncing Stats:", newStats);
-        setStats(prev => ({ ...prev, ...newStats }));
+        setStats(prev => ({
+            ...prev,
+            ...newStats,
+            inventory: normalizeInventoryIds(newStats?.inventory) ?? newStats?.inventory ?? prev.inventory,
+        }));
     };
 
     // Helper functions maintaining original API

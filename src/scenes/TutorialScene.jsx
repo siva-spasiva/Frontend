@@ -16,7 +16,7 @@ import HpWarningModal from '../components/HpWarningModal';
 const TutorialScene = ({ onComplete }) => {
     // 튜토리얼 진행 상태: 'intro' -> 'outside' -> 'meet_bingeo_outside' -> 'explore_outside' ->
     // 'meet_bingeo_inside' -> 'hp_tutorial' -> 'explore_inside' -> 'obtain_item005' ->
-    // 'return_to_class' -> 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
+    // 'eavesdrop_tutorial' -> 'return_to_class' -> 'npc_chat_tutorial' -> 'npc_chatting' -> 'chat_bingeo_present' ->
     // 'present_tutorial' -> 'use_item_tutorial' -> 'fish_level_up' -> 'fadeout'
 
     const [step, setStep] = useState('intro');
@@ -320,7 +320,7 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     const isBingeoFinishSequence = ['npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present', 'correct_present', 'use_item_tutorial'].includes(step);
-    const disableItemUseInInventory = ['obtain_item005', 'return_to_class', 'npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
+    const disableItemUseInInventory = ['obtain_item005', 'eavesdrop_tutorial', 'return_to_class', 'npc_chat_tutorial', 'npc_chatting', 'chat_bingeo_present', 'present_tutorial', 'wrong_present'].includes(step);
     const inventoryUseOnlyItemId = step === 'use_item_tutorial' ? 'item005' : null;
     const isMapInteractionLocked =
         guideOpen ||
@@ -374,13 +374,18 @@ const TutorialScene = ({ onComplete }) => {
 
         if (step === 'eavesdrop_tutorial') {
             if (zone.type === 'move' && zone.target === 'storage_main') {
+                if (eavesdropAutoRef.current) {
+                    clearTimeout(eavesdropAutoRef.current);
+                    eavesdropAutoRef.current = null;
+                }
                 setEavesdropState('preview');
                 // 시작 안내 후 1초 뒤에 자동 엿듣기 시작
-                setTimeout(() => {
-                    if (eavesdropState !== 'done') {
-                        setEavesdropState('listening');
+                eavesdropAutoRef.current = setTimeout(() => {
+                    setEavesdropState((prev) => {
+                        if (prev !== 'preview') return prev;
                         runSimulatedEavesdrop(0, []);
-                    }
+                        return 'listening';
+                    });
                 }, 1000);
                 return;
             }
@@ -420,6 +425,12 @@ const TutorialScene = ({ onComplete }) => {
         if (step === 'return_to_class' || step === 'npc_chat_tutorial') {
             if (zone.type === 'move') {
                 handleMoveInternal(zone.target);
+                return;
+            }
+
+            if (zone.type === 'info') {
+                showGuide([zone.message || "특별한 단서는 보이지 않는다."]);
+                return;
             }
         }
     };
