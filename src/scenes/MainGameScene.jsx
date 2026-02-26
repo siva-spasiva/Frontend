@@ -72,7 +72,7 @@ const MainGameScene = () => {
     const [inputText, setInputText] = useState('');
 
     // GameContext에서 현재 진행 상태를 받아옴 (튜토리얼 종료 후 설정된 위치 등)
-    const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, triggerEndSession, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
+    const { syncStats, npcData, npcStats, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, triggerEndSession, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
     // Active Room State - Context
     const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
@@ -247,6 +247,13 @@ const MainGameScene = () => {
 
             setEavesdropLogs(previewLogs);
             setEavesdropHistory(previewTurns);
+
+            // NPC 스탯 캡처 + 턴 delta 누적
+            if (conversation?.npc_states) {
+                setChatNpcStats(conversation.npc_states);
+            }
+            accumulateDeltas(previewTurns);
+
             if (conversation?.topic) {
                 setEavesdropTopic(conversation.topic);
             }
@@ -361,6 +368,37 @@ const MainGameScene = () => {
     const [eavesdropAutoIndex, setEavesdropAutoIndex] = useState(0);
     const eavesdropAutoRef = useRef(null);
     const [chatNpcStats, setChatNpcStats] = useState(null);
+    const [npcStatDeltas, setNpcStatDeltas] = useState({});
+
+    // npc_states 절대값 업데이트 헬퍼
+    const updateNpcStatsAbsolute = useCallback((rawStats, fallbackNpcId = null) => {
+        if (!rawStats) return;
+        let stateMap = rawStats;
+        if (typeof rawStats.friendly === 'number' || typeof rawStats.faith === 'number') {
+            const npcId = fallbackNpcId || 'unknown';
+            stateMap = { [npcId]: rawStats };
+        }
+        setChatNpcStats(stateMap);
+    }, []);
+
+    // 턴 analysis에서 delta 누적 헬퍼 (ConversationTurn.analysis.friendly_delta / faith_delta)
+    const accumulateDeltas = useCallback((turns, fallbackNpcId = null) => {
+        if (!Array.isArray(turns) || turns.length === 0) return;
+        setNpcStatDeltas(prev => {
+            const next = { ...prev };
+            turns.forEach(turn => {
+                const analysis = turn.analysis;
+                if (!analysis) return;
+                const npcId = turn.speaker_id || fallbackNpcId || 'unknown';
+                const existing = next[npcId] || { friendly: 0, faith: 0 };
+                next[npcId] = {
+                    friendly: existing.friendly + (analysis.friendly_delta ?? 0),
+                    faith: existing.faith + (analysis.faith_delta ?? 0),
+                };
+            });
+            return next;
+        });
+    }, []);
 
     // === Completed NPC Conversations (per period) ===
     const storageKey = 'umi_completed_chats';
@@ -451,6 +489,7 @@ const MainGameScene = () => {
         setEavesdropTopic(null);
         setInterceptTurnCount(0);
         setChatNpcStats(null);
+        setNpcStatDeltas({});
         if (eavesdropAutoRef.current) {
             clearTimeout(eavesdropAutoRef.current);
             eavesdropAutoRef.current = null;
@@ -555,9 +594,15 @@ const MainGameScene = () => {
                 syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
             }
 
-            // NPC 스탯 업데이트 반영
-            if (data.npc_stats || data.npcStats) {
-                setChatNpcStats(data.npc_stats || data.npcStats);
+            // NPC 스탯 업데이트 (절대값 + 턴 delta)
+            const chatNpcStatesFromData = data.npc_states || data.npc_stats || data.npcStats;
+            if (chatNpcStatesFromData) {
+                updateNpcStatsAbsolute(chatNpcStatesFromData, targetNpc?.id);
+            }
+            // chat API 응답에서 delta 추출 (friendly_delta, faith_delta)
+            const chatDelta = data.analysis || data;
+            if (chatDelta?.friendly_delta !== undefined || chatDelta?.faith_delta !== undefined) {
+                accumulateDeltas([{ speaker_id: targetNpc?.id, analysis: chatDelta }], targetNpc?.id);
             }
 
             // Clear presented item after it's been sent with the message
@@ -636,6 +681,11 @@ const MainGameScene = () => {
 
     const handleConfirmStartChat = () => {
         // HP 차감은 백엔드 chat API에서 자동 처리 (프론트 spendHp 제거)
+        // GameContext의 npcStats에서 현재 NPC 스탯 표시
+        if (activeNpc?.id && npcStats?.[activeNpc.id]) {
+            setChatNpcStats({ [activeNpc.id]: { ...npcStats[activeNpc.id], npc_name: activeNpc.name } });
+        }
+        setNpcStatDeltas({});
         setEavesdropState(null);
         setFreeChatCount(MAX_INTERCEPT_TURNS);
         setEavesdropState('chatting');
@@ -733,9 +783,12 @@ const MainGameScene = () => {
                 syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
             }
 
-            if (response.npc_stats || response.npcStats) {
-                setChatNpcStats(response.npc_stats || response.npcStats);
+            // NPC 스탯 업데이트 (절대값 + 턴 delta)
+            const interceptNpcStates = conversation?.npc_states || response?.npc_states || response?.npc_stats || response?.npcStats;
+            if (interceptNpcStates) {
+                updateNpcStatsAbsolute(interceptNpcStates);
             }
+            accumulateDeltas(npcTurns);
 
             if (npcTurns.length > 0) {
                 const last = npcTurns[npcTurns.length - 1];
@@ -859,6 +912,7 @@ const MainGameScene = () => {
         setEavesdropNpcIds([]);
         setEavesdropTopic(null);
         setChatNpcStats(null);
+        setNpcStatDeltas({});
         if (eavesdropAutoRef.current) {
             clearTimeout(eavesdropAutoRef.current);
             eavesdropAutoRef.current = null;
@@ -895,6 +949,7 @@ const MainGameScene = () => {
         }
         setFreeChatCount(0);
         setChatNpcStats(null);
+        setNpcStatDeltas({});
         setEavesdropState(null);
         setDialogContent({ speaker: 'System', text: '대화가 종료되었습니다.', type: 'system' });
     };
@@ -922,6 +977,7 @@ const MainGameScene = () => {
         setEavesdropDialogContent(null);
         setFreeChatCount(0);
         setChatNpcStats(null);
+        setNpcStatDeltas({});
 
         // 대화 로그 초기화
         setLogs([]);
@@ -983,15 +1039,15 @@ const MainGameScene = () => {
                     {npcsInRoom.length > 0 && !isChatActive && !isEavesdropOverlayActive && (
                         <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
                             <span className="text-xs text-gray-400 mb-1">
-                                ?꾩옱 諛? {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
+                                현재 방: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
                             </span>
 
-                            {/* 1:1 ??뷀븯湲?*/}
+                            {/* 1:1 대화하기 */}
                             <button
                                 onClick={handleStartChatClick}
                                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
                             >
-                                ?뮠 {activeNpc?.name}?(怨? ??뷀븯湲?                                <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
+                                💬 {activeNpc?.name}와(과) 대화하기                                <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
 
                             {/* NPC 전환 */}
@@ -1041,19 +1097,34 @@ const MainGameScene = () => {
                             {/* 다중 NPC 스탯 표시 */}
                             {(chatNpcStats || activeNpc) && (
                                 <div className="flex flex-col gap-2">
-                                    {Object.entries(chatNpcStats || { [activeNpc?.id || 'unknown']: { npc_name: activeNpc?.name } }).map(([id, stats], idx) => {
+                                    {Object.entries(chatNpcStats || { [activeNpc?.id || 'unknown']: { npc_name: activeNpc?.name } }).map(([id, stats]) => {
                                         const npcName = stats.npc_name || stats.name || getNpcName(id) || id;
+                                        const delta = npcStatDeltas[id] || {};
                                         return (
-                                            <div key={id} className={`bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-xl border-l-4 shadow-md ${stats.favor > 50 ? 'border-l-blue-500' : 'border-l-yellow-500'}`}>
+                                            <div key={id} className={`bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-xl border-l-4 shadow-md ${(stats.friendly ?? 0) > 50 ? 'border-l-blue-500' : 'border-l-yellow-500'}`}>
                                                 <h4 className="text-xs font-bold text-gray-200 mb-1.5 truncate">{npcName}</h4>
                                                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] font-mono text-gray-400">
                                                     <div className="flex justify-between items-center">
                                                         <span>친밀도</span>
-                                                        <span className="text-white font-bold">{stats.favor ?? '?'}</span>
+                                                        <span className="text-white font-bold flex items-center gap-1">
+                                                            {stats.friendly ?? '?'}
+                                                            {delta.friendly !== undefined && delta.friendly !== 0 && (
+                                                                <span className={`text-[9px] font-bold ${delta.friendly > 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                                                                    {delta.friendly > 0 ? `+${delta.friendly}` : delta.friendly}
+                                                                </span>
+                                                            )}
+                                                        </span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
                                                         <span>신앙심</span>
-                                                        <span className="text-white font-bold">{stats.alertness ?? '?'}</span>
+                                                        <span className="text-white font-bold flex items-center gap-1">
+                                                            {stats.faith ?? '?'}
+                                                            {delta.faith !== undefined && delta.faith !== 0 && (
+                                                                <span className={`text-[9px] font-bold ${delta.faith > 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                                                                    {delta.faith > 0 ? `+${delta.faith}` : delta.faith}
+                                                                </span>
+                                                            )}
+                                                        </span>
                                                     </div>
                                                     {stats.stress !== undefined && (
                                                         <div className="flex justify-between items-center col-span-2 mt-0.5 pt-0.5 border-t border-white/10">

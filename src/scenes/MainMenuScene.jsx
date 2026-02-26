@@ -3,6 +3,7 @@ import { useGame } from '../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Settings, FileText, Grid, Map, Mic, MessageCircle, Trash2, ChevronRight, Loader } from 'lucide-react';
 import { getSaveSlots, deleteSaveSlot, fetchSlotStats } from '../api/auth';
+import { resolveLocationLabel } from '../data/mapNames';
 import MessengerApp from '../components/apps/MessengerApp';
 import InventoryApp from '../components/apps/InventoryApp';
 import FishPhoneOverlay from '../components/FishPhoneOverlay';
@@ -216,7 +217,7 @@ const SaveSelectScreen = ({ onNewGame, onLoadGame, onBack }) => {
                                         <span>📅 {day}일차 · {PERIOD_LABELS_KR[stats.current_session ?? stats.currentPeriod] ?? '-'}</span>
                                         <span>❤️ {(stats.total_hp ?? stats.hp ?? '?')}+{stats.plus_hp ?? 0} HP</span>
                                         <span>🐟 물고기화 {stats.fish_level ?? stats.fishLevel ?? 0}</span>
-                                        <span>📍 {stats.floor_id ?? '-'} {stats.room_id ?? ''}</span>
+                                        <span>📍 {resolveLocationLabel(stats.floor_id, stats.room_id)}</span>
                                     </div>
                                 )
                             ) : (
