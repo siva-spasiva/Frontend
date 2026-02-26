@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+﻿import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { sendChatMessage } from '../api/chat';
@@ -70,7 +70,7 @@ const MainGameScene = () => {
     // GameContext에서 현재 진행 상태를 받아옴 (튜토리얼 종료 후 설정된 위치 등)
     const { syncStats, npcData, mapData, floorData, currentLocationInfo, setCurrentLocationInfo, addItem, ITEMS, inventory: currentInventory, currentDay, currentPeriod, spendHp, rest, ACTION_COSTS, getHpCostPreview, PERIOD_LABELS, fishLevel, umiLevel, hp, presentedItem, clearPresentation, setActiveNpcInField } = useGame();
 
-    // Active Room State - Context?먯꽌 珥덇린 ?꾩튂瑜?諛쏆븘???쒖옉
+    // Active Room State - Context
     const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
     const [roomApiNpcIds, setRoomApiNpcIds] = useState([]);
     const [roomApiNpcMap, setRoomApiNpcMap] = useState({});
@@ -185,7 +185,7 @@ const MainGameScene = () => {
         setEavesdropDialogContent(null);
         setEavesdropState('preview');
         setIsEavesdropThinking(true);
-        if (viewMode === 'hidden') setViewMode('mini');
+        if (viewMode !== 'full') setViewMode('full');
 
         try {
             const response = await startConversation({
@@ -525,7 +525,16 @@ const MainGameScene = () => {
     const { fishTier, mapEffects, mapFilter, mapTransform, waveFilterId } = useFishVisuals();
     const currentFloorId = currentLocationInfo?.floorId || findFloorIdByRoom(currentRoomId);
     const isChatActive = eavesdropState === 'chatting' || eavesdropState === 'intercepting' || eavesdropState === 'listening';
-    const isMapInteractionLocked = isSidebarPanelOpen || !!pendingMove || !!pendingItem || !!pendingRequirement || !!pendingHpWarning || isChatActive || eavesdropState === 'preview';
+    const isEavesdropOverlayActive = ['preview', 'choice', 'intercepting', 'listening', 'done'].includes(eavesdropState);
+    const eavesdropParticipantIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, 3);
+    const eavesdropParticipantNames = eavesdropParticipantIds.map((npcId) => getNpcName(npcId) || npcId);
+    const isMapInteractionLocked = isSidebarPanelOpen || !!pendingMove || !!pendingItem || !!pendingRequirement || !!pendingHpWarning || isChatActive || isEavesdropOverlayActive;
+    const hudLogs = isEavesdropOverlayActive ? eavesdropLogs : logs;
+    const hudDialogContent = isEavesdropOverlayActive ? eavesdropDialogContent : dialogContent;
+    const hudIsThinking = isEavesdropOverlayActive ? isEavesdropThinking : isThinking;
+    const hudViewMode = isEavesdropOverlayActive
+        ? 'full'
+        : (eavesdropState === 'chatting' ? viewMode : (isChatActive ? 'hidden' : viewMode));
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         setIsSidebarPanelOpen(!!panelState?.isOpen);
@@ -593,7 +602,7 @@ const MainGameScene = () => {
             text: '대화에 끼어들었습니다. 대화를 시작하세요.',
             type: 'system'
         });
-        if (viewMode === 'hidden') setViewMode('mini');
+        if (viewMode !== 'full') setViewMode('full');
     };
 
 
@@ -673,6 +682,7 @@ const MainGameScene = () => {
         setEavesdropState('listening');
         setEavesdropAutoIndex(0);
         setIsEavesdropThinking(true);
+        if (viewMode !== 'full') setViewMode('full');
 
         const activeNpcIds = (eavesdropNpcIds.length > 0 ? eavesdropNpcIds : npcsInRoom).slice(0, 3);
         let turns = [];
@@ -740,33 +750,41 @@ const MainGameScene = () => {
         }, 2000);
     };
 
-    const handleCloseEavesdrop = async () => {
-        try {
-            await endSession({
-                dayIndex: currentDay,
-                sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
-            });
-        } catch (error) {
-            console.warn('Failed to end eavesdrop session:', error);
-        }
+    const handleCloseEavesdrop = () => {
+        const shouldRestorePreviewRoom = !!pendingEavesdropTarget;
+
         setEavesdropState(null);
         setEavesdropLogs([]);
         setEavesdropDialogContent(null);
+        setEavesdropInputText('');
         setEavesdropHistory([]);
         setIsEavesdropThinking(false);
+        setInterceptTurnCount(0);
+        setEavesdropAutoIndex(0);
+        setEavesdropNpcIds([]);
+        setEavesdropTopic(null);
         if (eavesdropAutoRef.current) {
             clearTimeout(eavesdropAutoRef.current);
             eavesdropAutoRef.current = null;
         }
+
+        if (shouldRestorePreviewRoom) {
+            setPendingEavesdropTarget(null);
+            applyRoomPayload(null);
+        }
+
+        endSession({
+            dayIndex: currentDay,
+            sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
+        }).catch((error) => {
+            console.warn('Failed to end eavesdrop session:', error);
+        });
     };
 
 
     // 떠나기: 엿듣기 세션 종료, 이동 취소 (방 밖 유지)
     const handleLeaveEavesdrop = () => {
         handleCloseEavesdrop();
-        setPendingEavesdropTarget(null);
-        // room payload 초기화 (원래 방 상태로)
-        applyRoomPayload(null);
     };
 
     // End 1:1 chat session
@@ -826,34 +844,29 @@ const MainGameScene = () => {
                         isInteractionLocked={isMapInteractionLocked}
                     />
 
-                    <IngameSidebarMenu
-                        currentFloorId={currentFloorId}
-                        currentRoomId={currentRoomId}
-                        onNavigate={handleMove}
-                        onPanelStateChange={handleSidebarPanelStateChange}
-                        onSidebarVisibleChange={handleSidebarVisibleChange}
-                    />
+                    {!isEavesdropOverlayActive && (
+                        <IngameSidebarMenu
+                            currentFloorId={currentFloorId}
+                            currentRoomId={currentRoomId}
+                            onNavigate={handleMove}
+                            onPanelStateChange={handleSidebarPanelStateChange}
+                            onSidebarVisibleChange={handleSidebarVisibleChange}
+                        />
+                    )}
 
                     {/* NPC Interaction Panel */}
-                    {npcsInRoom.length > 0 && !isChatActive && eavesdropState !== 'preview' && eavesdropState !== 'choice' && eavesdropState !== 'done' && (
+                    {npcsInRoom.length > 0 && !isChatActive && !isEavesdropOverlayActive && (
                         <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
                             <span className="text-xs text-gray-400 mb-1">
-                                현재 방: {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
+                                ?꾩옱 諛? {npcsInRoom.map(id => npcData?.[id]?.name || id).join(', ')}
                             </span>
 
-                            {/* 1:1 대화하기 */}
+                            {/* 1:1 ??뷀븯湲?*/}
                             <button
                                 onClick={handleStartChatClick}
                                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
                             >
-                                💬 {activeNpc?.name}와(과) 대화하기
-                                <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
-                            </button>
-                            <button
-                                onClick={handleLeaveEavesdrop}
-                                className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                            >
-                                떠나기
+                                ?뮠 {activeNpc?.name}?(怨? ??뷀븯湲?                                <span className="text-xs text-blue-200">({ACTION_COSTS.npcChat} HP)</span>
                             </button>
 
                             {/* NPC 전환 */}
@@ -883,23 +896,126 @@ const MainGameScene = () => {
                         mapInfo={mapInfo}
                         activeNpc={activeNpc}
                         secondaryNpc={npcsInRoom.length > 1 ? secondaryNpc : undefined}
-                        logs={logs}
-                        dialogContent={dialogContent}
-                        isThinking={isThinking}
+                        logs={hudLogs}
+                        dialogContent={hudDialogContent}
+                        isThinking={hudIsThinking}
                         onSend={eavesdropState === 'chatting' ? handleSend : undefined}
                         inputText={eavesdropState === 'chatting' ? inputText : ''}
-                        setInputText={eavesdropState === 'chatting' ? setInputText : () => { }}
-                        viewMode={eavesdropState === 'chatting' ? viewMode : (isChatActive ? 'hidden' : viewMode)}
+                        setInputText={eavesdropState === 'chatting' ? setInputText : undefined}
+                        inputPlaceholder={eavesdropState === 'chatting' ? 'Type dialogue...' : '대화 작성중...'}
+                        inputForceDisabled={eavesdropState !== 'chatting'}
+                        viewMode={hudViewMode}
                         onToggleHidden={handleToggleHidden}
                         onToggleExpand={handleToggleExpand}
                         isPhoneOpen={false}
                         theme="corrupted"
-                        onToggleNpc={npcsInRoom.length > 1 && !isChatActive ? toggleNpc : undefined}
+                        onToggleNpc={npcsInRoom.length > 1 && !isChatActive && !isEavesdropOverlayActive ? toggleNpc : undefined}
                         presentedItem={presentedItem}
                         onClearPresentation={clearPresentation}
-                        showViewControls={true}
+                        showViewControls={!isEavesdropOverlayActive}
                         isSidebarVisible={isSidebarVisible}
                         chatRightInset="24px"
+                        inputSlot={isEavesdropOverlayActive ? (
+                            <div className="px-6 pt-3 pb-5 border-t border-white/10 bg-black/20 space-y-3">
+                                <div className="flex flex-wrap gap-1.5">
+                                    {eavesdropParticipantNames.length > 0 ? eavesdropParticipantNames.map((name) => (
+                                        <span key={name} className="px-2 py-0.5 rounded-full text-xs bg-purple-900/50 text-purple-100 border border-purple-500/40">
+                                            {name}
+                                        </span>
+                                    )) : (
+                                        <span className="text-xs text-gray-300">李몄뿬???놁쓬</span>
+                                    )}
+                                </div>
+
+                                <p className="text-xs text-gray-300">
+                                    {eavesdropState === 'choice' && '?됰룞???좏깮?섏꽭?? 痍⑥냼 ?꾧퉴吏 留?硫붾돱 ?묎렐???쒗븳?⑸땲??'}
+                                    {eavesdropState === 'intercepting' && '??붿뿉 ?쇱뼱?쒕뒗 以묒엯?덈떎.'}
+                                    {eavesdropState === 'listening' && `?ｋ뒗 以묒엯?덈떎... (${eavesdropAutoIndex}/10)`}
+                                    {eavesdropState === 'done' && '??붽? ?앸궗?듬땲??'}
+                                    {eavesdropState === 'preview' && '??붾? 遺덈윭?ㅻ뒗 以묒엯?덈떎...'}
+                                </p>
+
+                                {eavesdropState === 'choice' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        <button
+                                            onClick={handleInterceptChoice}
+                                            className="py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            ?뿣截??쇱뼱?ㅺ린 ({ACTION_COSTS.eavesdropJoin} HP)
+                                        </button>
+                                        <button
+                                            onClick={handleListenChoice}
+                                            className="py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            ?몔 怨꾩냽 ?용뱽湲?({ACTION_COSTS.eavesdropContinue} HP)
+                                        </button>
+                                        <button
+                                            onClick={handleLeaveEavesdrop}
+                                            className="py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
+                                        >
+                                            痍⑥냼
+                                        </button>
+                                    </div>
+                                )}
+
+                                {eavesdropState === 'intercepting' && (
+                                    <>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={eavesdropInputText}
+                                                onChange={(e) => setEavesdropInputText(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
+                                                placeholder={`?쇱뼱?ㅺ린... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
+                                                className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
+                                                disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={handleInterceptSend}
+                                                disabled={isEavesdropThinking || typeof eavesdropInputText !== 'string' || eavesdropInputText.trim().length === 0}
+                                                className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
+                                            >
+                                                ?꾩넚
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={handleLeaveEavesdrop}
+                                            className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
+                                        >
+                                            痍⑥냼
+                                        </button>
+                                    </>
+                                )}
+
+                                {eavesdropState === 'listening' && (
+                                    <button
+                                        onClick={handleLeaveEavesdrop}
+                                        className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
+                                    >
+                                        洹몃쭔 ?ｊ린
+                                    </button>
+                                )}
+
+                                {eavesdropState === 'preview' && (
+                                    <button
+                                        onClick={handleLeaveEavesdrop}
+                                        className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
+                                    >
+                                        痍⑥냼
+                                    </button>
+                                )}
+
+                                {eavesdropState === 'done' && (
+                                    <button
+                                        onClick={handleLeaveEavesdrop}
+                                        className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
+                                    >
+                                        닫기
+                                    </button>
+                                )}
+                            </div>
+                        ) : null}
                     />
 
                     {/* Navigation Confirmation Popup */}
@@ -940,94 +1056,6 @@ const MainGameScene = () => {
                         requirement={pendingRequirement}
                         onClose={resolveRequirement}
                     />
-
-                    {/* === Eavesdrop / Intercept Chat UI === */}
-                    {(eavesdropState === 'preview' || eavesdropState === 'choice' || eavesdropState === 'intercepting' || eavesdropState === 'listening' || eavesdropState === 'done') && (
-                        <div className="absolute inset-0 z-30 flex flex-col pointer-events-none">
-                            {/* Eavesdrop Logs */}
-                            <div className="flex-1" />
-                            <div className="pointer-events-auto max-h-[60%] flex flex-col" style={{ marginLeft: '340px', marginRight: '24px', marginBottom: '24px' }}>
-                                {/* Log area */}
-                                <div className="flex-1 overflow-y-auto bg-gradient-to-t from-gray-900/95 to-gray-900/70 rounded-t-xl p-4 backdrop-blur-sm" style={{ maxHeight: '300px' }}>
-                                    {eavesdropLogs.map(log => (
-                                        <div key={log.id} className={`mb-2 px-3 py-2 rounded-lg ${log.type === 'eavesdrop_preview' || log.type === 'eavesdrop_listen' ? 'bg-purple-900/30 border-l-2 border-purple-500 italic' : log.type === 'user' ? 'bg-blue-900/30 text-right' : 'bg-gray-800/50'}`}>
-                                            <span className="text-xs text-gray-400 font-bold">{log.speaker}</span>
-                                            <p className="text-sm text-white/90">{log.text}</p>
-                                        </div>
-                                    ))}
-                                    {isEavesdropThinking && <div className="text-xs text-purple-300 animate-pulse px-3">생각 중...</div>}
-                                </div>
-
-                                {/* Dialog Box */}
-                                {eavesdropDialogContent && (
-                                    <div className="bg-black/90 backdrop-blur-sm border-t border-white/20 px-6 py-4 rounded-b-xl">
-                                        <span className="text-xs text-purple-300 font-bold">{eavesdropDialogContent.speaker}</span>
-                                        <p className="text-base text-white/90 mt-1">{eavesdropDialogContent.text}</p>
-                                    </div>
-                                )}
-
-                                {/* Choice Buttons */}
-                                {eavesdropState === 'choice' && (
-                                    <div className="flex gap-3 mt-3">
-                                        <button
-                                            onClick={handleInterceptChoice}
-                                            className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                        >
-                                            🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
-                                        </button>
-                                        <button
-                                            onClick={handleListenChoice}
-                                            className="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg"
-                                        >
-                                            👂 계속 엿듣기 ({ACTION_COSTS.eavesdropContinue} HP)
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Intercept Input */}
-                                {eavesdropState === 'intercepting' && (
-                                    <div className="flex gap-2 mt-2 bg-black/80 p-3 rounded-xl">
-                                        <input
-                                            type="text"
-                                            value={eavesdropInputText}
-                                            onChange={(e) => setEavesdropInputText(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleInterceptSend()}
-                                            placeholder={`끼어들기... (${interceptTurnCount}/${MAX_INTERCEPT_TURNS})`}
-                                            className="flex-1 bg-transparent border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
-                                            disabled={isEavesdropThinking || interceptTurnCount >= MAX_INTERCEPT_TURNS}
-                                            autoFocus
-                                        />
-                                        <button
-                                            onClick={handleInterceptSend}
-                                            disabled={isEavesdropThinking || !eavesdropInputText.trim()}
-                                            className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
-                                        >
-                                            전송
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Listening progress */}
-                                {eavesdropState === 'listening' && (
-                                    <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
-                                        <span className="text-sm text-purple-300">엿듣는 중... ({eavesdropAutoIndex}/10)</span>
-                                    </div>
-                                )}
-
-                                {/* Done */}
-                                {eavesdropState === 'done' && (
-                                    <div className="flex justify-center mt-3">
-                                        <button
-                                            onClick={handleCloseEavesdrop}
-                                            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors"
-                                        >
-                                            닫기
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* 1:1 Chat end button (when chatting) */}
                     {eavesdropState === 'chatting' && freeChatCount <= 0 && (

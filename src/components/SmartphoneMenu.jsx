@@ -29,6 +29,9 @@ const SmartphoneMenu = ({
     leftInset = null,
     rightInset = '40px',
     isSidebarVisible = false,
+    inputPlaceholder = 'Type dialogue...',
+    inputForceDisabled = false,
+    inputSlot = null,
 }) => {
 
     // Derived border color for container
@@ -103,13 +106,17 @@ const SmartphoneMenu = ({
                             theme={theme}
                         />
 
-                        <ChatInput
-                            inputText={inputText}
-                            setInputText={setInputText}
-                            onSend={onSend}
-                            isThinking={isThinking}
-                            theme={theme}
-                        />
+                        {inputSlot || (
+                            <ChatInput
+                                inputText={inputText}
+                                setInputText={setInputText}
+                                onSend={onSend}
+                                isThinking={isThinking}
+                                theme={theme}
+                                placeholder={inputPlaceholder}
+                                forceDisabled={inputForceDisabled}
+                            />
+                        )}
                     </div>
                 </div>
             )}

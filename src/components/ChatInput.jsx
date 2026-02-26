@@ -1,7 +1,15 @@
 import React from 'react';
 import { MessageSquare } from 'lucide-react';
 
-const ChatInput = ({ inputText, setInputText, onSend, isThinking, theme }) => {
+const ChatInput = ({
+    inputText,
+    setInputText,
+    onSend,
+    isThinking,
+    theme,
+    placeholder = 'Type dialogue...',
+    forceDisabled = false,
+}) => {
     const safeInputText = typeof inputText === 'string' ? inputText : '';
     const canEditInput = typeof setInputText === 'function';
     const canSendMessage = typeof onSend === 'function';
@@ -28,17 +36,17 @@ const ChatInput = ({ inputText, setInputText, onSend, isThinking, theme }) => {
                         if (canEditInput) setInputText(e.target.value);
                     }}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type dialogue..."
+                    placeholder={placeholder}
                     className="flex-1 bg-transparent border-none text-white/95 focus:ring-0 placeholder-white/35 h-11 px-4 text-base"
-                    disabled={isThinking || !canEditInput}
+                    disabled={isThinking || !canEditInput || forceDisabled}
                     autoFocus
                 />
                 <button
                     onClick={() => {
                         if (canSendMessage && hasText && !isThinking) onSend();
                     }}
-                    disabled={isThinking || !hasText || !canSendMessage}
-                    className={`mr-1 px-3 py-2 rounded-lg transition-colors font-semibold text-sm ${isThinking || !hasText || !canSendMessage
+                    disabled={isThinking || !hasText || !canSendMessage || forceDisabled}
+                    className={`mr-1 px-3 py-2 rounded-lg transition-colors font-semibold text-sm ${isThinking || !hasText || !canSendMessage || forceDisabled
                         ? 'text-gray-500 bg-gray-800/80'
                         : `${sendButtonClass} shadow-lg`
                         }`}

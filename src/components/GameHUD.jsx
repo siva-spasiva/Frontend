@@ -40,6 +40,9 @@ const GameHUD = ({
 
     // Sidebar State
     isSidebarVisible = false,
+    inputPlaceholder = 'Type dialogue...',
+    inputForceDisabled = false,
+    inputSlot = null,
 
     children
 }) => {
@@ -103,6 +106,9 @@ const GameHUD = ({
                 leftInset={chatLeftInset}
                 rightInset={chatRightInset}
                 isSidebarVisible={isSidebarVisible}
+                inputPlaceholder={inputPlaceholder}
+                inputForceDisabled={inputForceDisabled}
+                inputSlot={inputSlot}
             >
                 {/* Debug / Extra Buttons */}
                 {children}

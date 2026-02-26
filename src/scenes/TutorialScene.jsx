@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+﻿import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
@@ -25,7 +25,7 @@ const TutorialScene = ({ onComplete }) => {
     const {
         addItem, ITEMS, setDay, setPeriod, setCurrentLocationInfo, currentLocationInfo,
         completeTutorial, mapData, npcData,
-        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField, ACTION_COSTS
+        inventory: currentInventory, presentedItem, clearPresentation, setActiveNpcInField
     } = useGame();
 
     const currentFloorId = currentLocationInfo?.floorId || '1F';
@@ -72,6 +72,7 @@ const TutorialScene = ({ onComplete }) => {
     const [isEavesdropThinking, setIsEavesdropThinking] = useState(false);
     const eavesdropAutoRef = useRef(null);
     const [eavesdropAutoIndex, setEavesdropAutoIndex] = useState(0);
+    const tutorialEavesdropParticipants = ['이민어', '구복치'];
     const awaitingItem005InspectRef = useRef(false);
     const openedItem005InventoryRef = useRef(false);
 
@@ -163,15 +164,7 @@ const TutorialScene = ({ onComplete }) => {
         }
     };
 
-    const handleEavesdropActionTutorial = () => {
-        showGuide([
-            "튜토리얼에서는 기능이 제한됩니다.",
-            "본 게임에서는 이 옵션들을 사용해 대화에 끼어들거나 계속 엿들을 수 있습니다.",
-            "하단의 '닫기' 또는 상단의 '떠나기' 버튼을 눌러 돌아가주세요."
-        ]);
-    };
-
-    // 1. 인트로 완료 후 외부 도착
+    // 1. ?명듃濡??꾨즺 ???몃? ?꾩갑
     const handleIntroComplete = async () => {
         setStep('outside');
         // Location is already set to 1F outside01 on mount
@@ -305,7 +298,7 @@ const TutorialScene = ({ onComplete }) => {
                     "솔피의 눈물 아이템을 제시하세요."
                 ]);
             } else if (step === 'correct_present') {
-                // NPC 대사 닫고 채팅 UI 유지 — 사용자의 메시지 대기
+                // NPC ????リ퀬 梨꾪똿 UI ?좎? ???ъ슜?먯쓽 硫붿떆吏 ?湲?
                 setShowNpcDialog(false);
                 setChatDialogContent({
                     speaker: '곽빙어',
@@ -335,7 +328,8 @@ const TutorialScene = ({ onComplete }) => {
         showMessenger ||
         step === 'contract' ||
         isBingeoFinishSequence ||
-        isSidebarPanelOpen;
+        isSidebarPanelOpen ||
+        !!eavesdropState;
 
     const handleSidebarPanelStateChange = useCallback((panelState) => {
         const isPanelOpen = !!panelState?.isOpen;
@@ -422,7 +416,7 @@ const TutorialScene = ({ onComplete }) => {
 
             if (zone.type === 'move') {
                 showGuide([
-                    "지금은 먼저 2층 창고(storage_main) 문에서 엿듣기를 시도해야 합니다."
+                    "지금은 먼저 좌측의 창고 문에서 엿듣기를 시도해야 합니다."
                 ]);
                 return;
             }
@@ -769,7 +763,7 @@ const TutorialScene = ({ onComplete }) => {
         }, 2000);
     };
 
-    const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger;
+    const canToggleMenu = isMenuEnabled && !guideOpen && !showNpcDialog && !showMessenger && !eavesdropState;
 
 
     return (
@@ -915,83 +909,50 @@ const TutorialScene = ({ onComplete }) => {
                     />
                 )}
 
-                {/* Eavesdrop UI (시뮬레이션 용) */}
+                {/* Eavesdrop UI (Tutorial) */}
                 {eavesdropState && (
-                    <>
-                        <div className="absolute top-4 right-4 z-20 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20 flex flex-col gap-2 min-w-[200px]">
-                            <span className="text-xs text-gray-400 mb-1">
-                                문 너머 대상: 이민어, 구복치
-                            </span>
-
-                            {(eavesdropState === 'preview' || eavesdropState === 'choice') && (
-                                <>
-                                    <button
-                                        className="w-full py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
-                                        onClick={() => handleEavesdropActionTutorial('intercept')}
-                                    >
-                                        🗣️ 끼어들기 ({ACTION_COSTS.eavesdropJoin} HP)
-                                    </button>
-                                    <button
-                                        className="w-full py-2 bg-purple-700 hover:bg-purple-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
-                                        onClick={() => handleEavesdropActionTutorial('listen')}
-                                    >
-                                        👂 계속 엿듣기 ({ACTION_COSTS.eavesdropContinue} HP)
-                                    </button>
-                                    <button
-                                        className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
-                                        onClick={handleCloseEavesdrop}
-                                    >
-                                        떠나기
-                                    </button>
-                                </>
-                            )}
-
-                            {eavesdropState === 'listening' && (
-                                <button
-                                    className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors shadow-lg"
-                                    onClick={handleCloseEavesdrop}
-                                >
-                                    떠나기
-                                </button>
-                            )}
-                        </div>
-
-                        <GameHUD
-                            mapInfo={mapInfo}
-                            activeNpc={null}
-                            viewMode="mini"
-                            logs={eavesdropLogs}
-                            dialogContent={eavesdropDialogContent}
-                            isThinking={null}
-                            showViewControls={false}
-                            isSidebarVisible={isSidebarPanelOpen}
-                        >
-                            <div className="absolute bottom-[calc(100%+8px)] w-full left-0 flex flex-col gap-2 px-1 pb-2">
-                                {/* Listening progress */}
-                                {eavesdropState === 'listening' && (
-                                    <div className="mt-2 bg-black/60 p-3 rounded-xl text-center">
-                                        <span className="text-sm text-purple-300">
-                                            {isEavesdropThinking ? '생각 중...' : `엿듣는 중... (${eavesdropAutoIndex}/${EAVESDROP_SIMULATION_DATA.length})`}
+                    <GameHUD
+                        mapInfo={mapInfo}
+                        activeNpc={null}
+                        viewMode="full"
+                        logs={eavesdropLogs}
+                        dialogContent={eavesdropDialogContent}
+                        isThinking={isEavesdropThinking}
+                        inputPlaceholder="듣는 중입니다..."
+                        inputForceDisabled={true}
+                        showViewControls={false}
+                        isSidebarVisible={isSidebarPanelOpen}
+                        inputSlot={(
+                            <div className="px-6 pt-3 pb-5 border-t border-white/10 bg-black/20 space-y-3">
+                                <div className="flex flex-wrap gap-1.5">
+                                    {tutorialEavesdropParticipants.map((name) => (
+                                        <span key={name} className="px-2 py-0.5 rounded-full text-xs bg-purple-900/50 text-purple-100 border border-purple-500/40">
+                                            {name}
                                         </span>
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
 
-                                {eavesdropState === 'done' && (
-                                    <div className="mt-2 flex justify-center">
-                                        <button
-                                            onClick={handleCloseEavesdrop}
-                                            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-bold text-white transition-colors shadow-lg animate-pulse"
-                                        >
-                                            닫기
-                                        </button>
-                                    </div>
-                                )}
+                                <p className="text-xs text-gray-300">
+                                    {eavesdropState === 'preview' && '대화를 불러오는 중입니다...'}
+                                    {eavesdropState === 'listening' && `듣는 중입니다... (${eavesdropAutoIndex}/${EAVESDROP_SIMULATION_DATA.length})`}
+                                    {eavesdropState === 'done' && '튜토리얼 엿듣기가 끝났습니다.'}
+                                </p>
+                                <p className="text-[11px] text-purple-200">
+                                    본편에서는 엿듣기/끼어들기 선택이 가능합니다.
+                                </p>
+
+                                <button
+                                    onClick={handleCloseEavesdrop}
+                                    className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-bold text-white transition-colors"
+                                >
+                                    {eavesdropState === 'done' ? '닫기' : '그만 듣기'}
+                                </button>
                             </div>
-                        </GameHUD>
-                    </>
+                        )}
+                    />
                 )}
 
-                {/* NPC 대화 HP 경고 모달 (표준 컴포넌트 사용) */}
+                {/* NPC 대화 HP 경고 모달 (기존 컴포넌트 사용) */}
                 {showNpcChatHpWarning && (
                     <HpWarningModal
                         isOpen={true}
