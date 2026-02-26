@@ -1,83 +1,59 @@
 import { apiClient } from './client';
 
-const withFallback = async (primary, fallback) => {
-    try {
-        return await primary();
-    } catch (error) {
-        if (!fallback) throw error;
-        return fallback();
-    }
+export const fetchGameStats = async () => {
+    return apiClient('/api/v1/stats', { auth: true });
 };
 
-export const fetchGameStats = async (userId = 'user_dev_session') => {
-    return withFallback(
-        () => apiClient('/api/v1/stats', { auth: true }),
-        () => apiClient(`/api/stats?userId=${userId}`),
-    );
+export const fetchStaticStats = async () => {
+    return apiClient('/api/v1/stats/static', { auth: true });
 };
 
-export const updateGameStats = async (updates, npcId = null, userId = 'user_dev_session') => {
-    return withFallback(
-        () => apiClient('/api/v1/stats', {
-            method: 'POST',
-            auth: true,
-            body: JSON.stringify({ updates }),
-        }),
-        () => {
-            const body = { updates, userId };
-            if (npcId) body.npcId = npcId;
-            return apiClient('/api/stats', {
-                method: 'POST',
-                body: JSON.stringify(body),
-            });
-        },
-    );
-};
-
-export const fetchStaticGameData = async () => {
-    return apiClient('/api/data/static');
-};
-
-export const transferItem = async (npcId, itemId, direction = 'fromNpc', userId = 'user_dev_session') => {
-    return apiClient('/api/stats/transfer-item', {
+export const spendHpAPI = async (amount) => {
+    return apiClient('/api/v1/stats/hp/spend', {
         method: 'POST',
-        body: JSON.stringify({ npcId, itemId, direction, userId }),
+        auth: true,
+        body: JSON.stringify({ hp: amount }),
     });
 };
 
-export const fetchTutorialStatus = async (userId = 'user_dev_session') => {
-    return apiClient(`/api/tutorial/status?userId=${userId}`);
-};
-
-export const completeTutorialAPI = async (userId = 'user_dev_session') => {
-    return apiClient('/api/tutorial/complete', {
+export const updateStats = async (updates) => {
+    return apiClient('/api/v1/stats', {
         method: 'POST',
-        body: JSON.stringify({ userId }),
+        auth: true,
+        body: JSON.stringify({ updates }),
     });
 };
 
-export const spendHpBackend = async (amount) => {
-    return withFallback(
-        () => apiClient('/api/v1/stats/hp/spend', {
-            method: 'POST',
-            auth: true,
-            body: JSON.stringify({ hp: amount }),
-        }),
-        () => apiClient('/action/spendHp', {
-            method: 'POST',
-            body: JSON.stringify({ userId: 'default_user', amount }),
-        }),
-    );
+export const updateGameStats = updateStats;
+
+export const transferItem = async (npcId, itemId, direction = 'fromNpc') => {
+    return apiClient('/api/v1/stats/transfer-item', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({ npcId, itemId, direction }),
+    });
 };
+
+export const fetchTutorialStatus = async () => {
+    return apiClient('/api/v1/tutorial/status', { auth: true });
+};
+
+export const completeTutorialAPI = async () => {
+    return apiClient('/api/v1/tutorial/complete', {
+        method: 'POST',
+        auth: true,
+    });
+};
+
+export const spendHpBackend = spendHpAPI;
 
 export const restBackend = async () => {
-    return apiClient('/action/rest', {
+    return apiClient('/api/v1/action/rest', {
         method: 'POST',
-        body: JSON.stringify({ userId: 'default_user' }),
+        auth: true,
     });
 };
 
 export const updateLocationStats = async (floorId, roomId) => {
-    return updateGameStats({ floor_id: floorId, room_id: roomId });
+    return updateStats({ floor_id: floorId, room_id: roomId });
 };
-

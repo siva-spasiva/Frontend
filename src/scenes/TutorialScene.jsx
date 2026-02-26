@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import IntroSequence from './IntroSequence';
+import { updateLocationStats } from '../api/stats';
 import ItemPickupModal from '../components/ItemPickupModal';
 import MessengerApp from '../components/apps/MessengerApp';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -72,8 +73,16 @@ const TutorialScene = ({ onComplete }) => {
 
     const previousHasItem005 = useRef(currentInventory?.includes('item005'));
 
-    // Initial map data fetch is no longer needed via fetchMapData
+    // Initialize location immediately upon tutorial component mount
+    useEffect(() => {
+        // Set local state
+        setCurrentLocationInfo({ floorId: '1F', roomId: 'outside01' });
 
+        // Sync with backend immediately during the intro
+        updateLocationStats('1F', 'outside01').catch(error => {
+            console.warn('Failed to sync initial tutorial location with server:', error);
+        });
+    }, [setCurrentLocationInfo]);
 
     // Utility: Show Guide
     const showGuide = (messages, onCompleteCallback) => {
@@ -106,7 +115,7 @@ const TutorialScene = ({ onComplete }) => {
         setIsEavesdropThinking(true);
         const turn = EAVESDROP_SIMULATION_DATA[index];
         const newLog = {
-            id: `eavesdrop_${index}_${Math.random().toString(36).substr(2, 5)}`,
+            id: `eavesdrop_${index}`,
             speaker: turn.speaker,
             text: turn.content,
             type: 'eavesdrop_listen',
@@ -159,9 +168,9 @@ const TutorialScene = ({ onComplete }) => {
     };
 
     // 1. 인트로 완료 후 외부 도착
-    const handleIntroComplete = () => {
+    const handleIntroComplete = async () => {
         setStep('outside');
-        setCurrentLocationInfo({ floorId: '1F', roomId: 'outside01' });
+        // Location is already set to 1F outside01 on mount
 
         setTimeout(() => {
             showGuide([

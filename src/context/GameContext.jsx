@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend } from '../api/stats';
+import { fetchGameStats, updateGameStats, transferItem, fetchTutorialStatus, completeTutorialAPI, spendHpBackend, restBackend, fetchStaticStats } from '../api/stats';
 import { login as apiLogin } from '../api/auth';
 import { fetchAllMaps } from '../api/map';
-import { fetchInventory } from '../api/inventory';
-import NPC_DATA from '../data/npcData';
+import { fetchInventory, addItemAPI, consumeItemAPI } from '../api/inventory';
+import { getNpcDataResolved } from '../data/npcData';
 import NPC_SCHEDULE from '../data/npcSchedule';
 import { ITEM_DEFINITIONS } from '../data/items';
 
@@ -95,13 +95,22 @@ export const GameProvider = ({ children }) => {
                 console.warn('[Init] Login failed, will retry on API calls:', err);
             }
 
+            // 1.5. 서버 게임 세션 초기화 (필수)
+            try {
+                await fetchStaticStats();
+                console.log('[Init] Static stats & session initialized');
+            } catch (err) {
+                console.warn('[Init] Initializing static stats failed:', err);
+            }
+
             // 2. 로컬 정적 데이터 로드 (서버 미제공)
             loadLocalStaticData();
 
             // 3. 서버 데이터 fetch (stats + 맵 + 인벤토리 + 튜토리얼)
-            const [, , tutorialRes] = await Promise.all([
+            const [, , , tutorialRes] = await Promise.all([
                 fetchStats(),
                 fetchMapData(),
+                fetchInventoryData(),
                 fetchTutorialStatus().catch(() => ({ isCompleted: false }))
             ]);
             if (tutorialRes && tutorialRes.isCompleted !== undefined) {
@@ -191,13 +200,23 @@ export const GameProvider = ({ children }) => {
         }
     };
 
+    const fetchInventoryData = async () => {
+        try {
+            const data = await fetchInventory();
+            console.log('Fetched Inventory (raw):', data);
+            setStats(prev => ({ ...prev, inventory: data.items || data.inventory || prev.inventory }));
+        } catch (error) {
+            console.error('Failed to fetch inventory:', error);
+        }
+    };
+
     /**
      * 로컬 정적 데이터 로드 (NPC, 스케줄, 아이템)
      */
     const loadLocalStaticData = () => {
         setGameData(prev => ({
             ...prev,
-            npcData: NPC_DATA,
+            npcData: getNpcDataResolved(),
             scheduleData: NPC_SCHEDULE,
             itemData: ITEM_DEFINITIONS,
         }));
@@ -318,15 +337,7 @@ export const GameProvider = ({ children }) => {
         return 'morning';
     };
 
-    const getSectionBoundary = (period) => {
-        switch (period) {
-            case 'morning': return 70;
-            case 'afternoon': return 40;
-            case 'evening': return 10;
-            case 'night': return 0;
-            default: return 0;
-        }
-    };
+
 
     const setDay = (day) => updateStatsBackend({ currentDay: Math.max(0, Math.min(5, day)) });
     const setPeriod = (period) => updateStatsBackend({ currentPeriod: period });
@@ -487,12 +498,20 @@ export const GameProvider = ({ children }) => {
     const incrementFishLevel = () => updateStatsBackend({ fishLevel: stats.fishLevel + 1 });
     const incrementUmiLevel = () => updateStatsBackend({ umiLevel: stats.umiLevel + 1 });
 
-    const addItem = (itemId) => {
-        console.log("Adding item:", itemId);
-        // Prevent duplicates for key items if needed, or just push
-        const currentInventory = stats.inventory || [];
-        if (!currentInventory.includes(itemId)) {
-            updateStatsBackend({ inventory: [...currentInventory, itemId] });
+    const addItem = async (itemId) => {
+        console.log("Adding item API:", itemId);
+        try {
+            // Optimistic
+            const currentInventory = stats.inventory || [];
+            if (!currentInventory.includes(itemId)) {
+                setStats(prev => ({ ...prev, inventory: [...currentInventory, itemId] }));
+            }
+            const res = await addItemAPI(itemId);
+            if (res && res.items) {
+                syncStats({ inventory: res.items });
+            }
+        } catch (err) {
+            console.error("Failed to add item API:", err);
         }
     };
 
@@ -526,7 +545,7 @@ export const GameProvider = ({ children }) => {
     };
 
     // === Consumable Item Usage ===
-    const useItem = (item) => {
+    const useItem = async (item) => {
         if (!item?.consumable) {
             console.warn('Cannot use non-consumable item:', item?.id);
             return false;
@@ -536,20 +555,31 @@ export const GameProvider = ({ children }) => {
             return false;
         }
 
-        const updates = {};
+        try {
+            // Optimistic update
+            const newInv = (stats.inventory || []).filter(id => id !== item.id);
+            const newFishLevel = item.effect?.fishLevel ? Math.min(100, (stats.fishLevel || 0) + item.effect.fishLevel) : stats.fishLevel;
+            setStats(prev => ({ ...prev, inventory: newInv, fishLevel: newFishLevel }));
 
-        // Apply effects
-        if (item.effect?.fishLevel) {
-            updates.fishLevel = Math.min(100, (stats.fishLevel || 0) + item.effect.fishLevel);
+            const res = await consumeItemAPI(item.id);
+            if (res) {
+                // Determine structure based on backend response
+                if (res.global) syncStats(res.global);
+                else {
+                    const mapped = {
+                        inventory: res.items || res.inventory || newInv,
+                        fishLevel: res.fishLevel ?? res.fish_level ?? newFishLevel
+                    };
+                    if (res.total_hp !== undefined) mapped.hp = res.total_hp;
+                    if (res.session_hp !== undefined) mapped.sessionHp = res.session_hp;
+                    syncStats(mapped);
+                }
+            }
+            return true;
+        } catch (err) {
+            console.error('Failed to use item API:', err);
+            return false;
         }
-
-        // Remove from inventory
-        const newInv = (stats.inventory || []).filter(id => id !== item.id);
-        updates.inventory = newInv;
-
-        console.log(`[Use Item] ${item.name} (${item.id}) → effects:`, item.effect);
-        updateStatsBackend(updates);
-        return true;
     };
 
     const inventoryItems = (stats.inventory || [])

@@ -12,7 +12,7 @@ export const addItemAPI = async (itemId) => {
     });
 };
 
-export const useItemAPI = async (itemId) => {
+export const consumeItemAPI = async (itemId) => {
     return apiClient('/api/v1/inventory/use', {
         method: 'POST',
         auth: true,

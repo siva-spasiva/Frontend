@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { sendChatMessage } from '../api/chat';
 import { fetchRoom } from '../api/map';
-import { startConversation, replyConversation, eavesdropMore } from '../api/chat';
+import { startConversation, replyConversation, eavesdropMore, endSession } from '../api/chat';
 import { updateLocationStats } from '../api/stats';
 import GameHUD from '../components/GameHUD';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -469,8 +469,7 @@ const MainGameScene = () => {
             const data = await sendChatMessage(
                 userMsg,
                 targetNpc.id,
-                undefined,
-                presentedItem || null,
+                presentedItem ? (presentedItem.itemId || presentedItem.id) : null,
             );
 
             // 백엔드 응답에서 대화 텍스트 추출
@@ -741,7 +740,15 @@ const MainGameScene = () => {
         }, 2000);
     };
 
-    const handleCloseEavesdrop = () => {
+    const handleCloseEavesdrop = async () => {
+        try {
+            await endSession({
+                dayIndex: currentDay,
+                sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
+            });
+        } catch (error) {
+            console.warn('Failed to end eavesdrop session:', error);
+        }
         setEavesdropState(null);
         setEavesdropLogs([]);
         setEavesdropDialogContent(null);
@@ -763,8 +770,19 @@ const MainGameScene = () => {
     };
 
     // End 1:1 chat session
-    const handleEndChat = () => {
-        if (activeNpc) markNpcChatCompleted(activeNpc.id);
+    const handleEndChat = async () => {
+        if (activeNpc) {
+            markNpcChatCompleted(activeNpc.id);
+            try {
+                await endSession({
+                    dayIndex: currentDay,
+                    sessionIndex: PERIOD_TO_INDEX[currentPeriod] || 1,
+                    npcId: activeNpc.id,
+                });
+            } catch (error) {
+                console.warn('Failed to end chat session:', error);
+            }
+        }
         setFreeChatCount(0);
         setEavesdropState(null);
         setDialogContent({ speaker: 'System', text: '대화가 종료되었습니다.', type: 'system' });

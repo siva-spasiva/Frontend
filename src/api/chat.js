@@ -1,37 +1,14 @@
 import { apiClient } from './client';
 
-const withFallback = async (primary, fallback) => {
-    try {
-        return await primary();
-    } catch (error) {
-        if (!fallback) throw error;
-        return fallback();
-    }
-};
+export const sendChatMessage = async (message, npcId, itemId = null) => {
+    const body = { message, npcId };
+    if (itemId) body.item_id = itemId;
 
-/**
- * Backward-compatible signature:
- * sendChatMessage(message, npcId, userId, presentedItem)
- */
-export const sendChatMessage = async (
-    message,
-    npcId = 'npc_a',
-    userId = 'user_dev_session',
-    presentedItem = null,
-) => {
-    const itemId = presentedItem?.itemId || presentedItem?.id || null;
-
-    return withFallback(
-        () => apiClient('/api/v1/chat', {
-            method: 'POST',
-            auth: true,
-            body: JSON.stringify({ message, npcId, item_id: itemId }),
-        }),
-        () => apiClient('/api/chat', {
-            method: 'POST',
-            body: JSON.stringify({ message, npcId, userId, presentedItem }),
-        }),
-    );
+    return apiClient('/api/v1/chat', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify(body),
+    });
 };
 
 export const startConversation = async ({
@@ -97,4 +74,3 @@ export const endSession = async ({ dayIndex, sessionIndex, npcId = null }) => {
         }),
     });
 };
-
