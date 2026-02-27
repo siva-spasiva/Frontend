@@ -236,7 +236,7 @@ const TutorialScene = ({ onComplete }) => {
     // 2. 메신저 종료 감지 -> 곽빙어 만남
     useEffect(() => {
         if (step === 'outside' && messengerDisconnected) {
-            setIsTransitioning(true);
+            const rafId = requestAnimationFrame(() => setIsTransitioning(true));
             const timer = setTimeout(() => {
                 setIsTransitioning(false);
                 setShowMessenger(false);
@@ -250,7 +250,10 @@ const TutorialScene = ({ onComplete }) => {
                 setShowNpcDialog(true);
                 setNpcDialogStep(0);
             }, 2000);
-            return () => clearTimeout(timer);
+            return () => {
+                cancelAnimationFrame(rafId);
+                clearTimeout(timer);
+            };
         }
     }, [step, messengerDisconnected]);
 
