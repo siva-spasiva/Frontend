@@ -595,7 +595,7 @@ export const GameProvider = ({ children }) => {
         if (willTransition) {
             const transitionInfo = SECTION_TRANSITIONS[currentPer] || {};
             const nextPeriod = transitionInfo.next || 'morning';
-            const penalty = currentRoomHasRest() ? 0 : 5;
+            const penalty = 0;
             const adjustedHp = penalty > 0 ? Math.max(0, newHp - penalty) : newHp;
 
             // Tell backend to advance session (resets session_hp)
