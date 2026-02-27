@@ -68,7 +68,7 @@ const PortraitDisplay = ({ activeNpc, secondaryNpc, className, isPhoneOpen, view
     const hasDual = !!secondaryNpc;
 
     return (
-        <div className={`absolute right-10 top-0 h-full flex items-end justify-center z-0 pointer-events-none ${hasDual ? 'w-[700px]' : 'w-[500px]'} ${className}`}>
+        <div className={`absolute right-10 top-0 h-full flex items-end justify-center z-20 pointer-events-none ${hasDual ? 'w-[700px]' : 'w-[500px]'} ${className}`}>
             <AnimatePresence mode="wait">
                 {hasDual ? (
                     <div key={`dual-${activeNpc.id}-${secondaryNpc.id}`} className="h-full flex items-end justify-center gap-2">

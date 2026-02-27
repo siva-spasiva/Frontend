@@ -53,6 +53,7 @@ const MainLayout = () => {
   const toDebug03 = () => setPhase('debug03');
 
   const [isPhoneOpen, setIsPhoneOpen] = useState(true);
+  const [menuScreen, setMenuScreen] = useState('menu');
   const togglePhone = () => setIsPhoneOpen(prev => !prev);
 
   // Reset phone state when entering new phases
@@ -66,7 +67,7 @@ const MainLayout = () => {
   }, [phase, setIsPhoneCentered]);
 
   const isSplit = ['test02', 'test04', 'test05'].includes(phase);
-  const gameNoDragPhases = ['tutorial', 'mainGame', 'test02', 'test03', 'test04', 'test05'];
+  const gameNoDragPhases = ['mainMenu', 'tutorial', 'mainGame', 'test02', 'test03', 'test04', 'test05'];
   const isGameNoDrag = gameNoDragPhases.includes(phase);
 
   const handleGameDragStartCapture = (event) => {
@@ -150,7 +151,38 @@ const MainLayout = () => {
                   className="absolute inset-0 z-0"
                 >
                   <img src={MainMenuBg} alt="Main Menu Background" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+                  <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+
+                  {/* Game Title — right side, hidden when phone is on sub-screen */}
+                  <AnimatePresence>
+                    {menuScreen === 'menu' && (
+                      <Motion.div
+                        key="game-title"
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 40 }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="absolute inset-y-0 right-0 flex flex-col items-center justify-center pointer-events-none select-none"
+                        style={{ left: '420px' }}
+                      >
+                        <div className="text-center">
+                          <p className="text-sm md:text-base font-mono tracking-[0.4em] uppercase text-white/50 mb-2">Project</p>
+                          <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]" style={{ fontFamily: "'Inter', 'Pretendard', sans-serif" }}>
+                            UMI
+                          </h1>
+                          <div className="flex items-center justify-center gap-3 mt-2">
+                            <span className="block w-12 h-px bg-white/30"></span>
+                            <p className="text-xs md:text-sm font-mono tracking-[0.3em] uppercase text-white/40">protocol</p>
+                            <span className="block w-12 h-px bg-white/30"></span>
+                          </div>
+                        </div>
+
+                        <p className="mt-6 text-[10px] md:text-xs font-mono tracking-widest text-white/25 uppercase">
+                          Solphi Interactive
+                        </p>
+                      </Motion.div>
+                    )}
+                  </AnimatePresence>
                 </Motion.div>
               )}
 
@@ -176,15 +208,15 @@ const MainLayout = () => {
             <div className="absolute inset-0 z-10 pointer-events-none">
               <Motion.div
                 layout
-                className={`flex items-center justify-center overflow-hidden bg-transparent pointer-events-auto ${!isPhoneCentered ? 'shadow-2xl border-r border-gray-600' : ''}`}
+                className="flex items-center justify-center overflow-hidden bg-transparent pointer-events-auto"
                 initial={{ width: '100%' }}
                 animate={{
-                  width: isPhoneCentered
-                    ? '100%'
-                    : (isSplit ? '420px' : '100%'),
-                  x: isPhoneCentered
+                  width: (phase === 'mainMenu')
+                    ? (menuScreen === 'menu' ? '420px' : '100%')
+                    : (isPhoneCentered ? '100%' : (isSplit ? '420px' : '100%')),
+                  x: (phase === 'mainMenu')
                     ? 0
-                    : (isSplit ? (isPhoneOpen ? 0 : '-100%') : 0),
+                    : (isPhoneCentered ? 0 : (isSplit ? (isPhoneOpen ? 0 : '-100%') : 0)),
                   opacity: (isSplit && !isPhoneOpen && !isPhoneCentered) ? 0 : 1,
                   position: 'absolute',
                   left: 0,
@@ -192,7 +224,7 @@ const MainLayout = () => {
                   height: '100%',
                   zIndex: 50
                 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 28 }}
               >
                 <div className="pointer-events-auto w-full h-full flex items-center justify-center">
                   <MainMenuScene
@@ -218,6 +250,7 @@ const MainLayout = () => {
                     onDebug03Start={toDebug03}
                     onHome={toMainMenu}
                     currentPhase={phase}
+                    onMenuScreenChange={setMenuScreen}
                   />
                 </div>
               </Motion.div>

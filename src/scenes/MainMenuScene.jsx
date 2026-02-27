@@ -266,7 +266,7 @@ const SaveSelectScreen = ({ onNewGame, onLoadGame, onBack }) => {
     );
 };
 
-import logo from '../assets/solphi_logo.png';
+// Logo is used only as favicon (public/solphi_logo.png)
 
 const MenuOption = ({ icon: Icon, label, color, onClick }) => (
     <motion.button
@@ -289,25 +289,13 @@ const MenuOption = ({ icon: Icon, label, color, onClick }) => (
 
 const MainMenu = ({ onAppOpen, onOpenSettings }) => {
     return (
-        <div className="w-full h-full flex flex-col items-center p-8 bg-gray-50/50 relative overflow-hidden">
+        <div className="w-full h-full flex flex-col items-center justify-center px-6 bg-gray-50/50 relative overflow-hidden">
             {/* Background decorative elements */}
             <div className="absolute top-[-10%] right-[-20%] w-96 h-96 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-[-10%] left-[-20%] w-80 h-80 bg-purple-400/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            {/* Header / Logo section */}
-            <div className="flex flex-col items-center justify-center mt-12 mb-16 z-10 w-full">
-                <motion.img
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    src={logo}
-                    alt="Solphi Logo"
-                    className="w-48 h-auto object-contain drop-shadow-xl mb-4"
-                />
-            </div>
-
             {/* Options List */}
-            <div className="w-full flex-1 flex flex-col space-y-4 z-10">
+            <div className="w-full flex flex-col space-y-3 z-10">
                 <motion.div initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.5 }}>
                     <MenuOption
                         icon={Play}
@@ -341,9 +329,9 @@ const MainMenu = ({ onAppOpen, onOpenSettings }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="mt-auto pb-4 z-10"
+                className="absolute bottom-4 z-10"
             >
-                <span className="text-xs font-mono font-bold text-gray-400 tracking-widest uppercase">Solphi Version 1.0</span>
+                <span className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">UMI Protocol v1.0</span>
             </motion.div>
         </div>
     );
@@ -414,9 +402,13 @@ import RecorderApp from '../components/apps/RecorderApp';
 import CreditsApp from '../components/apps/CreditsApp';
 
 
-const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onLoadGame, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase }) => {
+const MainMenuScene = ({ onNext, onTestStart, onTest02Start, onTest03Start, onTest04Start, onTest05Start, onStartSequence, onLoadGame, onDebug00Start, onDebug01Start, onDebug02Start, onDebug03Start, onHome, currentPhase, onMenuScreenChange }) => {
     // 'menu' | 'messenger' | 'ingame_home' | 'ingame02_home' | 'ingame03_home' | 'map_app' | 'settings'
-    const [internalPhase, setInternalPhase] = useState('menu');
+    const [internalPhase, setInternalPhaseRaw] = useState('menu');
+    const setInternalPhase = (newPhase) => {
+        setInternalPhaseRaw(newPhase);
+        onMenuScreenChange?.(newPhase);
+    };
 
     // Context for overrides
     const { phoneScreenOverride, setPhoneScreenOverride, currentLocationInfo, setIsPhoneCentered } = useGame();
