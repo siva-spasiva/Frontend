@@ -1,4 +1,6 @@
 # Umi Protocol Frontend
+<img width="800" height="250" alt="spasiva-logo" src="https://github.com/user-attachments/assets/5c926fd0-7b11-4dd5-a2cd-6f490188f0bf" />
+
 
 **Project: Umi Protocol** 은 리액트(React) 기반의 인터랙티브 스토리텔링 웹 게임 프로젝트입니다.  
 플레이어는 '솔피 힐링 클래스'라는 수상한 프로그램에 참가하여, 점차 물고기로 변해가는 신체적/정신적 변화를 겪으며 미지의 공간을 탐험하게 됩니다.
@@ -165,3 +167,18 @@ npm run dev
 ```
 
 브라우저에서 `http://localhost:5173` 으로 접속하여 게임을 플레이할 수 있습니다.
+
+---
+
+## 스크린샷
+
+<img width="1114" height="624" alt="screenshot00" src="https://github.com/user-attachments/assets/fb59bccd-d34e-475d-9d3c-428923510ce2" />
+
+<img width="1114" height="626" alt="screenshot03" src="https://github.com/user-attachments/assets/b3dfed96-c723-4bd3-ad70-4864fa2f07b1" />
+
+<img width="1114" height="626" alt="screenshot05" src="https://github.com/user-attachments/assets/5be80c03-ed0f-4908-b0f5-3c7bde097963" />
+
+<img width="1114" height="628" alt="screenshot02" src="https://github.com/user-attachments/assets/2c9bae2c-001b-4431-a353-e3dc232ab99c" />
+
+
+
