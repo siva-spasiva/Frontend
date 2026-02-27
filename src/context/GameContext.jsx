@@ -271,6 +271,16 @@ export const GameProvider = ({ children }) => {
                 console.log('Fetched Stats (mapped):', mapped);
                 return { ...prev, ...mapped };
             });
+            // 서버에서 위치 정보가 있으면 currentLocationInfo 동기화
+            const serverFloorId = data.floor_id ?? null;
+            const serverRoomId = data.room_id ?? null;
+            if (serverFloorId || serverRoomId) {
+                setCurrentLocationInfo(prev => ({
+                    ...prev,
+                    floorId: serverFloorId ?? prev?.floorId ?? null,
+                    roomId: serverRoomId ?? prev?.roomId ?? null,
+                }));
+            }
         } catch (error) {
             console.error('Failed to fetch game stats:', error);
         }

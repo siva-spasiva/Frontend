@@ -76,7 +76,17 @@ const MainGameScene = () => {
 
     // Active Room State - Context
     const [currentRoomId, setCurrentRoomId] = useState(currentLocationInfo?.roomId || 'room001');
+    const initialLocationApplied = useRef(false);
     const [roomApiNpcIds, setRoomApiNpcIds] = useState([]);
+
+    // 서버에서 위치 정보 로드 후 currentRoomId 동기화 (최초 1회)
+    useEffect(() => {
+        if (!initialLocationApplied.current && currentLocationInfo?.roomId && currentLocationInfo.roomId !== currentRoomId) {
+            console.log('[Location Sync] Restoring saved location:', currentLocationInfo.roomId);
+            setCurrentRoomId(currentLocationInfo.roomId);
+            initialLocationApplied.current = true;
+        }
+    }, [currentLocationInfo?.roomId]);
     const [roomApiNpcMap, setRoomApiNpcMap] = useState({});
     const [roomTopic, setRoomTopic] = useState(null);
     const [roomSingleNpc, setRoomSingleNpc] = useState(null);
