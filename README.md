@@ -180,5 +180,6 @@ npm run dev
 
 <img width="1114" height="628" alt="screenshot02" src="https://github.com/user-attachments/assets/2c9bae2c-001b-4431-a353-e3dc232ab99c" />
 
+<img width="1114" height="627" alt="screenshot04" src="https://github.com/user-attachments/assets/9a809d91-0bce-49b6-b85d-67e2ba7339fe" />
 
 
