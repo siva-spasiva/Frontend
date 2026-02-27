@@ -629,6 +629,8 @@ const MainGameScene = () => {
                 presentedItem ? (presentedItem.itemId || presentedItem.id) : null,
             );
 
+            console.log('[Chat API Response]', JSON.stringify(data, null, 2));
+
             // 백엔드 응답에서 대화 텍스트 추출
             const responseText = data.response || data.message || data.reply || JSON.stringify(data);
 
@@ -638,21 +640,48 @@ const MainGameScene = () => {
                 type: 'active_npc'
             });
 
-            // 백엔드가 반환한 stats로 로컬 동기화 (HP 등)
-            const updatedStats = data.updatedStats || data.hp || data.stats || data.global;
-            if (updatedStats) {
-                syncStats(typeof updatedStats === 'object' ? updatedStats : { hp: updatedStats });
+            // 글로벌 HP 동기화 (data.hp 객체만 사용)
+            const hpData = data.hp || data.stats || data.global;
+            if (hpData && typeof hpData === 'object') {
+                syncStats({
+                    hp: hpData.total_hp ?? hpData.hp,
+                    sessionHp: hpData.session_hp ?? hpData.sessionHp,
+                    plusHp: hpData.plus_hp ?? hpData.plusHp,
+                });
             }
 
-            // NPC 스탯 업데이트 (절대값 + 턴 delta)
-            const chatNpcStatesFromData = data.npc_states || data.npc_stats || data.npcStats;
-            if (chatNpcStatesFromData) {
-                updateNpcStatsAbsolute(chatNpcStatesFromData, targetNpc?.id);
+            // NPC 절대 스탯 업데이트 (data.currentStats 사용)
+            const npcAbsolute = data.currentStats || data.current_stats
+                || data.npc_states || data.npc_stats || data.npcStats;
+            if (npcAbsolute) {
+                updateNpcStatsAbsolute(npcAbsolute, targetNpc?.id);
+                // GameContext에도 NPC 스탯 영구 반영
+                const npcId = targetNpc?.id || data.npcId;
+                if (npcId) {
+                    const flat = (typeof npcAbsolute.friendly === 'number') ? npcAbsolute : npcAbsolute[npcId];
+                    if (flat) {
+                        syncStats({
+                            npcStats: {
+                                ...npcStats,
+                                [npcId]: { ...npcStats?.[npcId], ...flat, npc_name: targetNpc?.name },
+                            },
+                        });
+                    }
+                }
+            } else {
+                console.warn('[Chat API] No NPC absolute stats in response. Keys:', Object.keys(data));
             }
-            // chat API 응답에서 delta 추출 (friendly_delta, faith_delta)
-            const chatDelta = data.analysis || data;
-            if (chatDelta?.friendly_delta !== undefined || chatDelta?.faith_delta !== undefined) {
-                accumulateDeltas([{ speaker_id: targetNpc?.id, analysis: chatDelta }], targetNpc?.id);
+
+            // NPC 변화량(delta) 누적 (data.updatedStats 사용)
+            const npcDelta = data.updatedStats || data.updated_stats;
+            if (npcDelta && (npcDelta.friendly !== undefined || npcDelta.faith !== undefined)) {
+                accumulateDeltas([{
+                    speaker_id: targetNpc?.id,
+                    analysis: {
+                        friendly_delta: npcDelta.friendly ?? 0,
+                        faith_delta: npcDelta.faith ?? 0,
+                    },
+                }], targetNpc?.id);
             }
 
             // Clear presented item after it's been sent with the message
@@ -742,9 +771,13 @@ const MainGameScene = () => {
             setEavesdropState(null);
             return;
         }
-        // GameContext의 npcStats에서 현재 NPC 스탯 표시
-        if (activeNpc?.id && npcStats?.[activeNpc.id]) {
-            setChatNpcStats({ [activeNpc.id]: { ...npcStats[activeNpc.id], npc_name: activeNpc.name } });
+        // GameContext의 npcStats에서 현재 NPC 스탯 표시 (없으면 첫 메시지 후 서버에서 받아서 갱신됨)
+        if (activeNpc?.id) {
+            const existingStats = npcStats?.[activeNpc.id];
+            if (existingStats) {
+                setChatNpcStats({ [activeNpc.id]: { ...existingStats, npc_name: activeNpc.name } });
+            }
+            // existingStats가 없으면 chatNpcStats=null 상태로 둘 -> 첫 메시지 후 서버 응답에서 갱신
         }
         setNpcStatDeltas({});
         setEavesdropState(null);
@@ -1180,7 +1213,7 @@ const MainGameScene = () => {
                             {/* 다중 NPC 스탯 표시 */}
                             {(chatNpcStats || activeNpc) && (
                                 <div className="flex flex-col gap-2">
-                                    {Object.entries(chatNpcStats || { [activeNpc?.id || 'unknown']: { npc_name: activeNpc?.name } }).map(([id, stats]) => {
+                                    {Object.entries(chatNpcStats || { [activeNpc?.id || 'unknown']: { ...npcStats?.[activeNpc?.id], npc_name: activeNpc?.name } }).map(([id, stats]) => {
                                         const npcName = stats.npc_name || stats.name || getNpcName(id) || id;
                                         const delta = npcStatDeltas[id] || {};
                                         return (

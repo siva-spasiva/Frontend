@@ -169,7 +169,7 @@ export const GameProvider = ({ children }) => {
      */
     const mapServerStats = (data, fallbackInventory = DEFAULT_INVENTORY_IDS) => {
         const normalizedInventory = normalizeInventoryIds(data?.inventory);
-        return {
+        const result = {
             fishLevel: data.fishLevel ?? data.fish_level ?? 0,
             hp: data.total_hp ?? data.hp ?? 100,
             sessionHp: data.session_hp ?? 30,
@@ -177,11 +177,15 @@ export const GameProvider = ({ children }) => {
             trust: data.trust ?? 10,
             currentDay: data.current_day ?? data.currentDay ?? 0,
             currentPeriod: data.current_session ?? data.currentPeriod ?? 'morning',
-            npcStats: data.npcStats ?? {},
             inventory: normalizedInventory ?? data.inventory ?? fallbackInventory,
             floorId: data.floor_id ?? null,
             roomId: data.room_id ?? null,
         };
+        // npcStats는 서버가 실제로 반환한 경우에만 포함 (실서버 StatsResponse에는 npcStats 필드 없음)
+        if (data.npcStats !== undefined) {
+            result.npcStats = data.npcStats;
+        }
+        return result;
     };
 
     /**
