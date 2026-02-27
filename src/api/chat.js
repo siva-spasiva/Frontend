@@ -51,6 +51,13 @@ export const replyConversation = async ({
     });
 };
 
+export const eavesdropRoom = async (floorId, roomId) => {
+    return apiClient(`/api/v1/map/${floorId}/room/${roomId}/eavesdrop`, {
+        method: 'POST',
+        auth: true,
+    });
+};
+
 export const eavesdropMore = async ({ dayIndex, sessionIndex, roomId }) => {
     return apiClient('/api/v1/eavesdrop', {
         method: 'POST',

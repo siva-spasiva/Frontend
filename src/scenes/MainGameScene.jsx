@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { useViewMode } from '../hooks/useViewMode';
 import { sendChatMessage } from '../api/chat';
 import { fetchRoom } from '../api/map';
-import { startConversation, replyConversation, eavesdropMore } from '../api/chat';
+import { startConversation, replyConversation, eavesdropMore, eavesdropRoom } from '../api/chat';
 import { updateLocationStats } from '../api/stats';
 import GameHUD from '../components/GameHUD';
 import MapInteractiveLayer from '../components/MapInteractiveLayer';
@@ -210,7 +210,7 @@ const MainGameScene = () => {
         eavesdropParticipantIndex: resolveEavesdropColorIndex(participantIds, speakerId, speakerName),
     }), [resolveEavesdropColorIndex]);
 
-    const openEavesdropPreview = async (payload, fallbackNpcIds = null) => {
+    const openEavesdropPreview = async (payload, fallbackNpcIds = null, roomInfo = null) => {
         const npcIds = (fallbackNpcIds && fallbackNpcIds.length > 0)
             ? fallbackNpcIds
             : normalizeNpcIds(payload);
@@ -233,14 +233,22 @@ const MainGameScene = () => {
         setIsEavesdropThinking(true);
         if (viewMode !== 'full') setViewMode('full');
 
+        const eavesFloorId = roomInfo?.floorId || currentLocationInfo?.floorId;
+        const eavesRoomId = roomInfo?.roomId || currentRoomId;
+
         try {
-            const response = await startConversation({
-                npcIds: participantIds,
-                topic: payload?.topic || null,
-                numTurns: 4,
-                dayIndex: currentDay || null,
-                session: currentPeriod || null,
-            });
+            let response;
+            if (eavesFloorId && eavesRoomId) {
+                response = await eavesdropRoom(eavesFloorId, eavesRoomId);
+            } else {
+                response = await startConversation({
+                    npcIds: participantIds,
+                    topic: payload?.topic || null,
+                    numTurns: 4,
+                    dayIndex: currentDay || null,
+                    session: currentPeriod || null,
+                });
+            }
 
             const conversation = normalizeConversationPayload(response);
             const turns = Array.isArray(conversation?.turns) ? conversation.turns : [];
@@ -383,7 +391,7 @@ const MainGameScene = () => {
             setPendingEavesdropTarget({ floorId: targetFloorId, roomId: targetId, payload: targetRoomPayload });
             // room payload를 임시 적용 (버튼 표시용, 위치는 변경 안 함)
             applyRoomPayload(targetRoomPayload);
-            await openEavesdropPreview(targetRoomPayload, npcs);
+            await openEavesdropPreview(targetRoomPayload, npcs, { floorId: targetFloorId, roomId: targetId });
             return true; // 이동은 나중에 (끼어들기 시)
         }
 
@@ -451,23 +459,7 @@ const MainGameScene = () => {
     }, []);
 
     // === Completed NPC Conversations (per period) ===
-    const storageKey = 'umi_completed_chats';
-    const [completedNpcChats, setCompletedNpcChats] = useState(() => {
-        try {
-            const saved = localStorage.getItem(storageKey);
-            return saved ? JSON.parse(saved) : {};
-        } catch (e) {
-            return {};
-        }
-    });
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(completedNpcChats));
-        } catch (e) {
-            console.warn('Failed to save completedNpcChats to local storage', e);
-        }
-    }, [completedNpcChats]);
+    const [completedNpcChats, setCompletedNpcChats] = useState({});
 
     // Cleanup old periods' data
     useEffect(() => {
@@ -806,6 +798,7 @@ const MainGameScene = () => {
         await openEavesdropPreview(
             roomPayload || { topic: roomTopic, room: { npcIds: npcsInRoom } },
             npcsInRoom,
+            { floorId: currentLocationInfo?.floorId, roomId: currentRoomId },
         );
     };
 
@@ -875,7 +868,7 @@ const MainGameScene = () => {
                     speakerId: turn.speaker_id || null,
                     speakerName: getNpcName(turn.speaker_id) || turn.speaker || 'NPC',
                     text: turn.content,
-                    type: 'active_npc',
+                    type: 'intercept_npc',
                     participantIds: activeNpcIds,
                 }));
             });
@@ -902,7 +895,7 @@ const MainGameScene = () => {
                     speakerId: last.speaker_id || null,
                     speakerName: getNpcName(last.speaker_id) || last.speaker || 'NPC',
                     text: last.content,
-                    type: 'active_npc',
+                    type: 'intercept_npc',
                     participantIds: activeNpcIds,
                 }));
             }
@@ -963,13 +956,20 @@ const MainGameScene = () => {
 
         if (turns.length === 0) {
             try {
-                const fallback = await startConversation({
-                    npcIds: activeNpcIds,
-                    topic: eavesdropTopic || roomTopic || null,
-                    numTurns: 4,
-                    dayIndex: currentDay || null,
-                    session: currentPeriod || null,
-                });
+                const fallbackFloorId = pendingEavesdropTarget?.floorId || currentLocationInfo?.floorId;
+                const fallbackRoomId = pendingEavesdropTarget?.roomId || currentRoomId;
+                let fallback;
+                if (fallbackFloorId && fallbackRoomId) {
+                    fallback = await eavesdropRoom(fallbackFloorId, fallbackRoomId);
+                } else {
+                    fallback = await startConversation({
+                        npcIds: activeNpcIds,
+                        topic: eavesdropTopic || roomTopic || null,
+                        numTurns: 4,
+                        dayIndex: currentDay || null,
+                        session: currentPeriod || null,
+                    });
+                }
                 const conversation = normalizeConversationPayload(fallback);
                 turns = Array.isArray(conversation?.turns) ? conversation.turns : [];
             } catch (error) {

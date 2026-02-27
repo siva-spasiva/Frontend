@@ -51,6 +51,22 @@ const LogEntry = ({ log }) => {
         );
     }
 
+    if (log.type === 'intercept_npc') {
+        return (
+            <div className={`mb-3 text-sm rounded-lg p-3 backdrop-blur-md border border-opacity-30 ${eavesdropStyle.bubbleClass}`}>
+                <div className="flex items-center space-x-2 mb-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${eavesdropStyle.badgeClass}`}>
+                        대화
+                    </span>
+                    <span className={`font-medium text-xs ${eavesdropStyle.speakerClass}`}>{log.speaker}</span>
+                </div>
+                <p className="text-gray-200 pl-1 leading-relaxed">
+                    <FishText text={log.text} />
+                </p>
+            </div>
+        );
+    }
+
     if (log.type === 'active_npc' || log.type === 'npc' || log.type === 'system') {
         const isSystem = log.type === 'system';
         const isEavesdropNpc = !isSystem && Number.isFinite(log?.eavesdropParticipantIndex);
