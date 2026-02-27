@@ -239,7 +239,18 @@ const MainGameScene = () => {
         try {
             let response;
             if (eavesFloorId && eavesRoomId) {
-                response = await eavesdropRoom(eavesFloorId, eavesRoomId);
+                try {
+                    response = await eavesdropRoom(eavesFloorId, eavesRoomId);
+                } catch (roomErr) {
+                    console.warn('eavesdropRoom failed, fallback to startConversation:', roomErr.message);
+                    response = await startConversation({
+                        npcIds: participantIds,
+                        topic: payload?.topic || null,
+                        numTurns: 4,
+                        dayIndex: currentDay || null,
+                        session: currentPeriod || null,
+                    });
+                }
             } else {
                 response = await startConversation({
                     npcIds: participantIds,
